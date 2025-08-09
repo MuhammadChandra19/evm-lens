@@ -5,6 +5,7 @@ import * as comparison from './operations/comparison';
 import * as bitwise from './operations/bitwise';
 import * as keccak from './operations/keccak';
 import * as enviromental from './operations/enviromental';
+import * as block from './operations/block';
 
 const runners: Runners = {
   0x00: { name: 'STOP', runner: controlFlow.STOP },
@@ -55,6 +56,16 @@ const runners: Runners = {
   0x3d: { name: 'RETURNDATASIZE', runner: enviromental.RETURNDATASIZE },
   0x3e: { name: 'RETURNDATACOPY', runner: enviromental.RETURNDATACOPY },
   0x3f: { name: 'EXTCODEHASH', runner: enviromental.EXTCODEHASH },
+
+  0x40: { name: 'BLOCKHASH', runner: block.BLOCKHASH },
+  0x41: { name: 'COINBASE', runner: block.COINBASE },
+  0x42: { name: 'TIMESTAMP', runner: block.TIMESTAMP },
+  0x43: { name: 'NUMBER', runner: block.NUMBER },
+  0x44: { name: 'DIFFICULTY', runner: block.DIFFICULTY },
+  0x45: { name: 'GASLIMIT', runner: block.GASLIMIT },
+  0x46: { name: 'CHAINID', runner: block.CHAINID },
+  0x47: { name: 'SELFBALANCE', runner: block.SELFBALANCE },
+  0x48: { name: 'BASEFEE', runner: block.BASEFEE },
 };
 
 export default runners;

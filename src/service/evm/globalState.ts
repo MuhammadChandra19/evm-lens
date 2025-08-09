@@ -4,8 +4,19 @@ import { Account, Address, State } from './types';
 class GlobalState {
   private _state: State;
 
-  constructor(state: State) {
+  private _recentBlockHashes?: Map<bigint, Buffer>;
+
+  constructor(state: State, opts?: { recentBlockHashes?: Map<bigint, Buffer> }) {
     this._state = state;
+    this._recentBlockHashes = opts?.recentBlockHashes;
+  }
+
+  setRecentBlockHashes(map: Map<bigint, Buffer>) {
+    this._recentBlockHashes = map;
+  }
+
+  getBlockHash(blockNumber: bigint): Buffer | undefined {
+    return this._recentBlockHashes?.get(blockNumber);
   }
 
   getAccount(address: Address) {

@@ -24,3 +24,17 @@ export interface Account {
   balance?: Value;
   code?: Uint8Array;
 }
+
+export interface BlockContext {
+  number: bigint;
+  timestamp: bigint;
+  coinbase: Address;
+  difficulty: bigint;
+  gasLimit: bigint;
+  gasUsed: bigint;
+  baseFee: bigint;
+  blockHash: Buffer;
+  parentHash: Buffer;
+  mixHash: Buffer;
+  chainId: bigint;
+}
