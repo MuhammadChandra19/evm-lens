@@ -15,3 +15,12 @@ export interface TxData {
   gasprice: Gas;
   data: Calldata;
 }
+
+export interface State {
+  [key: Address]: Account;
+}
+
+export interface Account {
+  balance?: Value;
+  code?: Uint8Array;
+}

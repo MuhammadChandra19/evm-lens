@@ -4,6 +4,7 @@ import * as arithmetic from './operations/arithmetic';
 import * as comparison from './operations/comparison';
 import * as bitwise from './operations/bitwise';
 import * as keccak from './operations/keccak';
+import * as enviromental from './operations/enviromental';
 
 const runners: Runners = {
   0x00: { name: 'STOP', runner: controlFlow.STOP },
@@ -37,6 +38,23 @@ const runners: Runners = {
   0x1d: { name: 'SAR', runner: bitwise.SAR },
 
   0x20: { name: 'KECCAK256', runner: keccak.KECCAK256 },
+
+  0x30: { name: 'ADDRESS', runner: enviromental.ADDRESS },
+  0x31: { name: 'BALANCE', runner: enviromental.BALANCE },
+  0x32: { name: 'ORIGIN', runner: enviromental.ORIGIN },
+  0x33: { name: 'CALLER', runner: enviromental.CALLER },
+  0x34: { name: 'CALLVALUE', runner: enviromental.CALLVALUE },
+  0x35: { name: 'CALLDATALOAD', runner: enviromental.CALLDATALOAD },
+  0x36: { name: 'CALLDATASIZE', runner: enviromental.CALLDATASIZE },
+  0x37: { name: 'CALLDATACOPY', runner: enviromental.CALLDATACOPY },
+  0x38: { name: 'CODESIZE', runner: enviromental.CODESIZE },
+  0x39: { name: 'CODECOPY', runner: enviromental.CODECOPY },
+  0x3a: { name: 'GASPRICE', runner: enviromental.GASPRICE },
+  0x3b: { name: 'EXTCODESIZE', runner: enviromental.EXTCODESIZE },
+  0x3c: { name: 'EXTCODECOPY', runner: enviromental.EXTCODECOPY },
+  0x3d: { name: 'RETURNDATASIZE', runner: enviromental.RETURNDATASIZE },
+  0x3e: { name: 'RETURNDATACOPY', runner: enviromental.RETURNDATACOPY },
+  0x3f: { name: 'EXTCODEHASH', runner: enviromental.EXTCODEHASH },
 };
 
 export default runners;

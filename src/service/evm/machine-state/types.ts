@@ -1,3 +1,4 @@
+import GlobalState from '../globalState';
 import { Gas, ProgramCounter, TxData } from '../types';
 import Memory from './memory';
 import Stack from './stack';
@@ -10,4 +11,7 @@ export interface MachineState {
   pc: ProgramCounter;
   gasAvailable: Gas;
   txData: TxData;
+
+  globalState: GlobalState;
+  returnData: Buffer;
 }
