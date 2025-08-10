@@ -1,8 +1,8 @@
-import type Stack from "./stack";
-import type Memory from "./memory";
-import type Storage from "./storage";
-import type GlobalState from "../globalState";
-import type { Block, Gas, Log, ProgramCounter, TxData } from "../types";
+import type Stack from './stack';
+import type Memory from './memory';
+import type Storage from './storage';
+import type GlobalState from '../globalState';
+import type { Block, Gas, Log, ProgramCounter, TxData } from '../types';
 
 export interface MachineState {
   gasAvailable: Gas;
@@ -17,6 +17,8 @@ export interface MachineState {
   block: Block;
   returnData: Buffer;
   logs: Log[];
+
+  codeString: string;
 
   static: boolean;
 }

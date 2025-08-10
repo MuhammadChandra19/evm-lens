@@ -13,6 +13,7 @@ import Storage from './machine-state/storage';
 import type { EVMOpts, EvmRuntimeParams } from './types';
 import type { MachineState } from './machine-state/types';
 import { CallOrCreateRunner, SimpleRunner } from './opcodes/types';
+import { extractFunctionSelectors } from '../../lib/utils/bytecode';
 
 export default class EVM {
   private readonly debug: boolean;
@@ -58,6 +59,7 @@ export default class EVM {
       static: false,
       logs: [],
       pc: 0,
+      codeString: params._codeString || '',
     };
 
     this.logger.start(params._code, params._asm);
@@ -118,11 +120,14 @@ export default class EVM {
     if (this.debug) console.log(this.logger.output);
     if (this.saveLogs) this.logger.saveToFile();
 
+    const selectors = extractFunctionSelectors(ms.codeString);
+
     const result = {
       success,
       stack: ms.stack.dump,
-      return: '',
+      return: ms.returnData.toString('hex'),
       logs: ms.logs,
+      selectors,
     };
 
     return result;

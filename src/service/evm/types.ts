@@ -11,6 +11,7 @@ export interface EVMOpts {
 
 export interface EvmRuntimeParams {
   _code: Uint8Array;
+  _codeString: string;
   _asm: string;
   _txData: TxData;
   _globalState: State;
