@@ -1,6 +1,7 @@
-import { parsers } from "../utils";
+import { parsers } from '../utils';
+import { keccak256 } from 'ethereum-cryptography/keccak';
 
-import type { MachineState } from "../../machine-state/types";
+import type { MachineState } from '../../machine-state/types';
 
 /**
  * ADDRESS opcode (0x30): Push current contract address onto stack
@@ -150,10 +151,7 @@ export function EXTCODECOPY(ms: MachineState) {
   const codeOffset = Number(ms.stack.pop());
   const size = Number(ms.stack.pop());
 
-  const codeBytesPortion = extAccount?.code?.subarray(
-    codeOffset,
-    codeOffset + size,
-  );
+  const codeBytesPortion = extAccount?.code?.subarray(codeOffset, codeOffset + size);
   const codeBuffer = Buffer.from(codeBytesPortion ?? Buffer.alloc(0));
 
   const code = Buffer.alloc(size);
@@ -181,14 +179,33 @@ export function RETURNDATACOPY(ms: MachineState) {
   const returnDataOffset = Number(ms.stack.pop());
   const size = Number(ms.stack.pop());
 
-  const returnData = ms.returnData.subarray(
-    returnDataOffset,
-    returnDataOffset + size,
-  );
+  const returnData = ms.returnData.subarray(returnDataOffset, returnDataOffset + size);
   ms.memory.write(memOffset, returnData, size);
 }
 
-// todo: 0x3f
+/**
+ * EXTCODEHASH opcode (0x3f): Get hash of external account's code
+ * Pops address from stack, pushes keccak256 hash of the account's code
+ * Returns 0 if account doesn't exist or has no code
+ * @param ms - Machine state
+ */
+export function EXTCODEHASH(ms: MachineState) {
+  const address = ms.stack.pop();
+  const addressHex = parsers.BigintIntoHexString(address);
+  const extAccount = ms.globalState?.getAccount(addressHex);
+
+  // If account doesn't exist or has no code, return 0
+  if (!extAccount?.code || extAccount.code.length === 0) {
+    ms.stack.push(0n);
+    return;
+  }
+
+  // Calculate keccak256 hash of the code
+  const codeHash = keccak256(extAccount.code);
+  const hashAsBigInt = parsers.BytesIntoBigInt(codeHash);
+
+  ms.stack.push(hashAsBigInt);
+}
 
 /**
  * SELFBALANCE opcode (0x47): Push current contract's balance onto stack
@@ -199,4 +216,13 @@ export function SELFBALANCE(ms: MachineState) {
   ms.stack.push(res);
 }
 
-// todo: 0x48
+/**
+ * BASEFEE opcode (0x48): Push base fee per gas onto stack
+ * Returns the base fee of the current block (EIP-1559)
+ * @param ms - Machine state
+ */
+export function BASEFEE(ms: MachineState) {
+  // Use block's base fee if available, otherwise default
+  const baseFee = ms.block.baseFee ?? 20000000000n; // Default 20 Gwei
+  ms.stack.push(baseFee);
+}

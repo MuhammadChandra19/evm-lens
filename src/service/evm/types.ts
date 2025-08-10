@@ -38,8 +38,8 @@ export interface Test {
   expect: Partial<TestOutput>;
 }
 
-type TestTxData = Omit<TxData, "data"> & { data: string };
-type TestAccount = Omit<Account, "code"> & { code: Code };
+type TestTxData = Omit<TxData, 'data'> & { data: string };
+type TestAccount = Omit<Account, 'code'> & { code: Code };
 type TestState = Record<Address, TestAccount>;
 
 export interface TxData {
@@ -67,6 +67,8 @@ export interface Block {
   difficulty: bigint;
   gaslimit: string;
   chainid: number;
+  blockHashes?: Record<number, string>;
+  baseFee?: bigint; // Add this optional field
 }
 
 export interface Log {

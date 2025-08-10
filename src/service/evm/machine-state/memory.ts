@@ -1,4 +1,7 @@
-import ERRORS from "../errors";
+import ERRORS from '../errors';
+
+// Add this constant at the top
+const MAX_MEMORY_SIZE = 16 * 1024 * 1024; // 16MB limit
 
 export default class Memory {
   protected _memory: Buffer;
@@ -19,12 +22,20 @@ export default class Memory {
    */
   write(offset: number, value: Buffer, size: 1 | 32 | number) {
     if (offset < 0) throw new Error(ERRORS.INVALID_MEMORY_OFFSET);
-    if (value.length !== size)
-      throw new Error(ERRORS.INVALID_MEMORY_VALUE_SIZE);
+    if (value.length !== size) throw new Error(ERRORS.INVALID_MEMORY_VALUE_SIZE);
 
-    const overflow = Math.ceil((offset + size) / 32) * 32 - this.size;
-    if (overflow)
+    const newSize = offset + size;
+    if (newSize > MAX_MEMORY_SIZE) {
+      throw new Error(ERRORS.INVALID_MEMORY_OFFSET); // Reuse existing error
+    }
+
+    const overflow = Math.ceil(newSize / 32) * 32 - this.size;
+    if (overflow > 0) {
+      if (this.size + overflow > MAX_MEMORY_SIZE) {
+        throw new Error(ERRORS.INVALID_MEMORY_OFFSET);
+      }
       this._memory = Buffer.concat([this._memory, Buffer.alloc(overflow)]);
+    }
 
     for (const byte of value) this._memory[offset++] = byte;
   }
@@ -40,10 +51,18 @@ export default class Memory {
     if (offset < 0) throw new Error(ERRORS.INVALID_MEMORY_OFFSET);
     if (size === 0) return Buffer.alloc(0);
 
-    const overflow = Math.ceil((offset + size) / 32) * 32 - this.size;
-    if (!overflow) return this._memory.subarray(offset, offset + size);
+    const newSize = offset + size;
+    if (newSize > MAX_MEMORY_SIZE) {
+      throw new Error(ERRORS.INVALID_MEMORY_OFFSET);
+    }
 
-    this._memory = Buffer.concat([this._memory, Buffer.alloc(overflow)]);
+    const overflow = Math.ceil(newSize / 32) * 32 - this.size;
+    if (overflow > 0) {
+      if (this.size + overflow > MAX_MEMORY_SIZE) {
+        throw new Error(ERRORS.INVALID_MEMORY_OFFSET);
+      }
+      this._memory = Buffer.concat([this._memory, Buffer.alloc(overflow)]);
+    }
 
     const output = Buffer.alloc(size);
     this._memory.copy(output, 0, offset);
@@ -71,10 +90,10 @@ export default class Memory {
    * @returns String representation of memory as hex, one word per line
    */
   get dump(): string {
-    let dump = "";
-    for (let i = 0; i < this._memory.length; i += 32)
-      dump += this._memory.subarray(i, i + 32).toString("hex") + "\n";
-
+    let dump = '';
+    for (let i = 0; i < this._memory.length; i += 32) {
+      dump += this._memory.subarray(i, i + 32).toString('hex') + '\n';
+    }
     return dump;
   }
 }

@@ -1,12 +1,12 @@
-import { keccak256 } from "ethereum-cryptography/keccak";
+import { keccak256 } from 'ethereum-cryptography/keccak';
 
-import ERRORS from "../../errors";
-import { freshExecutionContext } from "../../machine-state/utils";
-import { parsers, CALL_RESULT } from "../utils";
-import { ZERO_ADDRESS } from "../../constants";
+import ERRORS from '../../errors';
+import { freshExecutionContext } from '../../machine-state/utils';
+import { parsers, CALL_RESULT } from '../utils';
+import { ZERO_ADDRESS } from '../../constants';
 
-import type EVM from "../..";
-import type { MachineState } from "../../machine-state/types";
+import type EVM from '../..';
+import type { MachineState } from '../../machine-state/types';
 
 /**
  * CREATE opcode (0xf0): Create a new contract
@@ -59,8 +59,7 @@ export async function CREATE(ms: MachineState, evm: EVM) {
  * @param evm - EVM instance for recursive execution
  */
 export async function CALL(ms: MachineState, evm: EVM) {
-  const [gas, address, value, argsOffset, argsSize, retOffset, retSize] =
-    ms.stack.popN(7);
+  const [gas, address, value, argsOffset, argsSize, retOffset, retSize] = ms.stack.popN(7);
 
   const data = ms.memory.read(Number(argsOffset), Number(argsSize));
   const to = parsers.BigintIntoHexString(address);
@@ -79,14 +78,13 @@ export async function CALL(ms: MachineState, evm: EVM) {
   const callResult = await evm.run(callMachineState, true);
 
   if (callResult.return) {
-    const callReturnData = Buffer.from(callResult.return, "hex");
+    const callReturnData = Buffer.from(callResult.return, 'hex');
     const callReturnOffset = Number(retOffset);
     const callReturnSize = Number(retSize);
 
     ms.returnData = callReturnData;
 
-    if (callReturnSize > 0)
-      ms.memory.write(callReturnOffset, callReturnData, callReturnSize);
+    if (callReturnSize > 0) ms.memory.write(callReturnOffset, callReturnData, callReturnSize);
   }
 
   if (callResult.success) ms.stack.push(CALL_RESULT.SUCCESS);
@@ -115,8 +113,7 @@ export function RETURN(ms: MachineState) {
  * @param evm - EVM instance for recursive execution
  */
 export async function DELEGATECALL(ms: MachineState, evm: EVM) {
-  const [gas, address, argsOffset, argsSize, retOffset, retSize] =
-    ms.stack.popN(6);
+  const [gas, address, argsOffset, argsSize, retOffset, retSize] = ms.stack.popN(6);
 
   const data = ms.memory.read(Number(argsOffset), Number(argsSize));
   const to = parsers.BigintIntoHexString(address);
@@ -139,14 +136,13 @@ export async function DELEGATECALL(ms: MachineState, evm: EVM) {
   console.log(callResult);
 
   if (callResult.return) {
-    const callReturnData = Buffer.from(callResult.return, "hex");
+    const callReturnData = Buffer.from(callResult.return, 'hex');
     const callReturnOffset = Number(retOffset);
     const callReturnSize = Number(retSize);
 
     ms.returnData = callReturnData;
 
-    if (callReturnSize > 0)
-      ms.memory.write(callReturnOffset, callReturnData, callReturnSize);
+    if (callReturnSize > 0) ms.memory.write(callReturnOffset, callReturnData, callReturnSize);
   }
 
   if (callResult.success) ms.stack.push(CALL_RESULT.SUCCESS);
@@ -160,8 +156,7 @@ export async function DELEGATECALL(ms: MachineState, evm: EVM) {
  * @param evm - EVM instance for recursive execution
  */
 export async function STATICCALL(ms: MachineState, evm: EVM) {
-  const [gas, address, argsOffset, argsSize, retOffset, retSize] =
-    ms.stack.popN(6);
+  const [gas, address, argsOffset, argsSize, retOffset, retSize] = ms.stack.popN(6);
 
   const data = ms.memory.read(Number(argsOffset), Number(argsSize));
   const to = parsers.BigintIntoHexString(address);
@@ -181,14 +176,13 @@ export async function STATICCALL(ms: MachineState, evm: EVM) {
   const callResult = await evm.run(callMachineState, true);
 
   if (callResult.return) {
-    const callReturnData = Buffer.from(callResult.return, "hex");
+    const callReturnData = Buffer.from(callResult.return, 'hex');
     const callReturnOffset = Number(retOffset);
     const callReturnSize = Number(retSize);
 
     ms.returnData = callReturnData;
 
-    if (callReturnSize > 0)
-      ms.memory.write(callReturnOffset, callReturnData, callReturnSize);
+    if (callReturnSize > 0) ms.memory.write(callReturnOffset, callReturnData, callReturnSize);
   }
 
   if (callResult.success) ms.stack.push(CALL_RESULT.SUCCESS);
@@ -233,4 +227,15 @@ export function SELFDESTRUCT(ms: MachineState) {
   ms.pc = ms.code.length;
 
   throw new Error(ERRORS.STOP);
+}
+
+/**
+ * INVALID opcode (0xfe): Invalid instruction that should always fail
+ * This opcode consumes all remaining gas and reverts the transaction
+ * @param _ms - Machine state (unused)
+ * @throws Error always - this opcode should never succeed
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function INVALID(_ms: MachineState) {
+  throw new Error(ERRORS.REVERT);
 }

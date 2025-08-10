@@ -1,6 +1,6 @@
-import { bigMath } from "../utils";
+import { bigMath } from '../utils';
 
-import type { MachineState } from "../../machine-state/types";
+import type { MachineState } from '../../machine-state/types';
 
 /**
  * AND opcode (0x16): Pops two values, pushes bitwise AND result
@@ -53,4 +53,66 @@ export function BYTE(ms: MachineState) {
   ms.stack.push(res);
 }
 
-// todo: 1b, 1c, 1d
+/**
+ * SHL opcode (0x1b): Shift left operation
+ * Pops shift amount and value, pushes value << shift (mod 2^256)
+ * @param ms - Machine state
+ */
+export function SHL(ms: MachineState) {
+  const [shift, value] = ms.stack.popN(2);
+
+  // If shift >= 256, result is 0
+  if (shift >= 256n) {
+    ms.stack.push(0n);
+    return;
+  }
+
+  const res = bigMath.mod256(value << shift);
+  ms.stack.push(res);
+}
+
+/**
+ * SHR opcode (0x1c): Logical shift right operation
+ * Pops shift amount and value, pushes value >> shift
+ * @param ms - Machine state
+ */
+export function SHR(ms: MachineState) {
+  const [shift, value] = ms.stack.popN(2);
+
+  // If shift >= 256, result is 0
+  if (shift >= 256n) {
+    ms.stack.push(0n);
+    return;
+  }
+
+  const res = value >> shift;
+  ms.stack.push(res);
+}
+
+/**
+ * SAR opcode (0x1d): Arithmetic (signed) shift right operation
+ * Pops shift amount and value, pushes signed value >> shift
+ * Preserves the sign bit for negative numbers
+ * @param ms - Machine state
+ */
+export function SAR(ms: MachineState) {
+  const [shift, value] = ms.stack.popN(2);
+
+  // Convert to signed 256-bit representation
+  const signedValue = bigMath.toSigned256(value);
+
+  // If shift >= 256
+  if (shift >= 256n) {
+    // If negative, result is -1 (all 1s), if positive, result is 0
+    const res = signedValue < 0n ? bigMath.mod256(-1n) : 0n;
+    ms.stack.push(res);
+    return;
+  }
+
+  // Perform arithmetic right shift
+  const shiftedValue = signedValue >> shift;
+
+  // Convert back to unsigned 256-bit representation
+  const res = bigMath.toUnsigned256(shiftedValue);
+  ms.stack.push(res);
+}
