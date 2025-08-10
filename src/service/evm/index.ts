@@ -127,6 +127,7 @@ export default class EVM {
       stack: ms.stack.dump,
       return: ms.returnData.toString('hex'),
       logs: ms.logs,
+      globalState: ms.globalState,
       selectors,
     };
 
