@@ -1,18 +1,18 @@
-import { Account, Address, State } from "./types"
+import { Account, Address, State } from "./types";
 
 // For the sake of this test-based challenge,
 // the global state is just a map of addresses to account info,
 // which is passed directly from the test file.
 
 export default class GlobalState {
-  private _state: State
+  private _state: State;
 
   /**
    * Initializes global state with the provided state mapping
    * @param _state - Initial state mapping from addresses to account data
    */
   constructor(_state: State) {
-    this._state = _state
+    this._state = _state;
   }
 
   /**
@@ -21,7 +21,7 @@ export default class GlobalState {
    * @returns Account data or empty object if address not found
    */
   getAccount(address: Address): Account {
-    return this._state[address] ?? {}
+    return this._state[address] ?? {};
   }
 
   /**
@@ -30,7 +30,7 @@ export default class GlobalState {
    * @param account - The account data to set
    */
   setAccount(address: Address, account: Account) {
-    this._state[address] = account
+    this._state[address] = account;
   }
 
   /**
@@ -39,6 +39,6 @@ export default class GlobalState {
    * @returns Balance as bigint, or 0n if account doesn't exist
    */
   getBalance(address: Address): bigint {
-    return this.getAccount(address)?.balance ?? 0n
+    return this.getAccount(address)?.balance ?? 0n;
   }
 }

@@ -1,14 +1,14 @@
-import ERRORS from "../../errors"
-import { parsers } from "../utils"
+import ERRORS from "../../errors";
+import { parsers } from "../utils";
 
-import type { MachineState } from "../../machine-state/types"
+import type { MachineState } from "../../machine-state/types";
 
 /**
  * POP opcode (0x50): Removes the top item from the stack
  * @param ms - Machine state
  */
 export function POP(ms: MachineState) {
-  ms.stack.pop()
+  ms.stack.pop();
 }
 
 /**
@@ -18,14 +18,14 @@ export function POP(ms: MachineState) {
  * @throws Error if not enough bytes available in code
  */
 export function PUSH(ms: MachineState) {
-  const size = ms.code[ms.pc] - 0x5f
-  if (ms.pc + size >= ms.code.length) throw new Error(ERRORS.PC_OUT_OF_BOUNDS)
+  const size = ms.code[ms.pc] - 0x5f;
+  if (ms.pc + size >= ms.code.length) throw new Error(ERRORS.PC_OUT_OF_BOUNDS);
 
-  const value = ms.code.slice(ms.pc + 1, ms.pc + size + 1)
-  const valueAsBigInt = parsers.BytesIntoBigInt(value)
+  const value = ms.code.slice(ms.pc + 1, ms.pc + size + 1);
+  const valueAsBigInt = parsers.BytesIntoBigInt(value);
 
-  ms.pc += size
-  ms.stack.push(valueAsBigInt)
+  ms.pc += size;
+  ms.stack.push(valueAsBigInt);
 }
 
 /**
@@ -34,9 +34,9 @@ export function PUSH(ms: MachineState) {
  * @param ms - Machine state
  */
 export function DUP(ms: MachineState) {
-  const pos = ms.code[ms.pc] - 0x7f
-  const value = ms.stack.peek(pos)
-  ms.stack.push(value)
+  const pos = ms.code[ms.pc] - 0x7f;
+  const value = ms.stack.peek(pos);
+  ms.stack.push(value);
 }
 
 /**
@@ -45,6 +45,6 @@ export function DUP(ms: MachineState) {
  * @param ms - Machine state
  */
 export function SWAP(ms: MachineState) {
-  const pos = ms.code[ms.pc] - 0x8f
-  ms.stack.swap(pos)
+  const pos = ms.code[ms.pc] - 0x8f;
+  ms.stack.swap(pos);
 }

@@ -1,15 +1,15 @@
-import { bigMath } from "../utils"
+import { bigMath } from "../utils";
 
-import type { MachineState } from "../../machine-state/types"
+import type { MachineState } from "../../machine-state/types";
 
 /**
  * AND opcode (0x16): Pops two values, pushes bitwise AND result
  * @param ms - Machine state
  */
 export function AND(ms: MachineState) {
-  const [a, b] = ms.stack.popN(2)
-  const res = a & b
-  ms.stack.push(res)
+  const [a, b] = ms.stack.popN(2);
+  const res = a & b;
+  ms.stack.push(res);
 }
 
 /**
@@ -17,9 +17,9 @@ export function AND(ms: MachineState) {
  * @param ms - Machine state
  */
 export function OR(ms: MachineState) {
-  const [a, b] = ms.stack.popN(2)
-  const res = a | b
-  ms.stack.push(res)
+  const [a, b] = ms.stack.popN(2);
+  const res = a | b;
+  ms.stack.push(res);
 }
 
 /**
@@ -27,9 +27,9 @@ export function OR(ms: MachineState) {
  * @param ms - Machine state
  */
 export function XOR(ms: MachineState) {
-  const [a, b] = ms.stack.popN(2)
-  const res = a ^ b
-  ms.stack.push(res)
+  const [a, b] = ms.stack.popN(2);
+  const res = a ^ b;
+  ms.stack.push(res);
 }
 
 /**
@@ -37,9 +37,9 @@ export function XOR(ms: MachineState) {
  * @param ms - Machine state
  */
 export function NOT(ms: MachineState) {
-  const a = ms.stack.pop()
-  const res = bigMath.mod256(~a)
-  ms.stack.push(res)
+  const a = ms.stack.pop();
+  const res = bigMath.mod256(~a);
+  ms.stack.push(res);
 }
 
 /**
@@ -48,9 +48,9 @@ export function NOT(ms: MachineState) {
  * @param ms - Machine state
  */
 export function BYTE(ms: MachineState) {
-  const [pos, val] = ms.stack.popN(2)
-  const res = pos > 31n ? 0n : (val >> (8n * (31n - pos))) & 0xffn
-  ms.stack.push(res)
+  const [pos, val] = ms.stack.popN(2);
+  const res = pos > 31n ? 0n : (val >> (8n * (31n - pos))) & 0xffn;
+  ms.stack.push(res);
 }
 
 // todo: 1b, 1c, 1d

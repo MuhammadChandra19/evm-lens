@@ -1,6 +1,6 @@
-import { parsers } from "../utils"
+import { parsers } from "../utils";
 
-import type { MachineState } from "../../machine-state/types"
+import type { MachineState } from "../../machine-state/types";
 
 // todo: 0x40
 
@@ -9,8 +9,8 @@ import type { MachineState } from "../../machine-state/types"
  * @param ms - Machine state
  */
 export function COINBASE(ms: MachineState) {
-  const res = ms.block.coinbase
-  ms.stack.push(parsers.HexStringIntoBigInt(res))
+  const res = ms.block.coinbase;
+  ms.stack.push(parsers.HexStringIntoBigInt(res));
 }
 
 /**
@@ -18,8 +18,8 @@ export function COINBASE(ms: MachineState) {
  * @param ms - Machine state
  */
 export function TIMESTAMP(ms: MachineState) {
-  const res = ms.block.timestamp
-  ms.stack.push(res)
+  const res = ms.block.timestamp;
+  ms.stack.push(res);
 }
 
 /**
@@ -27,8 +27,8 @@ export function TIMESTAMP(ms: MachineState) {
  * @param ms - Machine state
  */
 export function NUMBER(ms: MachineState) {
-  const res = ms.block.number
-  ms.stack.push(BigInt(res))
+  const res = ms.block.number;
+  ms.stack.push(BigInt(res));
 }
 
 /**
@@ -36,8 +36,8 @@ export function NUMBER(ms: MachineState) {
  * @param ms - Machine state
  */
 export function DIFFICULTY(ms: MachineState) {
-  const res = ms.block.difficulty
-  ms.stack.push(BigInt(res))
+  const res = ms.block.difficulty;
+  ms.stack.push(BigInt(res));
 }
 
 /**
@@ -45,8 +45,8 @@ export function DIFFICULTY(ms: MachineState) {
  * @param ms - Machine state
  */
 export function GASLIMIT(ms: MachineState) {
-  const res = ms.block.gaslimit
-  ms.stack.push(parsers.HexStringIntoBigInt(res))
+  const res = ms.block.gaslimit;
+  ms.stack.push(parsers.HexStringIntoBigInt(res));
 }
 
 /**
@@ -54,6 +54,6 @@ export function GASLIMIT(ms: MachineState) {
  * @param ms - Machine state
  */
 export function CHAINID(ms: MachineState) {
-  const res = ms.block.chainid
-  ms.stack.push(BigInt(res))
+  const res = ms.block.chainid;
+  ms.stack.push(BigInt(res));
 }

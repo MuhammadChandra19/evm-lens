@@ -1,6 +1,6 @@
-import ERRORS from '../../errors';
+import ERRORS from "../../errors";
 
-import type { MachineState } from '../../machine-state/types';
+import type { MachineState } from "../../machine-state/types";
 
 /**
  * STOP opcode (0x00): Halts execution successfully
@@ -19,7 +19,8 @@ export function STOP() {
 export function JUMP(ms: MachineState) {
   const dest = ms.stack.pop();
   if (dest > ms.code.length) throw new Error(ERRORS.JUMP_OUT_OF_BOUNDS);
-  if (ms.code[Number(dest)] !== 0x5b) throw new Error(ERRORS.JUMP_TO_INVALID_DESTINATION);
+  if (ms.code[Number(dest)] !== 0x5b)
+    throw new Error(ERRORS.JUMP_TO_INVALID_DESTINATION);
   ms.pc = Number(dest);
 }
 
@@ -33,7 +34,8 @@ export function JUMPI(ms: MachineState) {
   const [dest, cond] = ms.stack.popN(2);
   if (cond === 0n) return;
   if (dest > ms.code.length) throw new Error(ERRORS.JUMP_OUT_OF_BOUNDS);
-  if (ms.code[Number(dest)] !== 0x5b) throw new Error(ERRORS.JUMP_TO_INVALID_DESTINATION);
+  if (ms.code[Number(dest)] !== 0x5b)
+    throw new Error(ERRORS.JUMP_TO_INVALID_DESTINATION);
   ms.pc = Number(dest);
 }
 

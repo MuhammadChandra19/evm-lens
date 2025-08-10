@@ -1,18 +1,23 @@
-import { buildBlock, buildState, buildTxData } from './utils';
-import { CALL, CALL_OR_CREATE, MAX_256_BITS, STATIC_DISALLOWED } from './constants';
-import runners from './opcodes/runners';
-import ERRORS from './errors';
+import { buildBlock, buildState, buildTxData } from "./utils";
+import {
+  CALL,
+  CALL_OR_CREATE,
+  MAX_256_BITS,
+  STATIC_DISALLOWED,
+} from "./constants";
+import runners from "./opcodes/runners";
+import ERRORS from "./errors";
 
-import GlobalState from './globalState';
-import Logger from './logger';
+import GlobalState from "./globalState";
+import Logger from "./logger";
 
-import Stack from './machine-state/stack';
-import Memory from './machine-state/memory';
-import Storage from './machine-state/storage';
+import Stack from "./machine-state/stack";
+import Memory from "./machine-state/memory";
+import Storage from "./machine-state/storage";
 
-import type { EVMOpts, EvmRuntimeParams } from './types';
-import type { MachineState } from './machine-state/types';
-import { CallOrCreateRunner, SimpleRunner } from './opcodes/types';
+import type { EVMOpts, EvmRuntimeParams } from "./types";
+import type { MachineState } from "./machine-state/types";
+import { CallOrCreateRunner, SimpleRunner } from "./opcodes/types";
 
 export default class EVM {
   private readonly debug: boolean;
@@ -89,8 +94,10 @@ export default class EVM {
 
         if (ms.static) {
           // throw if opcode is not allowed in static context
-          if (STATIC_DISALLOWED.includes(opcode)) throw new Error(ERRORS.REVERT);
-          if (opcode === CALL && ms.txData.value !== 0n) throw new Error(ERRORS.REVERT);
+          if (STATIC_DISALLOWED.includes(opcode))
+            throw new Error(ERRORS.REVERT);
+          if (opcode === CALL && ms.txData.value !== 0n)
+            throw new Error(ERRORS.REVERT);
         }
 
         await this.execute(ms);
@@ -110,7 +117,9 @@ export default class EVM {
       this._depth--;
 
       if (!reverted) {
-        this.logger.notify(`Subcall completed without REVERT. Depth: ${this._depth}`);
+        this.logger.notify(
+          `Subcall completed without REVERT. Depth: ${this._depth}`,
+        );
         success = true;
       }
     }
@@ -121,7 +130,7 @@ export default class EVM {
     const result = {
       success,
       stack: ms.stack.dump,
-      return: ms.returnData.toString('hex'),
+      return: ms.returnData.toString("hex"),
       logs: ms.logs,
     };
 
@@ -139,7 +148,8 @@ export default class EVM {
     if (!runner) throw new Error(ERRORS.OPCODE_NOT_IMPLEMENTED);
 
     // Handle special cases for CALL and CREATE instructions
-    if (CALL_OR_CREATE.includes(opcode)) await (runner as CallOrCreateRunner)(ms, this);
+    if (CALL_OR_CREATE.includes(opcode))
+      await (runner as CallOrCreateRunner)(ms, this);
     else await (runner as SimpleRunner)(ms);
 
     ms.pc++;

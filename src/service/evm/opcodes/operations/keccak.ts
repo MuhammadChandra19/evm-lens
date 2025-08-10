@@ -1,7 +1,7 @@
-import { keccak256 } from 'ethereum-cryptography/keccak';
-import { parsers } from '../utils';
+import { keccak256 } from "ethereum-cryptography/keccak";
+import { parsers } from "../utils";
 
-import type { MachineState } from '../../machine-state/types';
+import type { MachineState } from "../../machine-state/types";
 
 /**
  * SHA3 opcode (0x20): Compute Keccak-256 hash of memory data

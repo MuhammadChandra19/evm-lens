@@ -1,7 +1,7 @@
-import Memory from "./memory"
-import Stack from "./stack"
+import Memory from "./memory";
+import Stack from "./stack";
 
-import type { MachineState } from "./types"
+import type { MachineState } from "./types";
 
 /**
  * Creates a fresh execution context with new stack, memory, and reset program counter
@@ -13,5 +13,5 @@ export function freshExecutionContext(): Partial<MachineState> {
     stack: new Stack(),
     memory: new Memory(),
     pc: 0,
-  }
+  };
 }

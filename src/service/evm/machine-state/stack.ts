@@ -1,5 +1,5 @@
-import { MAX_256_BITS } from '../constants';
-import ERRORS from '../errors';
+import { MAX_256_BITS } from "../constants";
+import ERRORS from "../errors";
 
 const EMPTY_STACK = 0;
 const FULL_STACK = 1024;
@@ -22,7 +22,8 @@ export default class Stack {
   push(value: bigint) {
     if (value < 0n) throw new Error(ERRORS.STACK_VALUE_TOO_SMALL);
     if (value > MAX_256_BITS) throw new Error(ERRORS.STACK_VALUE_TOO_BIG);
-    if (this._stack.length === FULL_STACK) throw new Error(ERRORS.STACK_OVERFLOW);
+    if (this._stack.length === FULL_STACK)
+      throw new Error(ERRORS.STACK_OVERFLOW);
 
     this._stack.push(value);
   }
@@ -33,7 +34,8 @@ export default class Stack {
    * @throws Error if stack is empty
    */
   pop(): bigint {
-    if (this._stack.length === EMPTY_STACK) throw new Error(ERRORS.STACK_UNDERFLOW);
+    if (this._stack.length === EMPTY_STACK)
+      throw new Error(ERRORS.STACK_UNDERFLOW);
 
     return this._stack.pop()!;
   }
@@ -57,7 +59,8 @@ export default class Stack {
    * @throws Error if stack is empty or position is invalid
    */
   peek(n?: number): bigint {
-    if (this._stack.length === EMPTY_STACK) throw new Error(ERRORS.STACK_UNDERFLOW);
+    if (this._stack.length === EMPTY_STACK)
+      throw new Error(ERRORS.STACK_UNDERFLOW);
 
     return this._stack[this._stack.length - (n || 1)];
   }

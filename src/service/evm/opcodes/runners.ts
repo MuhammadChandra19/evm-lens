@@ -1,21 +1,21 @@
-import { buildOpcodeRangeObjects } from "./utils"
-import type { Runners } from "./types"
+import { buildOpcodeRangeObjects } from "./utils";
+import type { Runners } from "./types";
 
 // Opcode Runners categorization based on the EVM Execution Spec:
 // https://ethereum.github.io/execution-specs/autoapi/ethereum/gray_glacier/vm/instructions/index.html
 
-import * as arithmetic from "./runners/arithmetic"
-import * as bitwise from "./runners/bitwise"
-import * as block from "./runners/block"
-import * as comparison from "./runners/comparison"
-import * as controlFlow from "./runners/control-flow"
-import * as environmental from "./runners/environmental"
-import * as keccak from "./runners/keccak"
-import * as logging from "./runners/logging"
-import * as memory from "./runners/memory"
-import * as stack from "./runners/stack"
-import * as storage from "./runners/storage"
-import * as system from "./runners/system"
+import * as arithmetic from "./operations/arithmetic";
+import * as bitwise from "./operations/bitwise";
+import * as block from "./operations/block";
+import * as comparison from "./operations/comparison";
+import * as controlFlow from "./operations/control-flow";
+import * as environmental from "./operations/environmental";
+import * as keccak from "./operations/keccak";
+import * as logging from "./operations/logging";
+import * as memory from "./operations/memory";
+import * as stack from "./operations/stack";
+import * as storage from "./operations/storage";
+import * as system from "./operations/system";
 
 const runners: Runners = {
   0x00: { name: "STOP", runner: controlFlow.STOP },
@@ -93,6 +93,6 @@ const runners: Runners = {
   0xfd: { name: "REVERT", runner: system.REVERT },
 
   0xff: { name: "SELFDESTRUCT", runner: system.SELFDESTRUCT },
-}
+};
 
-export default runners
+export default runners;

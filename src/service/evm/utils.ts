@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { parsers } from './opcodes/utils';
-import { ZERO_ADDRESS } from './constants';
+import { parsers } from "./opcodes/utils";
+import { ZERO_ADDRESS } from "./constants";
 
-import type { Test, TxData, State, Block } from './types';
+import type { Test, TxData, State, Block } from "./types";
 
 /**
  * Builds transaction data from test parameters or uses defaults
@@ -16,7 +16,7 @@ export function buildTxData(t?: Test): TxData {
     value: BigInt(t?.tx?.value ?? 0),
     origin: t?.tx?.origin ?? t?.tx?.from ?? ZERO_ADDRESS,
     gasprice: BigInt(t?.tx?.gasprice ?? 0),
-    data: Buffer.from(t?.tx?.data ?? '', 'hex'),
+    data: Buffer.from(t?.tx?.data ?? "", "hex"),
   };
 }
 
@@ -34,7 +34,7 @@ export function buildState(t?: Test): State {
     // @ts-expect-error
     state[address] = {
       balance: BigInt(t.state[address].balance || 0),
-      code: parsers.hexStringToUint8Array(t.state[address].code?.bin || '0x00'),
+      code: parsers.hexStringToUint8Array(t.state[address].code?.bin || "0x00"),
     };
   }
 
@@ -52,7 +52,7 @@ export function buildBlock(t?: Test): Block {
     timestamp: BigInt(t?.block?.timestamp || 0n),
     coinbase: t?.block?.coinbase || ZERO_ADDRESS,
     difficulty: BigInt(t?.block?.difficulty || 0n),
-    gaslimit: t?.block?.gaslimit || '0x0',
+    gaslimit: t?.block?.gaslimit || "0x0",
     chainid: Number(t?.block?.chainid || 0),
   };
 }
@@ -66,8 +66,8 @@ export function buildBlock(t?: Test): Block {
 export function validateInputFile(options: any) {
   if (!options.code) return false;
   if (!options.code.bin && !options.code.asm) return false;
-  if (options.code.bin && typeof options.code.bin !== 'string') return false;
-  if (options.code.asm && typeof options.code.asm !== 'string') return false;
+  if (options.code.bin && typeof options.code.bin !== "string") return false;
+  if (options.code.asm && typeof options.code.asm !== "string") return false;
 
   return true;
 }

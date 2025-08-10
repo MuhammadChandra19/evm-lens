@@ -1,15 +1,15 @@
-import { parsers } from "../utils"
+import { parsers } from "../utils";
 
-import type { MachineState } from "../../machine-state/types"
+import type { MachineState } from "../../machine-state/types";
 
 /**
  * MLOAD opcode (0x51): Load 32 bytes from memory at offset onto stack
  * @param ms - Machine state
  */
 export function MLOAD(ms: MachineState) {
-  const offset = Number(ms.stack.pop())
-  const val = parsers.BytesIntoBigInt(ms.memory.read(offset, 32))
-  ms.stack.push(val)
+  const offset = Number(ms.stack.pop());
+  const val = parsers.BytesIntoBigInt(ms.memory.read(offset, 32));
+  ms.stack.push(val);
 }
 
 /**
@@ -17,9 +17,9 @@ export function MLOAD(ms: MachineState) {
  * @param ms - Machine state
  */
 export function MSTORE(ms: MachineState) {
-  const [offset, val] = ms.stack.popN(2)
-  const word = parsers.BigIntIntoBytes(val, 32)
-  ms.memory.write(Number(offset), word, 32)
+  const [offset, val] = ms.stack.popN(2);
+  const word = parsers.BigIntIntoBytes(val, 32);
+  ms.memory.write(Number(offset), word, 32);
 }
 
 /**
@@ -27,9 +27,9 @@ export function MSTORE(ms: MachineState) {
  * @param ms - Machine state
  */
 export function MSTORE8(ms: MachineState) {
-  const [offset, val] = ms.stack.popN(2)
-  const byte = parsers.BigIntIntoBytes(val, 1)
-  ms.memory.write(Number(offset), byte, 1)
+  const [offset, val] = ms.stack.popN(2);
+  const byte = parsers.BigIntIntoBytes(val, 1);
+  ms.memory.write(Number(offset), byte, 1);
 }
 
 /**
@@ -37,5 +37,5 @@ export function MSTORE8(ms: MachineState) {
  * @param ms - Machine state
  */
 export function MSIZE(ms: MachineState) {
-  ms.stack.push(BigInt(ms.memory.size))
+  ms.stack.push(BigInt(ms.memory.size));
 }

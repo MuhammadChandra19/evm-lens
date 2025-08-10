@@ -87,7 +87,9 @@
       "bin": "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff600202"
     },
     "expect": {
-      "stack": ["0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe"]
+      "stack": [
+        "0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe"
+      ]
     }
   },
   {
@@ -107,7 +109,9 @@
       "bin": "6003600203"
     },
     "expect": {
-      "stack": ["0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"]
+      "stack": [
+        "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      ]
     }
   },
   {
@@ -167,7 +171,9 @@
       "bin": "7ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe600a05"
     },
     "expect": {
-      "stack": ["0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffb"]
+      "stack": [
+        "0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffb"
+      ]
     }
   },
   {
@@ -217,7 +223,9 @@
       "bin": "7ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffd7ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff807"
     },
     "expect": {
-      "stack": ["0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe"]
+      "stack": [
+        "0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe"
+      ]
     }
   },
   {
@@ -427,7 +435,9 @@
       "bin": "600f19"
     },
     "expect": {
-      "stack": ["0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0"]
+      "stack": [
+        "0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0"
+      ]
     }
   },
   {
@@ -548,7 +558,9 @@
       "bin": "5a"
     },
     "expect": {
-      "stack": ["0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"]
+      "stack": [
+        "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      ]
     }
   },
   {
@@ -588,7 +600,9 @@
       "bin": "7f0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20600052600051"
     },
     "expect": {
-      "stack": ["0x102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20"]
+      "stack": [
+        "0x102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20"
+      ]
     }
   },
   {
@@ -598,7 +612,9 @@
       "bin": "7f0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20600052601f51"
     },
     "expect": {
-      "stack": ["0x2000000000000000000000000000000000000000000000000000000000000000"]
+      "stack": [
+        "0x2000000000000000000000000000000000000000000000000000000000000000"
+      ]
     }
   },
   {
@@ -658,7 +674,9 @@
       "bin": "7fffffffff000000000000000000000000000000000000000000000000000000006000526004600020"
     },
     "expect": {
-      "stack": ["0x29045a592007d0c246ef02c2223570da9522d0cf0f73282c79a1bc8f0bb2c238"]
+      "stack": [
+        "0x29045a592007d0c246ef02c2223570da9522d0cf0f73282c79a1bc8f0bb2c238"
+      ]
     }
   },
   {
@@ -839,7 +857,9 @@
       "bin": "600035"
     },
     "expect": {
-      "stack": ["0x102030405060708090a0b0c0d0e0f00112233445566778899aabbccddeeff"]
+      "stack": [
+        "0x102030405060708090a0b0c0d0e0f00112233445566778899aabbccddeeff"
+      ]
     }
   },
   {
@@ -852,7 +872,9 @@
       "bin": "601f35"
     },
     "expect": {
-      "stack": ["0xff00000000000000000000000000000000000000000000000000000000000000"]
+      "stack": [
+        "0xff00000000000000000000000000000000000000000000000000000000000000"
+      ]
     }
   },
   {
@@ -888,7 +910,9 @@
       "bin": "60206000600037600051"
     },
     "expect": {
-      "stack": ["0x102030405060708090a0b0c0d0e0f00112233445566778899aabbccddeeff"]
+      "stack": [
+        "0x102030405060708090a0b0c0d0e0f00112233445566778899aabbccddeeff"
+      ]
     }
   },
   {
@@ -901,7 +925,9 @@
       "bin": "6001601f600037600051"
     },
     "expect": {
-      "stack": ["0xff00000000000000000000000000000000000000000000000000000000000000"]
+      "stack": [
+        "0xff00000000000000000000000000000000000000000000000000000000000000"
+      ]
     }
   },
   {
@@ -931,7 +957,9 @@
       "bin": "60206000600039600051"
     },
     "expect": {
-      "stack": ["0x6020600060003960005100000000000000000000000000000000000000000000"]
+      "stack": [
+        "0x6020600060003960005100000000000000000000000000000000000000000000"
+      ]
     }
   },
   {
@@ -941,7 +969,9 @@
       "bin": "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff5060026020600039600051"
     },
     "expect": {
-      "stack": ["0xff50000000000000000000000000000000000000000000000000000000000000"]
+      "stack": [
+        "0xff50000000000000000000000000000000000000000000000000000000000000"
+      ]
     }
   },
   {
@@ -987,7 +1017,9 @@
       "bin": "602060006000731000000000000000000000000000000000000aaa3c600051"
     },
     "expect": {
-      "stack": ["0x6001000000000000000000000000000000000000000000000000000000000000"]
+      "stack": [
+        "0x6001000000000000000000000000000000000000000000000000000000000000"
+      ]
     }
   },
   {
@@ -1071,7 +1103,9 @@
         {
           "address": "0x1000000000000000000000000000000000000001",
           "data": "bb",
-          "topics": ["0x1111111111111111111111111111111111111111111111111111111111111111"]
+          "topics": [
+            "0x1111111111111111111111111111111111111111111111111111111111111111"
+          ]
         }
       ]
     }
@@ -1267,7 +1301,9 @@
       "bin": "6001601f600060006000731000000000000000000000000000000000000c426000f1506001600060ff3e60ff51"
     },
     "expect": {
-      "stack": ["0x4200000000000000000000000000000000000000000000000000000000000000"]
+      "stack": [
+        "0x4200000000000000000000000000000000000000000000000000000000000000"
+      ]
     }
   },
   {
@@ -1350,7 +1386,9 @@
       "bin": "6020600060006c63ffffffff6000526004601cf3600052600d60136000f03c600051"
     },
     "expect": {
-      "stack": ["0xffffffff00000000000000000000000000000000000000000000000000000000"]
+      "stack": [
+        "0xffffffff00000000000000000000000000000000000000000000000000000000"
+      ]
     }
   },
   {

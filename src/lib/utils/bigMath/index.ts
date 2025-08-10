@@ -1,4 +1,4 @@
-import { MAX_256_BITS } from '@/lib/constants';
+import { MAX_256_BITS } from "@/lib/constants";
 
 /**
  * BigMath is a collection of functions for performing mathematical operations on bigints

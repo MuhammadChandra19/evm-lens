@@ -1,5 +1,5 @@
-import ERRORS from '../errors';
-import type { Address } from '../types';
+import ERRORS from "../errors";
+import type { Address } from "../types";
 
 type StorageLayout = Map<string, Map<string, Buffer>>;
 
@@ -51,7 +51,7 @@ export default class Storage {
    * @returns Storage value converted to BigInt
    */
   public getAsBigInt(address: Address, key: string): bigint {
-    return BigInt('0x' + this.get(address, key).toString('hex'));
+    return BigInt("0x" + this.get(address, key).toString("hex"));
   }
 
   /**
@@ -61,7 +61,11 @@ export default class Storage {
    * @param value - Storage value as BigInt
    */
   public setAsBigInt(address: Address, key: string, value: bigint): void {
-    this.set(address, key, Buffer.from(value.toString(16).padStart(64, '0'), 'hex'));
+    this.set(
+      address,
+      key,
+      Buffer.from(value.toString(16).padStart(64, "0"), "hex"),
+    );
   }
 
   /**
