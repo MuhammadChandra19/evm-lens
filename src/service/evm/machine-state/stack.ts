@@ -1,141 +1,94 @@
 import { MAX_256_BITS } from '../constants';
-import { ERRORS } from '../errors';
+import ERRORS from '../errors';
 
-/**
- * Maximum EVM stack depth.
- * The EVM stack can hold at most 1024 items at any time.
- */
-const MAX_DEPTH = 1024;
+const EMPTY_STACK = 0;
+const FULL_STACK = 1024;
 
-/**
- * LIFO stack of 256-bit words emulating EVM stack semantics.
- *
- * - Items are 256-bit unsigned integers represented as `bigint`.
- * - Maximum depth is 1024 items.
- * - Values must be within the inclusive range [0, MAX_256_BITS].
- *   Note: In typical EVM semantics the maximum valid value is 2^256 - 1;
- *   this implementation currently validates against `value > MAX_256_BITS`.
- */
-class Stack {
+export default class Stack {
   protected _stack: bigint[];
-  protected _len: number;
 
   /**
-   * Creates an empty stack.
+   * Initializes an empty EVM stack
    */
   constructor() {
     this._stack = [];
-    this._len = 0;
   }
 
   /**
-   * Pushes a 256-bit word onto the stack.
-   *
-   * - Validates that `value` is within the allowed 256-bit unsigned range.
-   * - Ensures the push does not exceed the maximum depth (1024).
-   *
-   * @param value - The unsigned 256-bit word to push.
-   *
-   * @throws {Error} If `value < 0` or `value > MAX_256_BITS` (`ERRORS.INVALID_STACK_VALUE`).
-   * @throws {Error} If the stack would exceed `MAX_DEPTH` (`ERRORS.STACK_OVERFLOW`).
+   * Pushes a value onto the top of the stack
+   * @param value - BigInt value to push (must be 0 <= value <= 2^256)
+   * @throws Error if value is out of range or stack is full
    */
   push(value: bigint) {
-    if (value < 0 || value > MAX_256_BITS) {
-      throw new Error(ERRORS.INVALID_STACK_VALUE, {
-        cause: {
-          item: value,
-        },
-      });
-    }
+    if (value < 0n) throw new Error(ERRORS.STACK_VALUE_TOO_SMALL);
+    if (value > MAX_256_BITS) throw new Error(ERRORS.STACK_VALUE_TOO_BIG);
+    if (this._stack.length === FULL_STACK) throw new Error(ERRORS.STACK_OVERFLOW);
 
-    if (this._len + 1 > MAX_DEPTH) {
-      throw new Error(ERRORS.STACK_OVERFLOW);
-    }
-
-    this._stack[this._len++] = value;
+    this._stack.push(value);
   }
 
   /**
-   * Pops and returns the top 256-bit word from the stack.
-   *
-   * @returns The top `bigint` value.
-   *
-   * @throws {Error} If the stack is empty (`ERRORS.STACK_UNDERFLOW`).
+   * Pops and returns the top value from the stack
+   * @returns The top stack value
+   * @throws Error if stack is empty
    */
   pop(): bigint {
-    if (this._len === 0) {
-      throw new Error(ERRORS.STACK_UNDERFLOW);
-    }
+    if (this._stack.length === EMPTY_STACK) throw new Error(ERRORS.STACK_UNDERFLOW);
 
-    return this._stack[--this._len];
+    return this._stack.pop()!;
   }
 
   /**
-   * Pops `n` 256-bit words from the stack.
-   *
-   * @param n - The number of words to pop.
-   * @returns An array of `bigint` values.
-   *
-   * @throws {Error} If the stack does not have at least `n` items (`ERRORS.STACK_UNDERFLOW`).
+   * Pops N values from the stack and returns them in execution order
+   * @param n - Number of values to pop
+   * @returns Array of values in the order they should be used (reversed from stack order)
+   * @throws Error if stack doesn't have enough values
    */
   popN(n: number): bigint[] {
-    if (this._len < n) {
-      throw new Error(ERRORS.STACK_UNDERFLOW);
-    }
+    if (this._stack.length < n) throw new Error(ERRORS.STACK_UNDERFLOW);
 
-    if (n === 0) {
-      return [];
-    }
-
-    const arr = Array(n);
-    const cache = this._stack;
-
-    for (let pop = 0; pop < n; pop++) {
-      arr[pop] = cache[--this._len];
-    }
-
-    return arr;
+    return this._stack.splice(this._stack.length - n, n).reverse();
   }
 
   /**
-   * Peek `n` 256-bit words from the stack.
-   *
-   * @param n - The number of words to peek.
-   * @returns The `bigint` value at the given position.
-   *
-   * @throws {Error} If the stack does not have at least `n` items (`ERRORS.STACK_UNDERFLOW`).
+   * Peeks at a value on the stack without removing it
+   * @param n - Position from top (1 = top, 2 = second from top, etc.)
+   * @returns The value at the specified position
+   * @throws Error if stack is empty or position is invalid
    */
-  peek(n: number) {
-    if (this._len === 0) throw new Error(ERRORS.STACK_UNDERFLOW);
+  peek(n?: number): bigint {
+    if (this._stack.length === EMPTY_STACK) throw new Error(ERRORS.STACK_UNDERFLOW);
 
-    return this._stack[this._len - (n || 1)];
+    return this._stack[this._stack.length - (n || 1)];
   }
 
   /**
-   * Swaps the top `pos` items on the stack.
-   *
-   * @param pos - The number of items to swap.
-   *
-   * @throws {Error} If the stack does not have at least `pos` items (`ERRORS.STACK_UNDERFLOW`).
+   * Swaps the top stack value with the value at position n
+   * @param n - Position to swap with (1-indexed from top)
+   * @throws Error if stack doesn't have enough values
    */
-  swap(pos: number) {
-    if (this._len < pos) {
-      throw new Error(ERRORS.STACK_UNDERFLOW);
-    }
+  swap(n: number) {
+    if (this._stack.length < n) throw new Error(ERRORS.STACK_UNDERFLOW);
 
-    const top = this._stack[this._len - 1];
-    this._stack[this._len - 1] = this._stack[this._len - pos - 1];
-    this._stack[this._len - pos - 1] = top;
+    const top = this._stack.pop()!;
+    const bottom = this._stack[this._stack.length - n];
+    this._stack[this._stack.length - n] = top;
+    this._stack.push(bottom);
   }
 
   /**
-   * Returns a copy of the current stack.
-   *
-   * @returns An array of `bigint` values.
+   * Gets the current stack depth
+   * @returns Number of values currently on the stack
    */
-  get stack(): bigint[] {
-    return this._stack.slice(0, this._len);
+  get length(): number {
+    return this._stack.length;
+  }
+
+  /**
+   * Gets a copy of the stack in display order (top to bottom)
+   * @returns Array of stack values with top value first
+   */
+  get dump(): bigint[] {
+    return this._stack.slice().reverse();
   }
 }
-
-export default Stack;

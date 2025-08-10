@@ -1,24 +1,22 @@
-import GlobalState from '../globalState';
-import { BlockContext, Gas, ProgramCounter, TxData } from '../types';
-import { Opcode } from '../opcodes/types';
-import Memory from './memory';
-import Stack from './stack';
+import type Stack from './stack';
+import type Memory from './memory';
+import type Storage from './storage';
+import type GlobalState from '../globalState';
+import type { Block, Gas, Log, ProgramCounter, TxData } from '../types';
 
 export interface MachineState {
-  programCounter: ProgramCounter;
-  opCode: Opcode;
+  gasAvailable: Gas;
+  pc: ProgramCounter;
   memory: Memory;
   stack: Stack;
+
   code: Uint8Array;
-
-  pc: ProgramCounter;
-  gasAvailable: Gas;
-  gasLeft: Gas;
   txData: TxData;
-
-  // add
-  block: BlockContext;
-
+  storage: Storage;
   globalState: GlobalState;
+  block: Block;
   returnData: Buffer;
+  logs: Log[];
+
+  static: boolean;
 }

@@ -1,113 +1,72 @@
-import { ERRORS } from '../errors';
+import ERRORS from '../errors';
 
-/**
- * In-memory byte-addressable storage that mimics the EVM's memory semantics.
- *
- * - Memory is conceptually uninitialized and auto-expands in 32-byte words.
- * - Writes beyond the current size expand memory to the next 32-byte boundary that
- *   covers the write range.
- * - Reads beyond the current size return zero-padded bytes without expanding memory.
- */
-class Memory {
+export default class Memory {
   protected _memory: Buffer;
 
   /**
-   * Creates an empty memory instance with size 0.
+   * Initializes empty EVM memory
    */
   constructor() {
     this._memory = Buffer.alloc(0);
   }
 
   /**
-   * Stores `size` bytes from `value` starting at `offset`.
-   *
-   * - If the write would exceed current memory bounds, memory expands to the next
-   *   32-byte boundary that fully covers `[offset, offset + size)`.
-   * - The `value.length` must exactly equal `size`.
-   *
-   * Typical EVM analogs:
-   * - MSTORE8: `size = 1`
-   * - MSTORE: `size = 32`
-   *
-   * @param offset - Byte offset at which to begin writing. Must be >= 0.
-   * @param value - The bytes to write into memory.
-   * @param size - Number of bytes to write. Must equal `value.length`.
-   *
-   * @throws {Error} If `offset < 0` (`ERRORS.INVALID_MEMORY_OFFSET`).
-   * @throws {Error} If `value.length !== size` (`ERRORS.INVALID_MEMORY_VALUE_SIZE`).
+   * Writes data to memory at the specified offset, expanding memory if needed
+   * @param offset - Byte offset to write at
+   * @param value - Buffer containing data to write
+   * @param size - Expected size of the data (1 for byte, 32 for word, or custom size)
+   * @throws Error if offset is negative or value size doesn't match expected size
    */
-  store(offset: number, value: Buffer, size: 1 | 32 | number) {
+  write(offset: number, value: Buffer, size: 1 | 32 | number) {
     if (offset < 0) throw new Error(ERRORS.INVALID_MEMORY_OFFSET);
-    if (value.length != size) throw new Error(ERRORS.INVALID_MEMORY_VALUE_SIZE);
+    if (value.length !== size) throw new Error(ERRORS.INVALID_MEMORY_VALUE_SIZE);
 
-    const overflow = this.overflow(offset, size);
+    const overflow = Math.ceil((offset + size) / 32) * 32 - this.size;
     if (overflow) this._memory = Buffer.concat([this._memory, Buffer.alloc(overflow)]);
 
     for (const byte of value) this._memory[offset++] = byte;
   }
 
   /**
-   * Loads `size` bytes starting at `offset`.
-   *
-   * - If the requested range is fully within current memory, returns a view
-   *   (subarray) of the underlying buffer.
-   * - If the request extends beyond current memory, returns a new zero-padded
-   *   buffer of length `size` containing the readable portion, without expanding memory.
-   * - If `size === 0`, returns an empty buffer.
-   *
-   * @param offset - Byte offset at which to begin reading. Must be >= 0.
-   * @param size - Number of bytes to read.
-   * @returns A `Buffer` of length `size` with the requested bytes (zero-padded as needed).
-   *
-   * @throws {Error} If `offset < 0` (`ERRORS.INVALID_MEMORY_OFFSET`).
+   * Reads data from memory at the specified offset, expanding memory if needed
+   * @param offset - Byte offset to read from
+   * @param size - Number of bytes to read
+   * @returns Buffer containing the requested data
+   * @throws Error if offset is negative
    */
-  load(offset: number, size: number): Buffer {
+  read(offset: number, size: number): Buffer {
     if (offset < 0) throw new Error(ERRORS.INVALID_MEMORY_OFFSET);
     if (size === 0) return Buffer.alloc(0);
 
-    const overflow = this.overflow(offset, size);
+    const overflow = Math.ceil((offset + size) / 32) * 32 - this.size;
     if (!overflow) return this._memory.subarray(offset, offset + size);
 
-    const result = Buffer.alloc(size);
-    this._memory.copy(result, 0, offset);
-    return result;
+    this._memory = Buffer.concat([this._memory, Buffer.alloc(overflow)]);
+
+    const output = Buffer.alloc(size);
+    this._memory.copy(output, 0, offset);
+    return output;
   }
 
   /**
-   * Computes the number of bytes needed to expand memory (if any) to ensure
-   * that `[offset, offset + size)` is fully addressable, rounding up to the
-   * next 32-byte boundary.
-   *
-   * A positive return value indicates additional bytes required to grow memory.
-   * A falsy value (typically 0) indicates no growth is required.
-   *
-   * @param offset - Start byte index of the access.
-   * @param size - Number of bytes being accessed.
-   * @returns The number of bytes to append to `_memory` to cover the access, rounded to 32 bytes.
-   * @private
-   */
-  private overflow(offset: number, size: number) {
-    const required = offset + size;
-    return required > this.size ? required - this.size : 0;
-  }
-
-  /**
-   * Current memory size in bytes.
+   * Gets the current memory size in bytes
+   * @returns Total memory size
    */
   get size(): number {
     return this._memory.length;
   }
 
   /**
-   * Number of 32-byte words currently active in memory.
+   * Gets the number of active 32-byte words in memory
+   * @returns Number of words (memory size / 32)
    */
   get activeWordsCount(): number {
     return this.size / 32;
   }
 
   /**
-   * Returns a human-readable dump of memory, where each line is a 32-byte
-   * chunk encoded as hex.
+   * Gets a hex dump of memory contents for debugging
+   * @returns String representation of memory as hex, one word per line
    */
   get dump(): string {
     let dump = '';
@@ -116,5 +75,3 @@ class Memory {
     return dump;
   }
 }
-
-export default Memory;

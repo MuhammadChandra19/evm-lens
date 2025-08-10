@@ -1,36 +1,44 @@
-import { BIGINT_0 } from '@/lib/constants';
-import { Account, Address, State } from './types';
+import { Account, Address, State } from "./types"
 
-class GlobalState {
-  private _state: State;
+// For the sake of this test-based challenge,
+// the global state is just a map of addresses to account info,
+// which is passed directly from the test file.
 
-  private _recentBlockHashes?: Map<bigint, Buffer>;
+export default class GlobalState {
+  private _state: State
 
-  constructor(state: State, opts?: { recentBlockHashes?: Map<bigint, Buffer> }) {
-    this._state = state;
-    this._recentBlockHashes = opts?.recentBlockHashes;
+  /**
+   * Initializes global state with the provided state mapping
+   * @param _state - Initial state mapping from addresses to account data
+   */
+  constructor(_state: State) {
+    this._state = _state
   }
 
-  setRecentBlockHashes(map: Map<bigint, Buffer>) {
-    this._recentBlockHashes = map;
+  /**
+   * Retrieves account information for a given address
+   * @param address - The address to look up
+   * @returns Account data or empty object if address not found
+   */
+  getAccount(address: Address): Account {
+    return this._state[address] ?? {}
   }
 
-  getBlockHash(blockNumber: bigint): Buffer | undefined {
-    return this._recentBlockHashes?.get(blockNumber);
-  }
-
-  getAccount(address: Address) {
-    return this._state[address];
-  }
-
+  /**
+   * Sets account information for a given address
+   * @param address - The address to update
+   * @param account - The account data to set
+   */
   setAccount(address: Address, account: Account) {
-    this._state[address] = account;
+    this._state[address] = account
   }
 
-  getBalance(address: Address) {
-    const account = this.getAccount(address);
-    return account?.balance ?? BIGINT_0;
+  /**
+   * Gets the balance for a specific address
+   * @param address - The address to check balance for
+   * @returns Balance as bigint, or 0n if account doesn't exist
+   */
+  getBalance(address: Address): bigint {
+    return this.getAccount(address)?.balance ?? 0n
   }
 }
-
-export default GlobalState;

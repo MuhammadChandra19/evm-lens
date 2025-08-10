@@ -1,28 +1,9 @@
-import { MachineState } from '../machine-state/types';
+import type EVM from "../evm"
+import type { MachineState } from "../machine-state/types"
 
-/**
- * Opcode is a number between 0 and 255
- *
- * @see https://eips.ethereum.org/EIPS/eip-140#opcode-table
- */
-export type Opcode = number;
-/**
- * Runner is a function that takes a MachineState and returns void or a Promise<void>
- *
- */
-export type Runner = (state: MachineState) => void | Promise<void>;
-
-/**
- * OpcodeDefinition is a record of Opcode to OpcodeDefinition
- */
-export type OpcodeDefinition = {
-  name: string;
-  runner: Runner;
-};
-
-export type OpcodeRunner = Runner;
-
-/**
- * Runners is a record of Opcode to OpcodeDefinition
- */
-export type Runners = Record<Opcode, OpcodeDefinition>;
+export type Opcode = number
+export type OpcodeInfo = { name: string }
+export type SimpleRunner = (ms: MachineState) => void | Promise<void>
+export type CallOrCreateRunner = (ms: MachineState, evm: EVM) => void | Promise<void>
+export type OpcodeRunner = SimpleRunner | CallOrCreateRunner
+export type Runners = Record<Opcode, { name: string; runner: OpcodeRunner }>
