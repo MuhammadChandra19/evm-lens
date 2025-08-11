@@ -129,6 +129,7 @@ export default class EVM {
       logs: ms.logs,
       globalState: ms.globalState,
       selectors,
+      trace: this.logger.getExecutionTrace(),
     };
 
     return result;
