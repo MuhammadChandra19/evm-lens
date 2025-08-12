@@ -3,7 +3,10 @@ import { MerkleStateManager } from '@ethereumjs/statemanager';
 import { AccountInfo } from '../types';
 
 export class StateManagerService {
-  constructor(private stateManager: MerkleStateManager) {}
+  stateManager: MerkleStateManager;
+  constructor(stateManager: MerkleStateManager) {
+    this.stateManager = stateManager;
+  }
 
   async createAccount(address: string): Promise<Address> {
     const cleanAddress = address.startsWith('0x') ? address.slice(2) : address;

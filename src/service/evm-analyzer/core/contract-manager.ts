@@ -80,7 +80,10 @@ export class ContractManager {
 
     try {
       const fromAddr = new Address(Buffer.from(txData.from.startsWith('0x') ? txData.from.slice(2) : txData.from, 'hex'));
-      const toAddr = new Address(Buffer.from(txData.to.startsWith('0x') ? txData.to.slice(2) : txData.to, 'hex'));
+      let toAddr: Address | undefined;
+      if (txData.to) {
+        toAddr = new Address(Buffer.from(txData.to.startsWith('0x') ? txData.to.slice(2) : txData.to, 'hex'));
+      }
 
       const result = await evm.runCall({
         to: toAddr,

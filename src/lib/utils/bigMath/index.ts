@@ -1,4 +1,4 @@
-import { MAX_256_BITS } from "@/lib/constants";
+import { MAX_256_BITS } from '@/lib/constants';
 
 /**
  * BigMath is a collection of functions for performing mathematical operations on bigints
@@ -37,4 +37,8 @@ export const bigMath = {
     const mod = x % ceil;
     return mod === 0n ? x : x + ceil - mod;
   },
+};
+
+export const createTokenSupply = (amount: number, decimals: number = 18): bigint => {
+  return BigInt(amount) * BigInt(10 ** decimals);
 };
