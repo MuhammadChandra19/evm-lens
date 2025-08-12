@@ -1,123 +1,70 @@
-import { createEVM, EVM as EVMType, InterpreterStep } from '@ethereumjs/evm';
-import { parsers } from '../evm/opcodes/utils';
-import { Blockchain as BlockchainType, createBlockchain } from '@ethereumjs/blockchain';
-import { MerkleStateManager } from '@ethereumjs/statemanager';
-import { Address, Account } from '@ethereumjs/util';
-import { TxData } from './types';
+import { EVMManager } from './core/evm-manager';
+import { StateManagerService } from './core/state-manager';
+import { ContractManager } from './core/contract-manager';
+import { ExecutionAnalyzer } from './analysis/analyzer';
+import { TxData, TraceOptions, AccountInfo, ExecutionStep } from './types';
 
-class EVM {
-  evm: EVMType | null;
-  blockChain: BlockchainType | null;
-  stateManager: MerkleStateManager | null;
+export class EVMAnalyzer {
+  private evmManager: EVMManager;
+  private stateManager: StateManagerService;
+  private contractManager: ContractManager;
 
-  constructor(evm: EVMType, blockChain: BlockchainType, stateManager: MerkleStateManager) {
-    this.evm = evm;
-    this.blockChain = blockChain;
-    this.stateManager = stateManager;
+  constructor(evmManager: EVMManager) {
+    this.evmManager = evmManager;
+    this.stateManager = new StateManagerService(evmManager.getStateManager());
+    this.contractManager = new ContractManager(evmManager, this.stateManager);
   }
 
-  static async initEvm() {
-    const stateManager = new MerkleStateManager();
-    const blockChain = await createBlockchain();
-    const evm = await createEVM({
-      stateManager,
-      blockchain: blockChain,
-    });
-    return new EVM(evm, blockChain, stateManager);
+  static async create(): Promise<EVMAnalyzer> {
+    const evmManager = await EVMManager.create();
+    return new EVMAnalyzer(evmManager);
   }
 
-  async deployContract(code: string) {
-    if (!this.evm) {
-      throw new Error('EVM not initialized');
-    }
-    const step: InterpreterStep[] = [];
-    this.evm.events.on('step', (snapshot) => {
-      step.push(snapshot);
-    });
-
-    const res = await this.evm.runCode({
-      code: parsers.hexStringToUint8Array(code),
-    });
-
-    return {
-      res,
-      step,
-    };
+  // State management
+  async createAccount(address: string) {
+    return this.stateManager.createAccount(address);
   }
 
-  async newAddress(address: string) {
-    // Remove 0x prefix if present and create Address from hex string
-    const cleanAddress = address.startsWith('0x') ? address.slice(2) : address;
-    const res = await this.stateManager?.putAccount(new Address(Buffer.from(cleanAddress, 'hex')), undefined);
-
-    return res;
+  async fundAccount(address: string, balance: bigint) {
+    return this.stateManager.fundAccount(address, balance);
   }
 
-  async fundAddress(address: string, balance: bigint) {
-    if (!this.stateManager) {
-      throw new Error('State manager not initialized');
-    }
-
-    // Remove 0x prefix if present and create Address from hex string
-    const cleanAddress = address.startsWith('0x') ? address.slice(2) : address;
-    const addr = new Address(Buffer.from(cleanAddress, 'hex'));
-
-    // Get existing account or create new one with balance
-    const existingAccount = await this.stateManager.getAccount(addr);
-    const account = new Account(existingAccount?.nonce || 0n, balance, existingAccount?.storageRoot, existingAccount?.codeHash);
-
-    // Set the account with balance
-    await this.stateManager.putAccount(addr, account);
-
-    return addr;
+  async getAccountInfo(address: string): Promise<AccountInfo | null> {
+    return this.stateManager.getAccountInfo(address);
   }
 
-  async runCall(txData: TxData) {
-    if (!this.evm) {
-      throw new Error('EVM not initialized');
-    }
+  // Contract management
+  async deployContract(bytecode: string, options?: TraceOptions) {
+    return this.contractManager.deployContract(bytecode, options);
+  }
 
-    const step: {
-      opcode: {
-        name: string;
-        fee: number;
-        dynamicFee?: bigint;
-        isAsync: boolean;
-        code: number; // The hexadecimal representation of the opcode (e.g. 0x60 for PUSH1)
-      };
-      memory: Uint8Array<ArrayBufferLike>;
-      stack: bigint[];
-    }[] = [];
-    const stepHandler = (snapshot: InterpreterStep) => {
-      step.push({
-        opcode: snapshot.opcode,
-        memory: snapshot.memory,
-        stack: snapshot.stack,
-      });
-    };
+  async deployContractToAddress(address: string, runtimeBytecode: string) {
+    return this.contractManager.deployContractToAddress(address, runtimeBytecode);
+  }
 
-    this.evm.events.on('step', stepHandler);
+  async callContract(txData: TxData, options?: TraceOptions) {
+    return this.contractManager.callContract(txData, options);
+  }
 
-    const fromAddr = new Address(Buffer.from(txData.from.startsWith('0x') ? txData.from.slice(2) : txData.from, 'hex'));
-    const toAddr = new Address(Buffer.from(txData.to.startsWith('0x') ? txData.to.slice(2) : txData.to, 'hex'));
+  // Analysis
+  analyzeExecution(steps: ExecutionStep[]) {
+    return ExecutionAnalyzer.analyze(steps);
+  }
 
-    const res = await this.evm.runCall({
-      to: toAddr,
-      caller: fromAddr,
-      origin: fromAddr,
-      value: txData.value,
-      data: parsers.hexStringToUint8Array(txData.data),
-      gasLimit: txData.gasLimit,
-    });
+  // Utility getters
+  get stateManagerService() {
+    return this.stateManager;
+  }
 
-    // Clean up the event listener
-    this.evm.events.off('step', stepHandler);
+  get contractManagerService() {
+    return this.contractManager;
+  }
 
-    return {
-      res,
-      step,
-    };
+  async cleanup() {
+    await this.evmManager.cleanup();
   }
 }
 
-export default EVM;
+export default EVMAnalyzer;
+export * from './types';
+export { ExecutionAnalyzer } from './analysis/analyzer';
