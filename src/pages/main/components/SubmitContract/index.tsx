@@ -1,4 +1,4 @@
-import DeployContractForm from '../forms/DeployContract';
+import DeployContractForm from './forms/DeployContract';
 import useSubmitContract from './use-submit-contract';
 
 const SubmitContract = () => {
