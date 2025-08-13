@@ -90,6 +90,7 @@ const useService = () => {
       await deployContractToAddress(contractAddress, runtimeBytecode);
 
       // Initialize contract state with the provided totalSupply
+      totalSupply = totalSupply * BigInt(10 ** 18);
       await initializeContractState(contractAddress, ownerAddress, totalSupply);
 
       // Get function mappings
