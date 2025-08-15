@@ -154,3 +154,75 @@
 │  📈 Total Gas Used: 0                    💳 Default Balance: 1000 ETH each      │
 │                                                                                 │
 └─────────────────────────────────────────────────────────────────────────────────┘
+
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│  🧪 ContractPlayground    [← Back to Setup] [🔄 Reset] [💾 Export Session]     │
+│  Local Node: 🟢 Running   Block: #1   Gas Price: 20 gwei   Account: 0xf39F...  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                           DEPLOYED CONTRACT STATUS                              │
+│  Contract: 0x742d35Cc6ab8b2532c4b4b3d34d0f0d1f8b8c8d8    ✅ Deployed Successfully│
+│  Owner: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266      💰 Total Supply: 1,000,000│
+│  Gas Used: 287,432 | Deployment Cost: 0.0057 ETH | Block: #1 | Age: 12 seconds  │
+│  🔍 Debug Mode: ON | 📊 Trace Mode: ON | 📈 State Recording: ON                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────┐ ┌─────────────────────────────────────────────────────────┐
+│   FUNCTION LIST     │ │                  EXECUTION PLAYGROUND                   │
+│   (From ABI)        │ │                                                         │
+│                     │ │  ┌─ Function: balanceOf                               │ 
+│ 📖 Read Functions   │ │  │  Input: address _owner                              │
+│ ├ name() → "MyToken"│ │  │  ┌─────────────────────────────────────────────┐   │
+│ ├ symbol() → "MTK"  │ │  │  │ 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266  │   │
+│ ├ decimals() → 18   │ │  │  └─────────────────────────────────────────────┘   │
+│ ├ totalSupply()     │ │  │  [🚀 Execute] [🔍 Simulate] [👁 View Opcodes]        │
+│ ├ balanceOf() ⭐    │ │  │  Expected Output: 1000000000000000000000000        │
+│ └ owner()           │ │  └─────────────────────────────────────────────────── │
+│                     │ │                                                         │
+│ ✏️ Write Functions   │ │  🎯 EXECUTION FLOW VISUALIZATION (React Flow)         │
+│ ├ approve()         │ │  ┌─────────────────────────────────────────────────┐   │
+│ ├ transfer()        │ │  │                                                 │   │
+│ ├ transferFrom()    │ │  │  [CALLDATA] ──→ [SLOAD] ──→ [BALANCE_CHECK]     │   │
+│ ├ mint() 🔒         │ │  │      │            │             │               │   │
+│ └ burn() 🔒         │ │  │      ↓            ↓             ↓               │   │
+│                     │ │  │   Parse Args   Load Slot    Check Owner        │   │
+│ 🔧 Internal Funcs   │ │  │                                ↓               │   │
+│ ├ _mint()           │ │  │                         [RETURN_VALUE]          │   │
+│ ├ _burn()           │ │  │                              │                  │   │
+│ ├ _transfer()       │ │  │                              ↓                  │   │
+│ └ _beforeTokenTrans │ │  │                          [SUCCESS]              │   │
+│                     │ │  │                                                 │   │
+│ ⚡ Events (Live)    │ │  └─────────────────────────────────────────────────┘   │
+│ ├ Transfer (0)      │ │                                                         │
+│ ├ Approval (0)      │ │  🔍 OPCODE EXECUTION TRACE                             │
+│ └ OwnershipTrans(1) │ │  ┌─────────────────────────────────────────────────┐   │
+│                     │ │  │Step│Opcode     │Stack              │Gas  │PC │Depth│
+│ 📊 Playground Stats │ │  │────│───────────│───────────────────│─────│───│─────│
+│ ├ Functions Called:3│ │  │ 1  │PUSH1 0x80 │[0x80]            │9997 │0  │1    │
+│ ├ Total Gas Used:   │ │  │ 2  │PUSH1 0x40 │[0x80,0x40]       │9994 │2  │1    │
+│ │   45,234         │ │  │ 3  │MSTORE     │[]                 │9991 │4  │1    │
+│ ├ State Changes: 1  │ │  │ 4  │CALLDATASIZE│[0x24]           │9989 │5  │1    │
+│ └ Avg Exec Time:   │ │  │ 5  │PUSH1 0x04 │[0x24,0x04]       │9986 │7  │1    │
+│   127ms            │ │  │ 6  │LT         │[0x1]              │9983 │9  │1    │
+│                     │ │  │ 7  │PUSH2 0x40 │[0x1,0x40]        │9980 │10 │1    │
+└─────────────────────┘ │  │...│...        │...                │...  │...│...  │
+                        │  └─────────────────────────────────────────────────┘   │
+                        │                                                         │
+                        │  💾 STATE CHANGES & STORAGE                            │
+                        │  ┌─────────────────────────────────────────────────┐   │
+                        │  │Slot │Key                │Before     │After      │Δ │
+                        │  │─────│───────────────────│───────────│───────────│──│
+                        │  │0x00 │totalSupply        │0          │1000000... │+ │
+                        │  │0x01 │name               │""         │"MyToken"  │+ │
+                        │  │0x02 │symbol             │""         │"MTK"      │+ │
+                        │  │0x03 │decimals           │0          │18         │+ │
+                        │  │0x04 │owner              │0x0        │0xf39F...  │+ │
+                        │  │keccak│balances[0xf39F...]│0          │1000000... │+ │
+                        │  └─────────────────────────────────────────────────┘   │
+                        │                                                         │
+                        │  🎮 PLAYGROUND CONTROLS                                │
+                        │  [⏮ Reset State] [📷 Snapshot] [⏭ Fast Forward]        │
+                        │  [🔄 Replay Last] [📜 Export Trace] [🎯 Benchmark]      │
+                        └─────────────────────────────────────────────────────────┘
