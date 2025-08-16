@@ -1,26 +1,266 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { PlaygroundState, CreateNewPlaygroundPayload, PlaygroundStore } from './types';
 import { ContractMetadata } from '@/service/evm-analyzer/types';
-import * as actions from "./action"
+import * as actions from './action';
+import { serializeEVMStateEnhanced, getKnownAddresses } from './serializers';
+import EVMAnalyzer from '@/service/evm-analyzer';
+import { Address } from '@ethereumjs/util';
 
 const initialState: PlaygroundState = {
   constructorBytecode: '',
   abi: {} as ContractMetadata,
   totalSupply: BigInt(0),
   decimals: 18,
-}
+};
 
+/**
+ * Playground Store with Persistence
+ *
+ * This store persists both playground state and EVM blockchain state:
+ *
+ * 1. Basic State Persistence (localStorage: 'playground-storage'):
+ *    - Contract address, bytecode, ABI, functions, owner, supply, decimals
+ *    - Uses Zustand persist middleware with custom serialization for Address/BigInt types
+ *
+ * 2. EVM State Persistence (localStorage: 'playground-evm-state'):
+ *    - Account balances, contract code, storage slots
+ *    - Serialized separately due to complexity of EVM state manager
+ *    - Restored during onRehydrateStorage callback
+ *
+ * 3. Auto-save triggers:
+ *    - EVM state is automatically saved after state-changing operations
+ *    - Basic state is automatically persisted by Zustand middleware
+ */
 
+const usePlaygroundStore = create<PlaygroundStore>()(
+  persist(
+    (set, get) => ({
+      ...initialState,
+      createInitialState: (state: PlaygroundState) => set(state),
+      createNewPlayground: async (playground: CreateNewPlaygroundPayload) => {
+        const result = await actions.createNewPlayground(playground, set, get);
+        // After successful creation, save the enhanced EVM state
+        if (result.success) {
+          await saveEVMState();
+        }
+        return result;
+      },
 
-const usePlaygroundStore = create<PlaygroundStore>((set, get) => ({
-  ...initialState,
-  createInitialState: (state: PlaygroundState) => set(state),
-  createNewPlayground: async (playground: CreateNewPlaygroundPayload) => {
-    return actions.createNewPlayground(playground, set, get)
-  },
-  createAccount: async (address: string) => {
-    return actions.createAccount(address, get)
+      // Basic EVM functions
+      createAccount: async (address: string) => {
+        const result = await actions.createAccount(address, get);
+        await saveEVMState();
+        return result;
+      },
+      fundAccount: async (address: string, balance: bigint) => {
+        const result = await actions.fundAccount(address, balance, get);
+        if (result.success) {
+          await saveEVMState();
+        }
+        return result;
+      },
+      deployContract: async (bytecode: string) => {
+        const result = await actions.deployContract(bytecode, get);
+        await saveEVMState();
+        return result;
+      },
+      deployContractToAddress: async (address: string, bytecode: string) => {
+        const result = await actions.deployContractToAddress(address, bytecode, get);
+        await saveEVMState();
+        return result;
+      },
+      callContract: async (txData) => {
+        const result = await actions.callContract(txData, get);
+        await saveEVMState();
+        return result;
+      },
+
+      // Token functions
+      getTokenBalance: async (userAddress: string) => {
+        return actions.getTokenBalance(userAddress, get);
+      },
+      approveTokens: async (userAddress: string, spenderAddress: string, amount: bigint) => {
+        const result = await actions.approveTokens(userAddress, spenderAddress, amount, get);
+        await saveEVMState();
+        return result;
+      },
+      transferTokens: async (fromAddress: string, toAddress: string, amount: bigint) => {
+        const result = await actions.transferTokens(fromAddress, toAddress, amount, get);
+        await saveEVMState();
+        return result;
+      },
+
+      // DEX trading functions
+      addLiquidity: async (userAddress: string, tokenAmount: bigint, ethAmount: bigint) => {
+        const result = await actions.addLiquidity(userAddress, tokenAmount, ethAmount, get);
+        await saveEVMState();
+        return result;
+      },
+      swapEthForTokens: async (userAddress: string, ethAmount: bigint) => {
+        const result = await actions.swapEthForTokens(userAddress, ethAmount, get);
+        await saveEVMState();
+        return result;
+      },
+      swapTokensForEth: async (userAddress: string, tokenAmount: bigint) => {
+        const result = await actions.swapTokensForEth(userAddress, tokenAmount, get);
+        await saveEVMState();
+        return result;
+      },
+
+      // Price & reserve functions
+      getReserves: async () => {
+        return actions.getReserves(get);
+      },
+      getTokenPrice: async () => {
+        return actions.getTokenPrice(get);
+      },
+      getEthAmountForTokens: async (tokenAmount: bigint) => {
+        return actions.getEthAmountForTokens(tokenAmount, get);
+      },
+      getTokenAmountForEth: async (ethAmount: bigint) => {
+        return actions.getTokenAmountForEth(ethAmount, get);
+      },
+
+      // Persistence helpers
+      initializeEVM: async () => {
+        const currentState = get();
+        if (!currentState.evm) {
+          const evm = await EVMAnalyzer.create();
+          set({ evm });
+        }
+      },
+      saveEVMState: async () => {
+        await saveEVMState();
+      },
+      clearPersistedState: () => {
+        localStorage.removeItem('playground-storage');
+        localStorage.removeItem('playground-evm-state');
+        set(initialState);
+      },
+    }),
+    {
+      name: 'playground-storage',
+      storage: createJSONStorage(() => localStorage),
+      onRehydrateStorage: () => {
+        return async (state) => {
+          if(!state) return
+            // Convert serialized Address strings back to Address objects
+            if (typeof state.contractAddress === 'string') {
+              const addrStr = state.contractAddress as string;
+              const cleanAddr = addrStr.startsWith('0x') ? addrStr.slice(2) : addrStr;
+              state.contractAddress = new Address(Buffer.from(cleanAddr, 'hex'));
+            }
+
+            if (typeof state.ownerAddress === 'string') {
+              const addrStr = state.ownerAddress as string;
+              const cleanAddr = addrStr.startsWith('0x') ? addrStr.slice(2) : addrStr;
+              state.ownerAddress = new Address(Buffer.from(cleanAddr, 'hex'));
+            }
+
+            // Convert serialized BigInt strings back to BigInt
+            if (typeof state.totalSupply === 'string') {
+              state.totalSupply = BigInt(state.totalSupply);
+            }
+
+            // Convert serialized functions array back to Map
+            if (Array.isArray(state.functions)) {
+              state.functions = new Map(state.functions);
+            }
+
+            // Initialize EVM if not present
+            if (!state.evm) {
+              const evm = await EVMAnalyzer.create();
+
+              // Try to restore EVM state from separate storage
+              const evmStateStr = localStorage.getItem('playground-evm-state');
+              if (evmStateStr) {
+                try {
+                  const evmState = JSON.parse(evmStateStr);
+                  const restoredEvm = await restoreEVMFromState(evmState);
+                  if (restoredEvm) {
+                    state.evm = restoredEvm;
+                    return;
+                  }
+                } catch (error) {
+                  console.warn('Failed to restore EVM state:', error);
+                }
+              }
+
+              state.evm = evm;
+            }
+        };
+      },
+      partialize: (state) => ({
+        contractAddress: state.contractAddress?.toString(),
+        constructorBytecode: state.constructorBytecode,
+        abi: state.abi,
+        functions: state.functions ? Array.from(state.functions.entries()) : undefined,
+        ownerAddress: state.ownerAddress?.toString(),
+        totalSupply: state.totalSupply.toString(),
+        decimals: state.decimals,
+        // Exclude evm from automatic serialization
+      }),
+    }
+  )
+);
+
+// Helper functions
+const saveEVMState = async () => {
+  try {
+    const state = usePlaygroundStore.getState();
+    if (state.evm) {
+      const knownAddresses = getKnownAddresses(state);
+      const evmState = await serializeEVMStateEnhanced(state.evm, knownAddresses);
+      localStorage.setItem('playground-evm-state', JSON.stringify(evmState));
+    }
+  } catch (error) {
+    console.warn('Failed to save EVM state:', error);
   }
-}));
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const restoreEVMFromState = async (evmState: any): Promise<EVMAnalyzer | null> => {
+  try {
+    const evm = await EVMAnalyzer.create();
+
+    // Restore accounts and their state
+    if (evmState.accounts) {
+      for (const accountData of evmState.accounts) {
+        try {
+          // Create the account
+          await evm.createAccount(accountData.address);
+
+          // Fund the account with the stored balance
+          if (accountData.balance !== '0') {
+            await evm.fundAccount(accountData.address, BigInt(accountData.balance));
+          }
+
+          // Restore contract code if present
+          if (accountData.code) {
+            const codeBytes = new Uint8Array(Buffer.from(accountData.code, 'hex'));
+            await evm.stateManagerService.setCode(accountData.address, codeBytes);
+          }
+
+          // Restore storage if present
+          if (accountData.storage) {
+            for (const [slot, value] of accountData.storage) {
+              const cleanAddr = accountData.address.startsWith('0x') ? accountData.address.slice(2) : accountData.address;
+              const addr = new Address(Buffer.from(cleanAddr, 'hex'));
+              await evm.stateManagerService.stateManager.putStorage(addr, Buffer.from(slot, 'hex'), Buffer.from(value, 'hex'));
+            }
+          }
+        } catch (error) {
+          console.warn(`Failed to restore account ${accountData.address}:`, error);
+        }
+      }
+    }
+
+    return evm;
+  } catch (error) {
+    console.error('Failed to restore EVM from state:', error);
+    return null;
+  }
+};
 
 export default usePlaygroundStore;

@@ -1,48 +1,40 @@
-import EVMAnalyzer from '@/service/evm-analyzer';
+import EVMAnalyzer, { CallResult, ExecutionStep } from '@/service/evm-analyzer';
 import { Address } from '@ethereumjs/util';
-import { CreateNewPlaygroundPayload, PlaygroundState } from './types';
+import { CreateNewPlaygroundPayload, ExecutionResult, PlaygroundState } from './types';
 import { keccak256 } from 'ethereum-cryptography/keccak';
 import { BytecodeAnalyzer } from '@/service/evm-analyzer/utils/bytecode-analyzer';
 import { ERRORS } from './errors';
 
-export const createNewPlayground = async (
-  playground: CreateNewPlaygroundPayload,
-  set: (partial: Partial<PlaygroundState>) => void,
-  get: () => PlaygroundState
-) => {
+export const createNewPlayground = async (playground: CreateNewPlaygroundPayload, set: (partial: Partial<PlaygroundState>) => void, get: () => PlaygroundState) => {
   try {
-    const evm = get().evm
-    if(!evm) return { success: false , error: "EVM not initialized" }
-    const contractAddress = await evm.createAccount(playground.contractAddress)
+    const evm = get().evm;
+    if (!evm) return { success: false, error: 'EVM not initialized' };
+    const contractAddress = await evm.createAccount(playground.contractAddress);
 
     const runtimeStart = playground.constructorBytecode.indexOf('6080604052600436');
     const runtimeBytecode = playground.constructorBytecode.slice(runtimeStart);
+    await evm.deployContractToAddress(playground.contractAddress, runtimeBytecode);
 
-    const totalSupply = playground.totalSupply * BigInt(10 ** playground.decimals)
-    await initializeContractState(evm, playground.contractAddress, playground.ownerAddress, playground.totalSupply)
+    const totalSupply = playground.totalSupply * BigInt(10 ** playground.decimals);
+    await initializeContractState(evm, playground.contractAddress, playground.ownerAddress, totalSupply);
 
-    const analysis = BytecodeAnalyzer.analyzeWithMetadata(runtimeBytecode, playground.abi)
+    const analysis = BytecodeAnalyzer.analyzeWithMetadata(runtimeBytecode, playground.abi);
     const functions = new Map(analysis.functions.map((f) => [f.name, f]));
 
     set({
       contractAddress,
       functions,
-      totalSupply
-    })
+      totalSupply,
+    });
 
-    return { success: true , error: null }
-  } catch(e) {
+    return { success: true, error: null };
+  } catch (e) {
     console.error('DEX deployment failed:', e);
-    return { success: false , error: e }
+    return { success: false, error: e };
   }
-}
+};
 
-const initializeContractState = async(
-  evm: EVMAnalyzer,
-  contractAddress: string,
-  ownerAddress: string,
-  totalSupply: bigint
-) => {
+const initializeContractState = async (evm: EVMAnalyzer, contractAddress: string, ownerAddress: string, totalSupply: bigint) => {
   const setStorage = async (slot: number | string, value: string) => {
     let slotHex: string;
     if (typeof slot === 'number') {
@@ -55,14 +47,10 @@ const initializeContractState = async(
     const cleanAddr = contractAddress.startsWith('0x') ? contractAddress.slice(2) : contractAddress;
     const addr = new Address(Buffer.from(cleanAddr, 'hex'));
 
-    await evm.stateManagerService.stateManager.putStorage(
-      addr,
-      Buffer.from(slotHex, 'hex'),
-      Buffer.from(valueHex.padStart(64, '0'), 'hex')
-    );
+    await evm.stateManagerService.stateManager.putStorage(addr, Buffer.from(slotHex, 'hex'), Buffer.from(valueHex.padStart(64, '0'), 'hex'));
   };
 
-      // Helper to calculate balance mapping slot
+  // Helper to calculate balance mapping slot
   const getBalanceSlot = (address: string, mappingSlot: number): string => {
     const cleanAddr = address.startsWith('0x') ? address.slice(2) : address;
     const addrBuffer = Buffer.from(cleanAddr.padStart(64, '0'), 'hex');
@@ -83,32 +71,322 @@ const initializeContractState = async(
   // Set owner's balance (mapping slot 4) - now uses parameter
   const ownerBalanceSlot = getBalanceSlot(ownerAddress, 4);
   await setStorage(ownerBalanceSlot, totalSupply.toString(16));
-}
+};
 
-export const createAccount = async (
-  address: string,
-  get: () => PlaygroundState
-) => {
-  const evm = get().evm
-  if(!evm) return null
-  const account = await evm.createAccount(address)
-  return account
-}
+export const createAccount = async (address: string, get: () => PlaygroundState) => {
+  const evm = get().evm;
+  if (!evm) return null;
+  const account = await evm.createAccount(address);
+  return account;
+};
 
-export const fundAccount = async (
-  address: string,
-  balance: bigint,
-  get: () => PlaygroundState
-) => {
-  const evm = get().evm
-  if(!evm) return  { success: false , error: ERRORS.EVM_NOT_INITIALIZED }
+export const fundAccount = async (address: string, balance: bigint, get: () => PlaygroundState) => {
+  const evm = get().evm;
+  if (!evm) return { success: false, error: ERRORS.EVM_NOT_INITIALIZED };
 
   try {
-    await evm.fundAccount(address, balance)
-    return { success: true , error: null }
-  } catch(e) {
+    await evm.fundAccount(address, balance);
+    return { success: true, error: null };
+  } catch (e) {
     console.error('DEX deployment failed:', e);
-    return { success: false , error: e }
+    return { success: false, error: e };
   }
-}
+};
 
+export const getTokenBalance = async (userAdress: string, get: () => PlaygroundState): Promise<bigint> => {
+  const evm = get().evm;
+  if (!evm) return BigInt(0);
+
+  const contractAddress = get().contractAddress;
+  if (!contractAddress) return BigInt(0);
+
+  const functions = get().functions;
+  if (!functions) return BigInt(0);
+
+  const balanceOfFunc = functions.get('balanceOf');
+  if (!balanceOfFunc) return BigInt(0);
+
+  const data = balanceOfFunc.selector.slice(2) + encodeAddress(userAdress);
+  const result = await evm.callContract({
+    from: userAdress,
+    to: contractAddress.toString(),
+    value: BigInt(0),
+    data,
+    gasLimit: BigInt(200000),
+  });
+
+  return extractUint256(result as CallResult & { steps: ExecutionStep[] });
+};
+
+export const transferTokens = async (fromAddress: string, toAddress: string, amount: bigint, get: () => PlaygroundState): Promise<ExecutionResult> => {
+  const evm = get().evm;
+  if (!evm) return null;
+
+  const contractAddress = get().contractAddress;
+  if (!contractAddress) return null;
+
+  const functions = get().functions;
+  if (!functions) return null;
+
+  const transferFunc = functions.get('transfer');
+  if (!transferFunc) return null;
+
+  const data = transferFunc.selector.slice(2) + encodeAddress(toAddress) + encodeUint256(amount);
+  return evm.callContract({
+    from: fromAddress,
+    to: contractAddress.toString(),
+    value: BigInt(0),
+    data,
+    gasLimit: BigInt(20000),
+  });
+};
+
+export const deployContract = async (bytecode: string, get: () => PlaygroundState) => {
+  const evm = get().evm;
+  if (!evm) return null;
+  return evm.deployContract(bytecode);
+};
+
+export const deployContractToAddress = async (address: string, bytecode: string, get: () => PlaygroundState) => {
+  const evm = get().evm;
+  if (!evm) return null;
+  return evm.deployContractToAddress(address, bytecode);
+};
+
+export const callContract = async (
+  txData: {
+    from: string;
+    to: string;
+    value: bigint;
+    data: string;
+    gasLimit: bigint;
+  },
+  get: () => PlaygroundState
+) => {
+  const evm = get().evm;
+  if (!evm) return null;
+  return evm.callContract(txData);
+};
+
+export const approveTokens = async (userAddress: string, spenderAddress: string, amount: bigint, get: () => PlaygroundState): Promise<ExecutionResult> => {
+  const evm = get().evm;
+  if (!evm) return null;
+
+  const contractAddress = get().contractAddress;
+  if (!contractAddress) return null;
+
+  const functions = get().functions;
+  if (!functions) return null;
+
+  const approveFunc = functions.get('approve');
+  if (!approveFunc) return null;
+
+  const data = approveFunc.selector.slice(2) + encodeAddress(spenderAddress) + encodeUint256(amount);
+
+  return evm.callContract({
+    from: userAddress,
+    to: contractAddress.toString(),
+    value: BigInt(0),
+    data,
+    gasLimit: BigInt(200000),
+  });
+};
+
+export const addLiquidity = async (userAddress: string, tokenAmount: bigint, ethAmount: bigint, get: () => PlaygroundState): Promise<ExecutionResult> => {
+  const evm = get().evm;
+  if (!evm) return null;
+
+  const contractAddress = get().contractAddress;
+  if (!contractAddress) return null;
+
+  const functions = get().functions;
+  if (!functions) return null;
+
+  // First approve tokens
+  await approveTokens(userAddress, contractAddress.toString(), tokenAmount, get);
+
+  // Then add liquidity
+  const addLiquidityFunc = functions.get('addLiquidity');
+  if (!addLiquidityFunc) return null;
+
+  const data = addLiquidityFunc.selector.slice(2) + encodeUint256(tokenAmount);
+
+  return evm.callContract({
+    from: userAddress,
+    to: contractAddress.toString(),
+    value: ethAmount,
+    data,
+    gasLimit: BigInt(500000),
+  });
+};
+
+export const swapEthForTokens = async (userAddress: string, ethAmount: bigint, get: () => PlaygroundState): Promise<ExecutionResult> => {
+  const evm = get().evm;
+  if (!evm) return null;
+
+  const contractAddress = get().contractAddress;
+  if (!contractAddress) return null;
+
+  const functions = get().functions;
+  if (!functions) return null;
+
+  const swapFunc = functions.get('swapEthForTokens');
+  if (!swapFunc) return null;
+
+  return evm.callContract({
+    from: userAddress,
+    to: contractAddress.toString(),
+    value: ethAmount,
+    data: swapFunc.selector.slice(2),
+    gasLimit: BigInt(300000),
+  });
+};
+
+export const swapTokensForEth = async (userAddress: string, tokenAmount: bigint, get: () => PlaygroundState): Promise<ExecutionResult> => {
+  const evm = get().evm;
+  if (!evm) return null;
+
+  const contractAddress = get().contractAddress;
+  if (!contractAddress) return null;
+
+  const functions = get().functions;
+  if (!functions) return null;
+
+  const swapFunc = functions.get('swapTokensForEth');
+  if (!swapFunc) return null;
+
+  const data = swapFunc.selector.slice(2) + encodeUint256(tokenAmount);
+
+  return evm.callContract({
+    from: userAddress,
+    to: contractAddress.toString(),
+    value: BigInt(0),
+    data,
+    gasLimit: BigInt(300000),
+  });
+};
+
+export const getReserves = async (get: () => PlaygroundState): Promise<{ tokenReserve: bigint; ethReserve: bigint }> => {
+  const evm = get().evm;
+  if (!evm) return { tokenReserve: BigInt(0), ethReserve: BigInt(0) };
+
+  const contractAddress = get().contractAddress;
+  if (!contractAddress) return { tokenReserve: BigInt(0), ethReserve: BigInt(0) };
+
+  const functions = get().functions;
+  if (!functions) return { tokenReserve: BigInt(0), ethReserve: BigInt(0) };
+
+  const tokenReserveFunc = functions.get('tokenReserve');
+  const ethReserveFunc = functions.get('ethReserve');
+
+  if (!tokenReserveFunc || !ethReserveFunc) {
+    return { tokenReserve: BigInt(0), ethReserve: BigInt(0) };
+  }
+
+  const [tokenRes, ethRes] = await Promise.all([
+    evm.callContract({
+      from: contractAddress.toString(),
+      to: contractAddress.toString(),
+      value: BigInt(0),
+      data: tokenReserveFunc.selector.slice(2),
+      gasLimit: BigInt(100000),
+    }),
+    evm.callContract({
+      from: contractAddress.toString(),
+      to: contractAddress.toString(),
+      value: BigInt(0),
+      data: ethReserveFunc.selector.slice(2),
+      gasLimit: BigInt(100000),
+    }),
+  ]);
+
+  return {
+    tokenReserve: extractUint256(tokenRes as CallResult & { steps: ExecutionStep[] }),
+    ethReserve: extractUint256(ethRes as CallResult & { steps: ExecutionStep[] }),
+  };
+};
+
+export const getTokenPrice = async (get: () => PlaygroundState): Promise<number> => {
+  const { tokenReserve, ethReserve } = await getReserves(get);
+
+  if (tokenReserve > 0 && ethReserve > 0) {
+    return Number((ethReserve * BigInt(10 ** 18)) / tokenReserve) / 10 ** 18;
+  }
+
+  return 0;
+};
+
+export const getEthAmountForTokens = async (tokenAmount: bigint, get: () => PlaygroundState): Promise<bigint> => {
+  const evm = get().evm;
+  if (!evm) return BigInt(0);
+
+  const contractAddress = get().contractAddress;
+  if (!contractAddress) return BigInt(0);
+
+  const functions = get().functions;
+  if (!functions) return BigInt(0);
+
+  const getEthFunc = functions.get('getEthAmountForTokens');
+  if (!getEthFunc) return BigInt(0);
+
+  const data = getEthFunc.selector.slice(2) + encodeUint256(tokenAmount);
+  const result = await evm.callContract({
+    from: contractAddress.toString(),
+    to: contractAddress.toString(),
+    value: BigInt(0),
+    data,
+    gasLimit: BigInt(100000),
+  });
+
+  return extractUint256(result as CallResult & { steps: ExecutionStep[] });
+};
+
+export const getTokenAmountForEth = async (ethAmount: bigint, get: () => PlaygroundState): Promise<bigint> => {
+  const evm = get().evm;
+  if (!evm) return BigInt(0);
+
+  const contractAddress = get().contractAddress;
+  if (!contractAddress) return BigInt(0);
+
+  const functions = get().functions;
+  if (!functions) return BigInt(0);
+
+  const getTokenFunc = functions.get('getTokenAmountForEth');
+  if (!getTokenFunc) return BigInt(0);
+
+  const data = getTokenFunc.selector.slice(2) + encodeUint256(ethAmount);
+  const result = await evm.callContract({
+    from: contractAddress.toString(),
+    to: contractAddress.toString(),
+    value: BigInt(0),
+    data,
+    gasLimit: BigInt(100000),
+  });
+
+  return extractUint256(result as CallResult & { steps: ExecutionStep[] });
+};
+
+const encodeUint256 = (value: bigint): string => {
+  return value.toString(16).padStart(64, '0');
+};
+
+const encodeAddress = (address: string): string => {
+  const cleanAddr = address.startsWith('0x') ? address.slice(2) : address;
+  return cleanAddr.padStart(64, '0');
+};
+
+const extractUint256 = (
+  result: CallResult & {
+    steps: ExecutionStep[];
+  }
+): bigint => {
+  if (result?.returnValue && result.returnValue.length >= 32) {
+    const bytes = result.returnValue.slice(0, 32);
+    let value = BigInt(0);
+    for (let i = 0; i < bytes.length; i++) {
+      value = (value << BigInt(8)) + BigInt(bytes[i]);
+    }
+    return value;
+  }
+  return BigInt(0);
+};
