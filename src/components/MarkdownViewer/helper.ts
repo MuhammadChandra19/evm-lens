@@ -4,8 +4,8 @@ const returnJsonMarkdown = (json: string) => {
 \`\`\``;
 };
 
-const getMarkdown = (source: string, type: 'json' | 'markdown') => {
-  if (type === 'json') {
+const getMarkdown = (source: string, type: "json" | "markdown") => {
+  if (type === "json") {
     return returnJsonMarkdown(source);
   }
 

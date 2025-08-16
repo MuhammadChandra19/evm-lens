@@ -1,5 +1,5 @@
-import { InterpreterStep } from '@ethereumjs/evm';
-import { ExecutionStep, TraceOptions } from '../types';
+import { InterpreterStep } from "@ethereumjs/evm";
+import { ExecutionStep, TraceOptions } from "../types";
 
 export class ExecutionTracer {
   private steps: ExecutionStep[] = [];
@@ -28,7 +28,9 @@ export class ExecutionTracer {
         gasLeft: snapshot.gasLeft,
         gasRefund: snapshot.gasRefund,
         depth: snapshot.depth,
-        memory: this.options.includeMemory ? snapshot.memory : new Uint8Array(0),
+        memory: this.options.includeMemory
+          ? snapshot.memory
+          : new Uint8Array(0),
         stack: this.options.includeStack ? [...snapshot.stack] : [],
         storage: this.options.includeStorage ? snapshot.storage || [] : [],
       };

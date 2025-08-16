@@ -1,8 +1,14 @@
-import EVMAnalyzer from '@/service/evm-analyzer';
-import { Address } from '@ethereumjs/util';
-import { BytecodeAnalyzer } from '@/service/evm-analyzer/utils/bytecode-analyzer';
-import { CallResult, ContractMetadata, ExecutionStep, FunctionInfo, TxData } from '@/service/evm-analyzer/types';
-import { keccak256 } from 'ethereum-cryptography/keccak';
+import EVMAnalyzer from "@/service/evm-analyzer";
+import { Address } from "@ethereumjs/util";
+import { BytecodeAnalyzer } from "@/service/evm-analyzer/utils/bytecode-analyzer";
+import {
+  CallResult,
+  ContractMetadata,
+  ExecutionStep,
+  FunctionInfo,
+  TxData,
+} from "@/service/evm-analyzer/types";
+import { keccak256 } from "ethereum-cryptography/keccak";
 import { useEffect, useRef, useState } from "react";
 
 interface DEXState {
@@ -24,17 +30,19 @@ const useService = () => {
 
   // === UTILITY FUNCTIONS ===
   const encodeUint256 = (value: bigint): string => {
-    return value.toString(16).padStart(64, '0');
+    return value.toString(16).padStart(64, "0");
   };
 
   const encodeAddress = (address: string): string => {
-    const cleanAddr = address.startsWith('0x') ? address.slice(2) : address;
-    return cleanAddr.padStart(64, '0');
+    const cleanAddr = address.startsWith("0x") ? address.slice(2) : address;
+    return cleanAddr.padStart(64, "0");
   };
 
-  const extractUint256 = (result: CallResult & {
-    steps: ExecutionStep[];
-  }): bigint => {
+  const extractUint256 = (
+    result: CallResult & {
+      steps: ExecutionStep[];
+    },
+  ): bigint => {
     if (result?.returnValue && result.returnValue.length >= 32) {
       const bytes = result.returnValue.slice(0, 32);
       let value = BigInt(0);
@@ -78,14 +86,14 @@ const useService = () => {
     constructorBytecode: string,
     contractMetadata: ContractMetadata,
     ownerAddress: string,
-    totalSupply: bigint
+    totalSupply: bigint,
   ) => {
     if (!evmRef.current) return;
 
     try {
       await createAccount(contractAddress);
 
-      const runtimeStart = constructorBytecode.indexOf('6080604052600436');
+      const runtimeStart = constructorBytecode.indexOf("6080604052600436");
       const runtimeBytecode = constructorBytecode.slice(runtimeStart);
       await deployContractToAddress(contractAddress, runtimeBytecode);
 
@@ -94,7 +102,10 @@ const useService = () => {
       await initializeContractState(contractAddress, ownerAddress, totalSupply);
 
       // Get function mappings
-      const analysis = BytecodeAnalyzer.analyzeWithMetadata(runtimeBytecode, contractMetadata);
+      const analysis = BytecodeAnalyzer.analyzeWithMetadata(
+        runtimeBytecode,
+        contractMetadata,
+      );
       const functions = new Map(analysis.functions.map((f) => [f.name, f]));
 
       setDexState({
@@ -105,7 +116,7 @@ const useService = () => {
 
       return { success: true, contractAddress, functions };
     } catch (error) {
-      console.error('DEX deployment failed:', error);
+      console.error("DEX deployment failed:", error);
       return { success: false, error };
     }
   };
@@ -114,40 +125,45 @@ const useService = () => {
   const initializeContractState = async (
     contractAddress: string,
     ownerAddress: string,
-    totalSupply: bigint // Add this parameter
+    totalSupply: bigint, // Add this parameter
   ) => {
     if (!evmRef.current) return;
 
     // Helper to set storage
     const setStorage = async (slot: number | string, value: string) => {
       let slotHex: string;
-      if (typeof slot === 'number') {
-        slotHex = slot.toString(16).padStart(64, '0');
+      if (typeof slot === "number") {
+        slotHex = slot.toString(16).padStart(64, "0");
       } else {
-        slotHex = slot.padStart(64, '0');
+        slotHex = slot.padStart(64, "0");
       }
 
-      const valueHex = value.startsWith('0x') ? value.slice(2) : value;
-      const cleanAddr = contractAddress.startsWith('0x') ? contractAddress.slice(2) : contractAddress;
-      const addr = new Address(Buffer.from(cleanAddr, 'hex'));
+      const valueHex = value.startsWith("0x") ? value.slice(2) : value;
+      const cleanAddr = contractAddress.startsWith("0x")
+        ? contractAddress.slice(2)
+        : contractAddress;
+      const addr = new Address(Buffer.from(cleanAddr, "hex"));
 
       await evmRef.current!.stateManagerService.stateManager.putStorage(
         addr,
-        Buffer.from(slotHex, 'hex'),
-        Buffer.from(valueHex.padStart(64, '0'), 'hex')
+        Buffer.from(slotHex, "hex"),
+        Buffer.from(valueHex.padStart(64, "0"), "hex"),
       );
     };
 
     // Helper to calculate balance mapping slot
     const getBalanceSlot = (address: string, mappingSlot: number): string => {
-      const cleanAddr = address.startsWith('0x') ? address.slice(2) : address;
-      const addrBuffer = Buffer.from(cleanAddr.padStart(64, '0'), 'hex');
-      const slotBuffer = Buffer.from(mappingSlot.toString(16).padStart(64, '0'), 'hex');
+      const cleanAddr = address.startsWith("0x") ? address.slice(2) : address;
+      const addrBuffer = Buffer.from(cleanAddr.padStart(64, "0"), "hex");
+      const slotBuffer = Buffer.from(
+        mappingSlot.toString(16).padStart(64, "0"),
+        "hex",
+      );
 
       const combined = Buffer.concat([addrBuffer, slotBuffer]);
       const hash = keccak256(combined);
 
-      return Buffer.from(hash).toString('hex');
+      return Buffer.from(hash).toString("hex");
     };
 
     // Set owner (slot 6)
@@ -163,9 +179,10 @@ const useService = () => {
 
   // === TOKEN FUNCTIONS ===
   const getTokenBalance = async (userAddress: string): Promise<bigint> => {
-    if (!evmRef.current || !dexState.functions || !dexState.contractAddress) return BigInt(0);
+    if (!evmRef.current || !dexState.functions || !dexState.contractAddress)
+      return BigInt(0);
 
-    const balanceOfFunc = dexState.functions.get('balanceOf');
+    const balanceOfFunc = dexState.functions.get("balanceOf");
     if (!balanceOfFunc) return BigInt(0);
 
     const data = balanceOfFunc.selector.slice(2) + encodeAddress(userAddress);
@@ -180,13 +197,21 @@ const useService = () => {
     return extractUint256(result as CallResult & { steps: ExecutionStep[] });
   };
 
-  const approveTokens = async (userAddress: string, spenderAddress: string, amount: bigint) => {
-    if (!evmRef.current || !dexState.functions || !dexState.contractAddress) return;
+  const approveTokens = async (
+    userAddress: string,
+    spenderAddress: string,
+    amount: bigint,
+  ) => {
+    if (!evmRef.current || !dexState.functions || !dexState.contractAddress)
+      return;
 
-    const approveFunc = dexState.functions.get('approve');
+    const approveFunc = dexState.functions.get("approve");
     if (!approveFunc) return;
 
-    const data = approveFunc.selector.slice(2) + encodeAddress(spenderAddress) + encodeUint256(amount);
+    const data =
+      approveFunc.selector.slice(2) +
+      encodeAddress(spenderAddress) +
+      encodeUint256(amount);
 
     return await callContract({
       from: userAddress,
@@ -197,13 +222,21 @@ const useService = () => {
     });
   };
 
-  const transferTokens = async (fromAddress: string, toAddress: string, amount: bigint) => {
-    if (!evmRef.current || !dexState.functions || !dexState.contractAddress) return;
+  const transferTokens = async (
+    fromAddress: string,
+    toAddress: string,
+    amount: bigint,
+  ) => {
+    if (!evmRef.current || !dexState.functions || !dexState.contractAddress)
+      return;
 
-    const transferFunc = dexState.functions.get('transfer');
+    const transferFunc = dexState.functions.get("transfer");
     if (!transferFunc) return;
 
-    const data = transferFunc.selector.slice(2) + encodeAddress(toAddress) + encodeUint256(amount);
+    const data =
+      transferFunc.selector.slice(2) +
+      encodeAddress(toAddress) +
+      encodeUint256(amount);
 
     return await callContract({
       from: fromAddress,
@@ -215,17 +248,23 @@ const useService = () => {
   };
 
   // === DEX FUNCTIONS ===
-  const addLiquidity = async (userAddress: string, tokenAmount: bigint, ethAmount: bigint) => {
-    if (!evmRef.current || !dexState.functions || !dexState.contractAddress) return;
+  const addLiquidity = async (
+    userAddress: string,
+    tokenAmount: bigint,
+    ethAmount: bigint,
+  ) => {
+    if (!evmRef.current || !dexState.functions || !dexState.contractAddress)
+      return;
 
     // First approve tokens
     await approveTokens(userAddress, dexState.contractAddress, tokenAmount);
 
     // Then add liquidity
-    const addLiquidityFunc = dexState.functions.get('addLiquidity');
+    const addLiquidityFunc = dexState.functions.get("addLiquidity");
     if (!addLiquidityFunc) return;
 
-    const data = addLiquidityFunc.selector.slice(2) + encodeUint256(tokenAmount);
+    const data =
+      addLiquidityFunc.selector.slice(2) + encodeUint256(tokenAmount);
 
     return await callContract({
       from: userAddress,
@@ -237,9 +276,10 @@ const useService = () => {
   };
 
   const swapEthForTokens = async (userAddress: string, ethAmount: bigint) => {
-    if (!evmRef.current || !dexState.functions || !dexState.contractAddress) return;
+    if (!evmRef.current || !dexState.functions || !dexState.contractAddress)
+      return;
 
-    const swapFunc = dexState.functions.get('swapEthForTokens');
+    const swapFunc = dexState.functions.get("swapEthForTokens");
     if (!swapFunc) return;
 
     return await callContract({
@@ -252,9 +292,10 @@ const useService = () => {
   };
 
   const swapTokensForEth = async (userAddress: string, tokenAmount: bigint) => {
-    if (!evmRef.current || !dexState.functions || !dexState.contractAddress) return;
+    if (!evmRef.current || !dexState.functions || !dexState.contractAddress)
+      return;
 
-    const swapFunc = dexState.functions.get('swapTokensForEth');
+    const swapFunc = dexState.functions.get("swapTokensForEth");
     if (!swapFunc) return;
 
     const data = swapFunc.selector.slice(2) + encodeUint256(tokenAmount);
@@ -269,13 +310,16 @@ const useService = () => {
   };
 
   // === PRICE & RESERVE FUNCTIONS ===
-  const getReserves = async (): Promise<{ tokenReserve: bigint; ethReserve: bigint }> => {
+  const getReserves = async (): Promise<{
+    tokenReserve: bigint;
+    ethReserve: bigint;
+  }> => {
     if (!evmRef.current || !dexState.functions || !dexState.contractAddress) {
       return { tokenReserve: BigInt(0), ethReserve: BigInt(0) };
     }
 
-    const tokenReserveFunc = dexState.functions.get('tokenReserve');
-    const ethReserveFunc = dexState.functions.get('ethReserve');
+    const tokenReserveFunc = dexState.functions.get("tokenReserve");
+    const ethReserveFunc = dexState.functions.get("ethReserve");
 
     if (!tokenReserveFunc || !ethReserveFunc) {
       return { tokenReserve: BigInt(0), ethReserve: BigInt(0) };
@@ -299,8 +343,12 @@ const useService = () => {
     ]);
 
     return {
-      tokenReserve: extractUint256(tokenRes as CallResult & { steps: ExecutionStep[] }),
-      ethReserve: extractUint256(ethRes as CallResult & { steps: ExecutionStep[] }),
+      tokenReserve: extractUint256(
+        tokenRes as CallResult & { steps: ExecutionStep[] },
+      ),
+      ethReserve: extractUint256(
+        ethRes as CallResult & { steps: ExecutionStep[] },
+      ),
     };
   };
 
@@ -314,10 +362,13 @@ const useService = () => {
     return 0;
   };
 
-  const getEthAmountForTokens = async (tokenAmount: bigint): Promise<bigint> => {
-    if (!evmRef.current || !dexState.functions || !dexState.contractAddress) return BigInt(0);
+  const getEthAmountForTokens = async (
+    tokenAmount: bigint,
+  ): Promise<bigint> => {
+    if (!evmRef.current || !dexState.functions || !dexState.contractAddress)
+      return BigInt(0);
 
-    const getEthFunc = dexState.functions.get('getEthAmountForTokens');
+    const getEthFunc = dexState.functions.get("getEthAmountForTokens");
     if (!getEthFunc) return BigInt(0);
 
     const data = getEthFunc.selector.slice(2) + encodeUint256(tokenAmount);
@@ -333,9 +384,10 @@ const useService = () => {
   };
 
   const getTokenAmountForEth = async (ethAmount: bigint): Promise<bigint> => {
-    if (!evmRef.current || !dexState.functions || !dexState.contractAddress) return BigInt(0);
+    if (!evmRef.current || !dexState.functions || !dexState.contractAddress)
+      return BigInt(0);
 
-    const getTokenFunc = dexState.functions.get('getTokenAmountForEth');
+    const getTokenFunc = dexState.functions.get("getTokenAmountForEth");
     if (!getTokenFunc) return BigInt(0);
 
     const data = getTokenFunc.selector.slice(2) + encodeUint256(ethAmount);

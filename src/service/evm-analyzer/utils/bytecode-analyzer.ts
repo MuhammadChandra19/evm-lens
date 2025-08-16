@@ -1,152 +1,164 @@
-import { keccak256 } from 'ethereum-cryptography/keccak';
-import { FunctionInfo, EventInfo, ContractAnalysis, ABIItem, ABIFunction, ABIEvent, ABIConstructor, ContractMetadata, EnhancedContractAnalysis } from '../types';
+import { keccak256 } from "ethereum-cryptography/keccak";
+import {
+  FunctionInfo,
+  EventInfo,
+  ContractAnalysis,
+  ABIItem,
+  ABIFunction,
+  ABIEvent,
+  ABIConstructor,
+  ContractMetadata,
+  EnhancedContractAnalysis,
+} from "../types";
 
 export class BytecodeAnalyzer {
   // Common ERC-20 function selectors
   private static readonly KNOWN_SELECTORS: Record<string, FunctionInfo> = {
-    '0x06fdde03': {
-      selector: '0x06fdde03',
-      signature: 'name()',
-      name: 'name',
+    "0x06fdde03": {
+      selector: "0x06fdde03",
+      signature: "name()",
+      name: "name",
       inputs: [],
-      outputs: [{ name: '', type: 'string' }],
-      stateMutability: 'view',
-      type: 'function',
+      outputs: [{ name: "", type: "string" }],
+      stateMutability: "view",
+      type: "function",
     },
-    '0x95d89b41': {
-      selector: '0x95d89b41',
-      signature: 'symbol()',
-      name: 'symbol',
+    "0x95d89b41": {
+      selector: "0x95d89b41",
+      signature: "symbol()",
+      name: "symbol",
       inputs: [],
-      outputs: [{ name: '', type: 'string' }],
-      stateMutability: 'view',
-      type: 'function',
+      outputs: [{ name: "", type: "string" }],
+      stateMutability: "view",
+      type: "function",
     },
-    '0x313ce567': {
-      selector: '0x313ce567',
-      signature: 'decimals()',
-      name: 'decimals',
+    "0x313ce567": {
+      selector: "0x313ce567",
+      signature: "decimals()",
+      name: "decimals",
       inputs: [],
-      outputs: [{ name: '', type: 'uint8' }],
-      stateMutability: 'view',
-      type: 'function',
+      outputs: [{ name: "", type: "uint8" }],
+      stateMutability: "view",
+      type: "function",
     },
-    '0x18160ddd': {
-      selector: '0x18160ddd',
-      signature: 'totalSupply()',
-      name: 'totalSupply',
+    "0x18160ddd": {
+      selector: "0x18160ddd",
+      signature: "totalSupply()",
+      name: "totalSupply",
       inputs: [],
-      outputs: [{ name: '', type: 'uint256' }],
-      stateMutability: 'view',
-      type: 'function',
+      outputs: [{ name: "", type: "uint256" }],
+      stateMutability: "view",
+      type: "function",
     },
-    '0x70a08231': {
-      selector: '0x70a08231',
-      signature: 'balanceOf(address)',
-      name: 'balanceOf',
-      inputs: [{ name: 'account', type: 'address' }],
-      outputs: [{ name: '', type: 'uint256' }],
-      stateMutability: 'view',
-      type: 'function',
+    "0x70a08231": {
+      selector: "0x70a08231",
+      signature: "balanceOf(address)",
+      name: "balanceOf",
+      inputs: [{ name: "account", type: "address" }],
+      outputs: [{ name: "", type: "uint256" }],
+      stateMutability: "view",
+      type: "function",
     },
-    '0xa9059cbb': {
-      selector: '0xa9059cbb',
-      signature: 'transfer(address,uint256)',
-      name: 'transfer',
+    "0xa9059cbb": {
+      selector: "0xa9059cbb",
+      signature: "transfer(address,uint256)",
+      name: "transfer",
       inputs: [
-        { name: 'to', type: 'address' },
-        { name: 'amount', type: 'uint256' },
+        { name: "to", type: "address" },
+        { name: "amount", type: "uint256" },
       ],
-      outputs: [{ name: '', type: 'bool' }],
-      stateMutability: 'nonpayable',
-      type: 'function',
+      outputs: [{ name: "", type: "bool" }],
+      stateMutability: "nonpayable",
+      type: "function",
     },
-    '0x23b872dd': {
-      selector: '0x23b872dd',
-      signature: 'transferFrom(address,address,uint256)',
-      name: 'transferFrom',
+    "0x23b872dd": {
+      selector: "0x23b872dd",
+      signature: "transferFrom(address,address,uint256)",
+      name: "transferFrom",
       inputs: [
-        { name: 'from', type: 'address' },
-        { name: 'to', type: 'address' },
-        { name: 'amount', type: 'uint256' },
+        { name: "from", type: "address" },
+        { name: "to", type: "address" },
+        { name: "amount", type: "uint256" },
       ],
-      outputs: [{ name: '', type: 'bool' }],
-      stateMutability: 'nonpayable',
-      type: 'function',
+      outputs: [{ name: "", type: "bool" }],
+      stateMutability: "nonpayable",
+      type: "function",
     },
-    '0x095ea7b3': {
-      selector: '0x095ea7b3',
-      signature: 'approve(address,uint256)',
-      name: 'approve',
+    "0x095ea7b3": {
+      selector: "0x095ea7b3",
+      signature: "approve(address,uint256)",
+      name: "approve",
       inputs: [
-        { name: 'spender', type: 'address' },
-        { name: 'amount', type: 'uint256' },
+        { name: "spender", type: "address" },
+        { name: "amount", type: "uint256" },
       ],
-      outputs: [{ name: '', type: 'bool' }],
-      stateMutability: 'nonpayable',
-      type: 'function',
+      outputs: [{ name: "", type: "bool" }],
+      stateMutability: "nonpayable",
+      type: "function",
     },
-    '0xdd62ed3e': {
-      selector: '0xdd62ed3e',
-      signature: 'allowance(address,address)',
-      name: 'allowance',
+    "0xdd62ed3e": {
+      selector: "0xdd62ed3e",
+      signature: "allowance(address,address)",
+      name: "allowance",
       inputs: [
-        { name: 'owner', type: 'address' },
-        { name: 'spender', type: 'address' },
+        { name: "owner", type: "address" },
+        { name: "spender", type: "address" },
       ],
-      outputs: [{ name: '', type: 'uint256' }],
-      stateMutability: 'view',
-      type: 'function',
+      outputs: [{ name: "", type: "uint256" }],
+      stateMutability: "view",
+      type: "function",
     },
-    '0x40c10f19': {
-      selector: '0x40c10f19',
-      signature: 'mint(address,uint256)',
-      name: 'mint',
+    "0x40c10f19": {
+      selector: "0x40c10f19",
+      signature: "mint(address,uint256)",
+      name: "mint",
       inputs: [
-        { name: 'to', type: 'address' },
-        { name: 'amount', type: 'uint256' },
+        { name: "to", type: "address" },
+        { name: "amount", type: "uint256" },
       ],
       outputs: [],
-      stateMutability: 'nonpayable',
-      type: 'function',
+      stateMutability: "nonpayable",
+      type: "function",
     },
-    '0x42966c68': {
-      selector: '0x42966c68',
-      signature: 'burn(uint256)',
-      name: 'burn',
-      inputs: [{ name: 'amount', type: 'uint256' }],
+    "0x42966c68": {
+      selector: "0x42966c68",
+      signature: "burn(uint256)",
+      name: "burn",
+      inputs: [{ name: "amount", type: "uint256" }],
       outputs: [],
-      stateMutability: 'nonpayable',
-      type: 'function',
+      stateMutability: "nonpayable",
+      type: "function",
     },
   };
 
   // Common event signatures
   private static readonly KNOWN_EVENTS: Record<string, EventInfo> = {
-    '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef': {
-      hash: '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
-      signature: 'Transfer(address,address,uint256)',
-      name: 'Transfer',
+    "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef": {
+      hash: "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+      signature: "Transfer(address,address,uint256)",
+      name: "Transfer",
       inputs: [
-        { name: 'from', type: 'address', indexed: true },
-        { name: 'to', type: 'address', indexed: true },
-        { name: 'value', type: 'uint256', indexed: false },
+        { name: "from", type: "address", indexed: true },
+        { name: "to", type: "address", indexed: true },
+        { name: "value", type: "uint256", indexed: false },
       ],
     },
-    '0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925': {
-      hash: '0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925',
-      signature: 'Approval(address,address,uint256)',
-      name: 'Approval',
+    "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925": {
+      hash: "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925",
+      signature: "Approval(address,address,uint256)",
+      name: "Approval",
       inputs: [
-        { name: 'owner', type: 'address', indexed: true },
-        { name: 'spender', type: 'address', indexed: true },
-        { name: 'value', type: 'uint256', indexed: false },
+        { name: "owner", type: "address", indexed: true },
+        { name: "spender", type: "address", indexed: true },
+        { name: "value", type: "uint256", indexed: false },
       ],
     },
   };
 
   static analyzeBytecode(bytecode: string): ContractAnalysis {
-    const cleanBytecode = bytecode.startsWith('0x') ? bytecode.slice(2) : bytecode;
+    const cleanBytecode = bytecode.startsWith("0x")
+      ? bytecode.slice(2)
+      : bytecode;
     const functions: FunctionInfo[] = [];
     const events: EventInfo[] = [];
 
@@ -163,7 +175,7 @@ export class BytecodeAnalyzer {
         functions.push({
           selector,
           name: `unknown_${selector.slice(2, 10)}`,
-          type: 'function',
+          type: "function",
           inputs: [],
           outputs: [],
         });
@@ -197,7 +209,7 @@ export class BytecodeAnalyzer {
     let match;
 
     while ((match = push4Pattern.exec(bytecode)) !== null) {
-      const selector = '0x' + match[1].toLowerCase();
+      const selector = "0x" + match[1].toLowerCase();
       selectors.add(selector);
     }
 
@@ -205,7 +217,7 @@ export class BytecodeAnalyzer {
     // Pattern: 80630xxxxxxxx14 (DUP1 PUSH4 selector EQ)
     const directPattern = /80630([0-9a-fA-F]{8})14/g;
     while ((match = directPattern.exec(bytecode)) !== null) {
-      const selector = '0x' + match[1].toLowerCase();
+      const selector = "0x" + match[1].toLowerCase();
       selectors.add(selector);
     }
 
@@ -221,7 +233,7 @@ export class BytecodeAnalyzer {
     let match;
 
     while ((match = logPattern.exec(bytecode)) !== null) {
-      const sig = '0x' + match[1].toLowerCase();
+      const sig = "0x" + match[1].toLowerCase();
       signatures.add(sig);
     }
 
@@ -232,9 +244,9 @@ export class BytecodeAnalyzer {
     // Constructor is typically at the beginning of the bytecode
     if (bytecode.length > 100) {
       return {
-        selector: '0x',
-        name: 'constructor',
-        type: 'constructor',
+        selector: "0x",
+        name: "constructor",
+        type: "constructor",
         inputs: [],
         outputs: [],
       };
@@ -244,12 +256,12 @@ export class BytecodeAnalyzer {
 
   private static detectFallback(bytecode: string): FunctionInfo | undefined {
     // Look for fallback function patterns (usually at the end)
-    if (bytecode.includes('fd')) {
+    if (bytecode.includes("fd")) {
       // REVERT opcode often in fallback
       return {
-        selector: '0x',
-        name: 'fallback',
-        type: 'fallback',
+        selector: "0x",
+        name: "fallback",
+        type: "fallback",
         inputs: [],
         outputs: [],
       };
@@ -259,12 +271,12 @@ export class BytecodeAnalyzer {
 
   private static detectReceive(bytecode: string): FunctionInfo | undefined {
     // Look for receive function patterns
-    if (bytecode.includes('34')) {
+    if (bytecode.includes("34")) {
       // CALLVALUE opcode
       return {
-        selector: '0x',
-        name: 'receive',
-        type: 'receive',
+        selector: "0x",
+        name: "receive",
+        type: "receive",
         inputs: [],
         outputs: [],
       };
@@ -274,8 +286,8 @@ export class BytecodeAnalyzer {
 
   // Generate function selector from signature
   static generateSelector(signature: string): string {
-    const hash = keccak256(Buffer.from(signature, 'utf8'));
-    return '0x' + Buffer.from(hash.slice(0, 4)).toString('hex');
+    const hash = keccak256(Buffer.from(signature, "utf8"));
+    return "0x" + Buffer.from(hash.slice(0, 4)).toString("hex");
   }
 
   // Try to reverse engineer function signature from selector
@@ -293,7 +305,7 @@ export class BytecodeAnalyzer {
     let constructor: FunctionInfo | undefined;
 
     for (const item of abi) {
-      if (item.type === 'function') {
+      if (item.type === "function") {
         const signature = this.generateFunctionSignature(item);
         const selector = this.generateSelector(signature);
 
@@ -312,9 +324,9 @@ export class BytecodeAnalyzer {
             internalType: output.internalType,
           })),
           stateMutability: item.stateMutability,
-          type: 'function',
+          type: "function",
         });
-      } else if (item.type === 'event') {
+      } else if (item.type === "event") {
         const signature = this.generateEventSignature(item);
         const hash = this.generateEventHash(signature);
 
@@ -329,11 +341,11 @@ export class BytecodeAnalyzer {
             internalType: input.internalType,
           })),
         });
-      } else if (item.type === 'constructor') {
+      } else if (item.type === "constructor") {
         constructor = {
-          selector: '0x',
+          selector: "0x",
           signature: this.generateConstructorSignature(item),
-          name: 'constructor',
+          name: "constructor",
           inputs: item.inputs.map((input) => ({
             name: input.name,
             type: input.type,
@@ -341,7 +353,7 @@ export class BytecodeAnalyzer {
           })),
           outputs: [],
           stateMutability: item.stateMutability,
-          type: 'constructor',
+          type: "constructor",
         };
       }
     }
@@ -358,7 +370,10 @@ export class BytecodeAnalyzer {
   /**
    * Enhanced analysis that combines ABI data with bytecode analysis
    */
-  static analyzeWithMetadata(bytecode: string, metadata?: ContractMetadata): EnhancedContractAnalysis {
+  static analyzeWithMetadata(
+    bytecode: string,
+    metadata?: ContractMetadata,
+  ): EnhancedContractAnalysis {
     let analysis: ContractAnalysis;
     let abiDerived = false;
 
@@ -385,22 +400,24 @@ export class BytecodeAnalyzer {
 
   // Helper methods for generating signatures
   private static generateFunctionSignature(func: ABIFunction): string {
-    const inputs = func.inputs.map((input) => input.type).join(',');
+    const inputs = func.inputs.map((input) => input.type).join(",");
     return `${func.name}(${inputs})`;
   }
 
   private static generateEventSignature(event: ABIEvent): string {
-    const inputs = event.inputs.map((input) => input.type).join(',');
+    const inputs = event.inputs.map((input) => input.type).join(",");
     return `${event.name}(${inputs})`;
   }
 
-  private static generateConstructorSignature(constructor: ABIConstructor): string {
-    const inputs = constructor.inputs.map((input) => input.type).join(',');
+  private static generateConstructorSignature(
+    constructor: ABIConstructor,
+  ): string {
+    const inputs = constructor.inputs.map((input) => input.type).join(",");
     return `constructor(${inputs})`;
   }
 
   private static generateEventHash(signature: string): string {
-    const hash = keccak256(Buffer.from(signature, 'utf8'));
-    return '0x' + Buffer.from(hash).toString('hex');
+    const hash = keccak256(Buffer.from(signature, "utf8"));
+    return "0x" + Buffer.from(hash).toString("hex");
   }
 }

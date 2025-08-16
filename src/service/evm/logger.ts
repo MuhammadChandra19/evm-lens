@@ -1,10 +1,10 @@
-import fs from 'fs';
-import path from 'path';
-import runners from './opcodes/runners';
-import type { MachineState } from './machine-state/types';
-import { parsers } from './opcodes/utils';
-import { ExecutionSnapshot, ExecutionTrace } from './evm-analysis-types';
-import type { TxData, Block } from './types';
+import fs from "fs";
+import path from "path";
+import runners from "./opcodes/runners";
+import type { MachineState } from "./machine-state/types";
+import { parsers } from "./opcodes/utils";
+import { ExecutionSnapshot, ExecutionTrace } from "./evm-analysis-types";
+import type { TxData, Block } from "./types";
 
 export default class Logger {
   private _output: string[];
@@ -55,10 +55,12 @@ export default class Logger {
    */
   start(bin: Uint8Array, asm?: string) {
     // Your existing logging
-    this._output.push(`******************** Starting Execution ********************`);
+    this._output.push(
+      `******************** Starting Execution ********************`,
+    );
     this._output.push(``);
     this._output.push(`Execution Bytecode:`);
-    this._output.push(`${Buffer.from(bin).toString('hex')}`);
+    this._output.push(`${Buffer.from(bin).toString("hex")}`);
     this._output.push(``);
 
     if (asm) {
@@ -74,7 +76,7 @@ export default class Logger {
     if (this._trackExecution) {
       this._initialState = {
         code: bin,
-        codeString: Buffer.from(bin).toString('hex'),
+        codeString: Buffer.from(bin).toString("hex"),
         asm,
       };
       this._executionTrace = [];
@@ -89,24 +91,28 @@ export default class Logger {
     const currentOpcode = runners[ms.code[ms.pc]];
 
     // Your existing logging
-    this._output.push(`******************** Step ${this._steps} ********************`);
+    this._output.push(
+      `******************** Step ${this._steps} ********************`,
+    );
     this._output.push(`Opcode: ${currentOpcode.name}`);
     this._output.push(`Program Counter: ${ms.pc}`);
     this._output.push(``);
     this._output.push(`Stack:`);
-    this._output.push(`${ms.stack.dump.map(parsers.BigintIntoHexString).join('\n')}`);
+    this._output.push(
+      `${ms.stack.dump.map(parsers.BigintIntoHexString).join("\n")}`,
+    );
     this._output.push(``);
     this._output.push(`Memory:`);
-    this._output.push(`${ms.memory.dump || 'Empty'}`);
+    this._output.push(`${ms.memory.dump || "Empty"}`);
     this._output.push(``);
     this._output.push(`Storage:`);
-    this._output.push(`${ms.storage.dump || 'Empty'}`);
+    this._output.push(`${ms.storage.dump || "Empty"}`);
     this._output.push(``);
     this._output.push(`Return data:`);
-    this._output.push(`${ms.returnData.toString('hex') || 'Empty'}`);
+    this._output.push(`${ms.returnData.toString("hex") || "Empty"}`);
     this._output.push(``);
     this._output.push(`Logs:`);
-    this._output.push(`${ms.logs || 'Empty'}`);
+    this._output.push(`${ms.logs || "Empty"}`);
     this._output.push(``);
 
     // NEW: Create execution snapshot for visualization
@@ -142,7 +148,11 @@ export default class Logger {
     const memoryBefore = this._previousState?.memorySize || currentMemorySize;
 
     // Calculate stack delta using proper before/after states
-    const stackDelta = this._calculateStackDelta(stackBefore, stackAfter, currentOpcode.name);
+    const stackDelta = this._calculateStackDelta(
+      stackBefore,
+      stackAfter,
+      currentOpcode.name,
+    );
 
     // Create memory changes info if memory size changed
     const memoryChanges =
@@ -170,7 +180,8 @@ export default class Logger {
       memoryChanges,
       storageChanges: this._getStorageChanges(ms),
 
-      returnData: ms.returnData.length > 0 ? ms.returnData.toString('hex') : undefined,
+      returnData:
+        ms.returnData.length > 0 ? ms.returnData.toString("hex") : undefined,
       logs: ms.logs.length > 0 ? [...ms.logs] : undefined,
     };
 
@@ -188,7 +199,11 @@ export default class Logger {
   /**
    * NEW: Calculate stack delta for visualization
    */
-  private _calculateStackDelta(before: string[], after: string[], opcode: string): { pushed: string[]; popped: string[] } {
+  private _calculateStackDelta(
+    before: string[],
+    after: string[],
+    opcode: string,
+  ): { pushed: string[]; popped: string[] } {
     // Get stack effects for the opcode
     const { pops, pushes } = this._getOpcodeStackEffects(opcode);
 
@@ -207,7 +222,10 @@ export default class Logger {
   /**
    * Get stack effects (pops/pushes) for a given opcode
    */
-  private _getOpcodeStackEffects(opcode: string): { pops: number; pushes: number } {
+  private _getOpcodeStackEffects(opcode: string): {
+    pops: number;
+    pushes: number;
+  } {
     // Define stack effects for all opcodes
     const stackEffects: Record<string, { pops: number; pushes: number }> = {
       // Arithmetic operations (pop 2, push 1)
@@ -320,22 +338,22 @@ export default class Logger {
     };
 
     // Handle PUSH opcodes (PUSH1 through PUSH32)
-    if (opcode.startsWith('PUSH')) {
+    if (opcode.startsWith("PUSH")) {
       return { pops: 0, pushes: 1 };
     }
 
     // Handle DUP opcodes (DUP1 through DUP16)
-    if (opcode.startsWith('DUP')) {
+    if (opcode.startsWith("DUP")) {
       return { pops: 0, pushes: 1 }; // Duplicates existing item
     }
 
     // Handle SWAP opcodes (SWAP1 through SWAP16)
-    if (opcode.startsWith('SWAP')) {
+    if (opcode.startsWith("SWAP")) {
       return { pops: 0, pushes: 0 }; // Swaps positions, no net change
     }
 
     // Handle LOG opcodes (LOG0 through LOG4)
-    if (opcode.startsWith('LOG')) {
+    if (opcode.startsWith("LOG")) {
       const logNum = parseInt(opcode.slice(3)) || 0;
       return { pops: 2 + logNum, pushes: 0 }; // 2 + number of topics
     }
@@ -372,10 +390,12 @@ export default class Logger {
     try {
       // Storage dump format varies - this is a simplified approach
       // You'd need to adapt this based on your actual storage format
-      if (typeof ms.storage.dump === 'string' && ms.storage.dump !== 'Empty') {
+      if (typeof ms.storage.dump === "string" && ms.storage.dump !== "Empty") {
         // Assuming storage dump contains key-value pairs
         // This would need to be adapted to your actual storage format
-        const storageEntries = ms.storage.dump.split('\n').filter((entry) => entry.trim());
+        const storageEntries = ms.storage.dump
+          .split("\n")
+          .filter((entry) => entry.trim());
 
         for (const entry of storageEntries) {
           // Parse storage entries (format may vary)
@@ -384,7 +404,7 @@ export default class Logger {
             const [, key, value] = match;
             changes.push({
               key,
-              valueBefore: '0x0', // Would need to track previous state
+              valueBefore: "0x0", // Would need to track previous state
               valueAfter: value,
             });
           }
@@ -403,7 +423,7 @@ export default class Logger {
    */
   getExecutionTrace(): ExecutionTrace {
     if (!this._trackExecution || !this._initialState) {
-      throw new Error('Execution tracking not enabled or no initial state');
+      throw new Error("Execution tracking not enabled or no initial state");
     }
 
     return {
@@ -417,14 +437,17 @@ export default class Logger {
       finalState: {
         success: true, // You'd determine this from execution result
         gasUsed: 0n, // Calculate from total gas used
-        returnData: '',
+        returnData: "",
         logs: [],
         modifiedStorage: {},
       },
       stats: {
         totalSteps: this._steps,
-        uniqueInstructionsHit: new Set(this._executionTrace.map((s) => s.pc)).size,
-        maxStackDepth: Math.max(...this._executionTrace.map((s) => s.stackBefore.length)),
+        uniqueInstructionsHit: new Set(this._executionTrace.map((s) => s.pc))
+          .size,
+        maxStackDepth: Math.max(
+          ...this._executionTrace.map((s) => s.stackBefore.length),
+        ),
         maxMemorySize: 0, // Calculate from snapshots
         loopIterations: this._calculateLoopIterations(),
       },
@@ -442,7 +465,9 @@ export default class Logger {
     }
 
     // Filter to only instructions hit more than once (potential loops)
-    return Object.fromEntries(Object.entries(pcCounts).filter(([, count]) => count > 1));
+    return Object.fromEntries(
+      Object.entries(pcCounts).filter(([, count]) => count > 1),
+    );
   }
 
   /**
@@ -456,14 +481,21 @@ export default class Logger {
     gasEstimate: bigint;
   } {
     const uniquePCs = new Set(this._executionTrace.map((s) => s.pc));
-    const jumpTargets = this._executionTrace.filter((s) => s.opcode === 'JUMPDEST').map((s) => s.pc);
+    const jumpTargets = this._executionTrace
+      .filter((s) => s.opcode === "JUMPDEST")
+      .map((s) => s.pc);
 
     return {
       totalSteps: this._steps,
       uniqueInstructions: uniquePCs.size,
       jumpTargets,
-      maxStackDepth: Math.max(...this._executionTrace.map((s) => s.stackBefore.length)),
-      gasEstimate: this._executionTrace.reduce((total, s) => total + s.gasRemaining, 0n),
+      maxStackDepth: Math.max(
+        ...this._executionTrace.map((s) => s.stackBefore.length),
+      ),
+      gasEstimate: this._executionTrace.reduce(
+        (total, s) => total + s.gasRemaining,
+        0n,
+      ),
     };
   }
 
@@ -472,7 +504,7 @@ export default class Logger {
    */
   exportForVisualization(): {
     trace: ExecutionTrace;
-    summary: ReturnType<Logger['getExecutionSummary']>;
+    summary: ReturnType<Logger["getExecutionSummary"]>;
     rawLogs: string;
   } {
     return {
@@ -494,7 +526,8 @@ export default class Logger {
 
     // NEW: Add error to current execution snapshot if tracking
     if (this._trackExecution && this._executionTrace.length > 0) {
-      const lastSnapshot = this._executionTrace[this._executionTrace.length - 1];
+      const lastSnapshot =
+        this._executionTrace[this._executionTrace.length - 1];
       lastSnapshot.error = err;
     }
   }
@@ -515,7 +548,7 @@ export default class Logger {
    * @returns All logged messages joined with newlines
    */
   get output() {
-    return this._output.join('\n');
+    return this._output.join("\n");
   }
 
   /**
@@ -545,14 +578,15 @@ export default class Logger {
     try {
       if (!filename) filename = `execution-${Date.now()}`;
 
-      if (!fs.existsSync(path.join(__dirname, '../logs'))) fs.mkdirSync(path.join(__dirname, '../logs'));
+      if (!fs.existsSync(path.join(__dirname, "../logs")))
+        fs.mkdirSync(path.join(__dirname, "../logs"));
 
       const filepath = path.join(__dirname, `../logs/${filename}.log`);
       fs.writeFileSync(filepath, this.output);
       return filepath;
     } catch (err) {
-      console.error('Error while saving logs to file: ', err);
-      return '';
+      console.error("Error while saving logs to file: ", err);
+      return "";
     }
   }
 
@@ -561,13 +595,14 @@ export default class Logger {
    */
   saveTraceToFile(filename?: string): string {
     if (!this._trackExecution) {
-      throw new Error('Execution tracking not enabled');
+      throw new Error("Execution tracking not enabled");
     }
 
     try {
       if (!filename) filename = `trace-${Date.now()}`;
 
-      if (!fs.existsSync(path.join(__dirname, '../logs'))) fs.mkdirSync(path.join(__dirname, '../logs'));
+      if (!fs.existsSync(path.join(__dirname, "../logs")))
+        fs.mkdirSync(path.join(__dirname, "../logs"));
 
       const filepath = path.join(__dirname, `../logs/${filename}.json`);
       const traceData = this.exportForVisualization();
@@ -575,8 +610,8 @@ export default class Logger {
       fs.writeFileSync(filepath, JSON.stringify(traceData, null, 2));
       return filepath;
     } catch (err) {
-      console.error('Error while saving trace to file: ', err);
-      return '';
+      console.error("Error while saving trace to file: ", err);
+      return "";
     }
   }
 }

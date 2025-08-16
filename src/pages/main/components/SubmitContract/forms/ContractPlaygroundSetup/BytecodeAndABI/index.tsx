@@ -1,14 +1,18 @@
-import { useFormContext } from 'react-hook-form';
-import { BytecodeAndABISchema } from './schema';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
+import { useFormContext } from "react-hook-form";
+import { BytecodeAndABISchema } from "./schema";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
 
 const BytecodeAndABI = () => {
   const { control } = useFormContext<{
-    bytecodeAndAbi: BytecodeAndABISchema
+    bytecodeAndAbi: BytecodeAndABISchema;
   }>();
-
 
   return (
     <Card>
@@ -19,7 +23,9 @@ const BytecodeAndABI = () => {
         <div className="flex flex-col gap-6">
           <div>
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Constructor Bytecode</label>
+              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Constructor Bytecode
+              </label>
             </div>
             <FormField
               control={control}
@@ -64,7 +70,7 @@ const BytecodeAndABI = () => {
         </div>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
 export default BytecodeAndABI;

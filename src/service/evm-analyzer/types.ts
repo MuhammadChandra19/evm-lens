@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { InterpreterStep } from '@ethereumjs/evm';
-import { PrefixedHexString } from '@ethereumjs/util';
+import { InterpreterStep } from "@ethereumjs/evm";
+import { PrefixedHexString } from "@ethereumjs/util";
 
 export interface TxData {
   from: string;
@@ -93,8 +93,8 @@ export interface FunctionInfo {
   name?: string; // Function name (e.g., "transfer")
   inputs?: Parameter[];
   outputs?: Parameter[];
-  stateMutability?: 'pure' | 'view' | 'nonpayable' | 'payable';
-  type: 'function' | 'constructor' | 'fallback' | 'receive';
+  stateMutability?: "pure" | "view" | "nonpayable" | "payable";
+  type: "function" | "constructor" | "fallback" | "receive";
 }
 
 export interface Parameter {
@@ -139,21 +139,21 @@ export interface ABIFunction {
   inputs: ABIInput[];
   name: string;
   outputs: ABIOutput[];
-  stateMutability: 'pure' | 'view' | 'nonpayable' | 'payable';
-  type: 'function';
+  stateMutability: "pure" | "view" | "nonpayable" | "payable";
+  type: "function";
 }
 
 export interface ABIEvent {
   anonymous: boolean;
   inputs: ABIInput[];
   name: string;
-  type: 'event';
+  type: "event";
 }
 
 export interface ABIConstructor {
   inputs: ABIInput[];
-  stateMutability: 'nonpayable' | 'payable';
-  type: 'constructor';
+  stateMutability: "nonpayable" | "payable";
+  type: "constructor";
 }
 
 export type ABIItem = ABIFunction | ABIEvent | ABIConstructor;

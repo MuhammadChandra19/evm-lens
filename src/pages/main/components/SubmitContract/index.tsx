@@ -1,6 +1,6 @@
 // import DeployContractForm from './forms/DeployContract';
-import { SearchCode } from 'lucide-react';
-import ContractPlaygroundSetup from './forms/ContractPlaygroundSetup';
+import { SearchCode } from "lucide-react";
+import ContractPlaygroundSetup from "./forms/ContractPlaygroundSetup";
 // import useSubmitContract from './use-submit-contract';
 
 const SubmitContract = () => {
@@ -16,7 +16,9 @@ const SubmitContract = () => {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">EVM Lens</h1>
-                <p className="text-sm text-gray-500">Learn smart contracts by deploying and exploring</p>
+                <p className="text-sm text-gray-500">
+                  Learn smart contracts by deploying and exploring
+                </p>
               </div>
             </div>
             {/* <div className="flex items-center gap-4">
@@ -32,10 +34,10 @@ const SubmitContract = () => {
             </div> */}
           </div>
         </div>
-        <ContractPlaygroundSetup  />
+        <ContractPlaygroundSetup />
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default SubmitContract;

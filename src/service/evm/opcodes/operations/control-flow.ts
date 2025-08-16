@@ -1,6 +1,6 @@
-import ERRORS from '../../errors';
+import ERRORS from "../../errors";
 
-import type { MachineState } from '../../machine-state/types';
+import type { MachineState } from "../../machine-state/types";
 
 /**
  * STOP opcode (0x00): Halts execution successfully

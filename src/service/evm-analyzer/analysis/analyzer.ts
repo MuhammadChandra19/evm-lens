@@ -1,4 +1,4 @@
-import { ExecutionStep, AnalysisResult } from '../types';
+import { ExecutionStep, AnalysisResult } from "../types";
 
 export class ExecutionAnalyzer {
   static analyze(steps: ExecutionStep[]): AnalysisResult {
@@ -31,7 +31,7 @@ export class ExecutionAnalyzer {
       }
 
       // Track jumps
-      if (opcodeName === 'JUMP' || opcodeName === 'JUMPI') {
+      if (opcodeName === "JUMP" || opcodeName === "JUMPI") {
         const target = step.stack[step.stack.length - 1];
         jumps.push({ from: step.pc, to: Number(target) });
       }
@@ -57,18 +57,27 @@ export class ExecutionAnalyzer {
   }
 
   private static isMemoryOpcode(opcode: string): boolean {
-    return ['MLOAD', 'MSTORE', 'MSTORE8', 'CALLDATACOPY', 'CODECOPY', 'RETURNDATACOPY'].includes(opcode);
+    return [
+      "MLOAD",
+      "MSTORE",
+      "MSTORE8",
+      "CALLDATACOPY",
+      "CODECOPY",
+      "RETURNDATACOPY",
+    ].includes(opcode);
   }
 
   private static isStorageOpcode(opcode: string): boolean {
-    return ['SLOAD', 'SSTORE'].includes(opcode);
+    return ["SLOAD", "SSTORE"].includes(opcode);
   }
 
   static getGasEfficiency(steps: ExecutionStep[]): number {
     if (steps.length === 0) return 0;
 
     const totalGas = steps[0].gasLeft - steps[steps.length - 1].gasLeft;
-    const effectiveOpcodes = steps.filter((s) => !['JUMPDEST', 'POP'].includes(s.opcode.name)).length;
+    const effectiveOpcodes = steps.filter(
+      (s) => !["JUMPDEST", "POP"].includes(s.opcode.name),
+    ).length;
 
     return effectiveOpcodes / Number(totalGas);
   }

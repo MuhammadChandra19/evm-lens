@@ -1,6 +1,6 @@
-import { bigMath } from '../utils';
+import { bigMath } from "../utils";
 
-import type { MachineState } from '../../machine-state/types';
+import type { MachineState } from "../../machine-state/types";
 
 /**
  * AND opcode (0x16): Pops two values, pushes bitwise AND result

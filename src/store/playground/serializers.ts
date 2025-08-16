@@ -1,8 +1,8 @@
-import EVMAnalyzer from '@/service/evm-analyzer';
-import { PlaygroundState } from './types';
-import { Address } from '@ethereumjs/util';
-import { ContractMetadata, FunctionInfo } from '@/service/evm-analyzer/types';
-import { keccak256 } from 'ethereum-cryptography/keccak';
+import EVMAnalyzer from "@/service/evm-analyzer";
+import { PlaygroundState } from "./types";
+import { Address } from "@ethereumjs/util";
+import { ContractMetadata, FunctionInfo } from "@/service/evm-analyzer/types";
+import { keccak256 } from "ethereum-cryptography/keccak";
 
 // Serializable version of the playground state
 export interface SerializablePlaygroundState {
@@ -25,12 +25,16 @@ export interface SerializablePlaygroundState {
   };
 }
 
-export const serializePlaygroundState = async (state: PlaygroundState): Promise<SerializablePlaygroundState> => {
+export const serializePlaygroundState = async (
+  state: PlaygroundState,
+): Promise<SerializablePlaygroundState> => {
   const serialized: SerializablePlaygroundState = {
     contractAddress: state.contractAddress?.toString(),
     constructorBytecode: state.constructorBytecode,
     abi: state.abi,
-    functions: state.functions ? Array.from(state.functions.entries()) : undefined,
+    functions: state.functions
+      ? Array.from(state.functions.entries())
+      : undefined,
     ownerAddress: state.ownerAddress?.toString(),
     totalSupply: state.totalSupply.toString(),
     decimals: state.decimals,
@@ -45,15 +49,33 @@ export const serializePlaygroundState = async (state: PlaygroundState): Promise<
   return serialized;
 };
 
-export const deserializePlaygroundState = async (serialized: SerializablePlaygroundState): Promise<PlaygroundState> => {
+export const deserializePlaygroundState = async (
+  serialized: SerializablePlaygroundState,
+): Promise<PlaygroundState> => {
   const state: PlaygroundState = {
     contractAddress: serialized.contractAddress
-      ? new Address(Buffer.from(serialized.contractAddress.startsWith('0x') ? serialized.contractAddress.slice(2) : serialized.contractAddress, 'hex'))
+      ? new Address(
+          Buffer.from(
+            serialized.contractAddress.startsWith("0x")
+              ? serialized.contractAddress.slice(2)
+              : serialized.contractAddress,
+            "hex",
+          ),
+        )
       : undefined,
     constructorBytecode: serialized.constructorBytecode,
     abi: serialized.abi,
     functions: serialized.functions ? new Map(serialized.functions) : undefined,
-    ownerAddress: serialized.ownerAddress ? new Address(Buffer.from(serialized.ownerAddress.startsWith('0x') ? serialized.ownerAddress.slice(2) : serialized.ownerAddress, 'hex')) : undefined,
+    ownerAddress: serialized.ownerAddress
+      ? new Address(
+          Buffer.from(
+            serialized.ownerAddress.startsWith("0x")
+              ? serialized.ownerAddress.slice(2)
+              : serialized.ownerAddress,
+            "hex",
+          ),
+        )
+      : undefined,
     totalSupply: BigInt(serialized.totalSupply),
     decimals: serialized.decimals,
   };
@@ -66,12 +88,17 @@ export const deserializePlaygroundState = async (serialized: SerializablePlaygro
   return state;
 };
 
-const serializeEVMState = async (evm: EVMAnalyzer, knownAddresses: string[] = []): Promise<SerializablePlaygroundState['evmState']> => {
+const serializeEVMState = async (
+  evm: EVMAnalyzer,
+  knownAddresses: string[] = [],
+): Promise<SerializablePlaygroundState["evmState"]> => {
   // Use the enhanced serialization logic
   return await serializeEVMStateEnhanced(evm, knownAddresses);
 };
 
-const deserializeEVMState = async (evmState: NonNullable<SerializablePlaygroundState['evmState']>): Promise<EVMAnalyzer> => {
+const deserializeEVMState = async (
+  evmState: NonNullable<SerializablePlaygroundState["evmState"]>,
+): Promise<EVMAnalyzer> => {
   // Create a new EVM analyzer instance
   const evm = await EVMAnalyzer.create();
 
@@ -82,22 +109,28 @@ const deserializeEVMState = async (evmState: NonNullable<SerializablePlaygroundS
       await evm.createAccount(accountData.address);
 
       // Fund the account with the stored balance
-      if (accountData.balance !== '0') {
+      if (accountData.balance !== "0") {
         await evm.fundAccount(accountData.address, BigInt(accountData.balance));
       }
 
       // Restore contract code if present
       if (accountData.code) {
-        const codeBytes = new Uint8Array(Buffer.from(accountData.code, 'hex'));
+        const codeBytes = new Uint8Array(Buffer.from(accountData.code, "hex"));
         await evm.stateManagerService.setCode(accountData.address, codeBytes);
       }
 
       // Restore storage if present
       if (accountData.storage) {
         for (const [slot, value] of accountData.storage) {
-          const cleanAddr = accountData.address.startsWith('0x') ? accountData.address.slice(2) : accountData.address;
-          const addr = new Address(Buffer.from(cleanAddr, 'hex'));
-          await evm.stateManagerService.stateManager.putStorage(addr, Buffer.from(slot, 'hex'), Buffer.from(value, 'hex'));
+          const cleanAddr = accountData.address.startsWith("0x")
+            ? accountData.address.slice(2)
+            : accountData.address;
+          const addr = new Address(Buffer.from(cleanAddr, "hex"));
+          await evm.stateManagerService.stateManager.putStorage(
+            addr,
+            Buffer.from(slot, "hex"),
+            Buffer.from(value, "hex"),
+          );
         }
       }
     } catch (error) {
@@ -109,7 +142,10 @@ const deserializeEVMState = async (evmState: NonNullable<SerializablePlaygroundS
 };
 
 // Enhanced serialization that captures more EVM state
-export const serializeEVMStateEnhanced = async (evm: EVMAnalyzer, knownAddresses: string[] = []): Promise<SerializablePlaygroundState['evmState']> => {
+export const serializeEVMStateEnhanced = async (
+  evm: EVMAnalyzer,
+  knownAddresses: string[] = [],
+): Promise<SerializablePlaygroundState["evmState"]> => {
   const accounts: Array<{
     address: string;
     balance: string;
@@ -135,7 +171,7 @@ export const serializeEVMStateEnhanced = async (evm: EVMAnalyzer, knownAddresses
         if (accountInfo.isContract) {
           const code = await evm.stateManagerService.getCode(address);
           if (code && code.length > 0) {
-            accountData.code = Buffer.from(code).toString('hex');
+            accountData.code = Buffer.from(code).toString("hex");
           }
         }
 
@@ -146,26 +182,35 @@ export const serializeEVMStateEnhanced = async (evm: EVMAnalyzer, knownAddresses
           try {
             // Common ERC-20 storage slots
             const importantSlots = [
-              '0x0000000000000000000000000000000000000000000000000000000000000000', // slot 0
-              '0x0000000000000000000000000000000000000000000000000000000000000001', // slot 1
-              '0x0000000000000000000000000000000000000000000000000000000000000002', // slot 2
-              '0x0000000000000000000000000000000000000000000000000000000000000003', // slot 3 (totalSupply)
-              '0x0000000000000000000000000000000000000000000000000000000000000004', // slot 4 (balances mapping base)
-              '0x0000000000000000000000000000000000000000000000000000000000000005', // slot 5
-              '0x0000000000000000000000000000000000000000000000000000000000000006', // slot 6 (owner)
+              "0x0000000000000000000000000000000000000000000000000000000000000000", // slot 0
+              "0x0000000000000000000000000000000000000000000000000000000000000001", // slot 1
+              "0x0000000000000000000000000000000000000000000000000000000000000002", // slot 2
+              "0x0000000000000000000000000000000000000000000000000000000000000003", // slot 3 (totalSupply)
+              "0x0000000000000000000000000000000000000000000000000000000000000004", // slot 4 (balances mapping base)
+              "0x0000000000000000000000000000000000000000000000000000000000000005", // slot 5
+              "0x0000000000000000000000000000000000000000000000000000000000000006", // slot 6 (owner)
             ];
 
-            const cleanAddr = address.startsWith('0x') ? address.slice(2) : address;
-            const addr = new Address(Buffer.from(cleanAddr, 'hex'));
+            const cleanAddr = address.startsWith("0x")
+              ? address.slice(2)
+              : address;
+            const addr = new Address(Buffer.from(cleanAddr, "hex"));
 
             for (const slot of importantSlots) {
-              const slotBuffer = Buffer.from(slot.slice(2), 'hex');
-              const value = await evm.stateManagerService.stateManager.getStorage(addr, slotBuffer);
+              const slotBuffer = Buffer.from(slot.slice(2), "hex");
+              const value =
+                await evm.stateManagerService.stateManager.getStorage(
+                  addr,
+                  slotBuffer,
+                );
 
               if (value && value.length > 0) {
                 // Only store non-zero values
-                const valueHex = Buffer.from(value).toString('hex');
-                if (valueHex !== '0000000000000000000000000000000000000000000000000000000000000000') {
+                const valueHex = Buffer.from(value).toString("hex");
+                if (
+                  valueHex !==
+                  "0000000000000000000000000000000000000000000000000000000000000000"
+                ) {
                   storage.push([slot.slice(2), valueHex]);
                 }
               }
@@ -176,18 +221,31 @@ export const serializeEVMStateEnhanced = async (evm: EVMAnalyzer, knownAddresses
             for (const knownAddr of knownAddresses) {
               if (knownAddr && knownAddr !== address) {
                 try {
-                  const balanceSlot = getBalanceSlot(knownAddr, balanceMappingSlot);
-                  const slotBuffer = Buffer.from(balanceSlot, 'hex');
-                  const value = await evm.stateManagerService.stateManager.getStorage(addr, slotBuffer);
+                  const balanceSlot = getBalanceSlot(
+                    knownAddr,
+                    balanceMappingSlot,
+                  );
+                  const slotBuffer = Buffer.from(balanceSlot, "hex");
+                  const value =
+                    await evm.stateManagerService.stateManager.getStorage(
+                      addr,
+                      slotBuffer,
+                    );
 
                   if (value && value.length > 0) {
-                    const valueHex = Buffer.from(value).toString('hex');
-                    if (valueHex !== '0000000000000000000000000000000000000000000000000000000000000000') {
+                    const valueHex = Buffer.from(value).toString("hex");
+                    if (
+                      valueHex !==
+                      "0000000000000000000000000000000000000000000000000000000000000000"
+                    ) {
                       storage.push([balanceSlot, valueHex]);
                     }
                   }
                 } catch (error) {
-                  console.warn(`Failed to serialize balance slot for ${knownAddr}:`, error);
+                  console.warn(
+                    `Failed to serialize balance slot for ${knownAddr}:`,
+                    error,
+                  );
                 }
               }
             }
@@ -227,12 +285,15 @@ export const getKnownAddresses = (state: PlaygroundState): string[] => {
 
 // Helper to calculate balance mapping slot (same logic as in action.ts)
 const getBalanceSlot = (address: string, mappingSlot: number): string => {
-  const cleanAddr = address.startsWith('0x') ? address.slice(2) : address;
-  const addrBuffer = Buffer.from(cleanAddr.padStart(64, '0'), 'hex');
-  const slotBuffer = Buffer.from(mappingSlot.toString(16).padStart(64, '0'), 'hex');
+  const cleanAddr = address.startsWith("0x") ? address.slice(2) : address;
+  const addrBuffer = Buffer.from(cleanAddr.padStart(64, "0"), "hex");
+  const slotBuffer = Buffer.from(
+    mappingSlot.toString(16).padStart(64, "0"),
+    "hex",
+  );
 
   const combined = Buffer.concat([addrBuffer, slotBuffer]);
   const hash = keccak256(combined);
 
-  return Buffer.from(hash).toString('hex');
+  return Buffer.from(hash).toString("hex");
 };

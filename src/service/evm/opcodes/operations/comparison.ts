@@ -1,6 +1,6 @@
-import { bigMath } from '../utils';
+import { bigMath } from "../utils";
 
-import type { MachineState } from '../../machine-state/types';
+import type { MachineState } from "../../machine-state/types";
 
 /**
  * LT opcode (0x10): Pops two values, pushes 1 if first < second, else 0

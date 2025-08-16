@@ -1,8 +1,8 @@
-import { EVMManager } from './core/evm-manager';
-import { StateManagerService } from './core/state-manager';
-import { ContractManager } from './core/contract-manager';
-import { ExecutionAnalyzer } from './analysis/analyzer';
-import { TxData, TraceOptions, AccountInfo, ExecutionStep } from './types';
+import { EVMManager } from "./core/evm-manager";
+import { StateManagerService } from "./core/state-manager";
+import { ContractManager } from "./core/contract-manager";
+import { ExecutionAnalyzer } from "./analysis/analyzer";
+import { TxData, TraceOptions, AccountInfo, ExecutionStep } from "./types";
 
 export class EVMAnalyzer {
   private evmManager: EVMManager;
@@ -39,7 +39,10 @@ export class EVMAnalyzer {
   }
 
   async deployContractToAddress(address: string, runtimeBytecode: string) {
-    return this.contractManager.deployContractToAddress(address, runtimeBytecode);
+    return this.contractManager.deployContractToAddress(
+      address,
+      runtimeBytecode,
+    );
   }
 
   async callContract(txData: TxData, options?: TraceOptions) {
@@ -66,5 +69,5 @@ export class EVMAnalyzer {
 }
 
 export default EVMAnalyzer;
-export * from './types';
-export { ExecutionAnalyzer } from './analysis/analyzer';
+export * from "./types";
+export { ExecutionAnalyzer } from "./analysis/analyzer";

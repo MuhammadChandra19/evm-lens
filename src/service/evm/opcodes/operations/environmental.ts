@@ -1,7 +1,7 @@
-import { parsers } from '../utils';
-import { keccak256 } from 'ethereum-cryptography/keccak';
+import { parsers } from "../utils";
+import { keccak256 } from "ethereum-cryptography/keccak";
 
-import type { MachineState } from '../../machine-state/types';
+import type { MachineState } from "../../machine-state/types";
 
 /**
  * ADDRESS opcode (0x30): Push current contract address onto stack
@@ -151,7 +151,10 @@ export function EXTCODECOPY(ms: MachineState) {
   const codeOffset = Number(ms.stack.pop());
   const size = Number(ms.stack.pop());
 
-  const codeBytesPortion = extAccount?.code?.subarray(codeOffset, codeOffset + size);
+  const codeBytesPortion = extAccount?.code?.subarray(
+    codeOffset,
+    codeOffset + size,
+  );
   const codeBuffer = Buffer.from(codeBytesPortion ?? Buffer.alloc(0));
 
   const code = Buffer.alloc(size);
@@ -179,7 +182,10 @@ export function RETURNDATACOPY(ms: MachineState) {
   const returnDataOffset = Number(ms.stack.pop());
   const size = Number(ms.stack.pop());
 
-  const returnData = ms.returnData.subarray(returnDataOffset, returnDataOffset + size);
+  const returnData = ms.returnData.subarray(
+    returnDataOffset,
+    returnDataOffset + size,
+  );
   ms.memory.write(memOffset, returnData, size);
 }
 

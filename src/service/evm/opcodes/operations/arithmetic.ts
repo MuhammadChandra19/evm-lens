@@ -1,6 +1,6 @@
-import { bigMath } from '../utils';
+import { bigMath } from "../utils";
 
-import type { MachineState } from '../../machine-state/types';
+import type { MachineState } from "../../machine-state/types";
 
 /**
  * ADD opcode (0x01): Pops two values, pushes their sum (mod 2^256)

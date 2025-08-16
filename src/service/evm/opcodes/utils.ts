@@ -1,6 +1,6 @@
-import { MAX_256_BITS } from '../constants';
+import { MAX_256_BITS } from "../constants";
 
-import type { OpcodeRunner, Runners } from './types';
+import type { OpcodeRunner, Runners } from "./types";
 
 // enums don't support bigints
 export const CALL_RESULT = {
@@ -16,7 +16,12 @@ export const CALL_RESULT = {
  * @param runner - Runner function to use for all opcodes in the range
  * @returns Runners object mapping opcode values to runner info
  */
-export function buildOpcodeRangeObjects(start: number, end: number, name: string, runner: OpcodeRunner): Runners {
+export function buildOpcodeRangeObjects(
+  start: number,
+  end: number,
+  name: string,
+  runner: OpcodeRunner,
+): Runners {
   const rangeRunners: Runners = {};
   for (let i = start; i <= end; i++) rangeRunners[i] = { name, runner };
   return rangeRunners;
@@ -30,8 +35,8 @@ export const parsers = {
    */
   BytesIntoBigInt(bytes: Uint8Array): bigint {
     let array: string[] = [];
-    for (const byte of bytes) array.push(byte.toString(16).padStart(2, '0'));
-    return BigInt('0x' + array.join(''));
+    for (const byte of bytes) array.push(byte.toString(16).padStart(2, "0"));
+    return BigInt("0x" + array.join(""));
   },
 
   /**
@@ -41,8 +46,8 @@ export const parsers = {
    * @returns Buffer representation padded to specified length
    */
   BigIntIntoBytes(bigint: bigint, length: number): Buffer {
-    const hex = bigint.toString(16).padStart(2 * length, '0');
-    return Buffer.from(hex, 'hex');
+    const hex = bigint.toString(16).padStart(2 * length, "0");
+    return Buffer.from(hex, "hex");
   },
 
   /**
@@ -51,7 +56,7 @@ export const parsers = {
    * @returns BigInt representation of the hex string
    */
   HexStringIntoBigInt(hex: string): bigint {
-    if (!hex.startsWith('0x')) hex = hex.padStart(2 * hex.length + 2, '0x');
+    if (!hex.startsWith("0x")) hex = hex.padStart(2 * hex.length + 2, "0x");
     return BigInt(hex);
   },
 
@@ -61,7 +66,7 @@ export const parsers = {
    * @returns Hex string representation with 0x prefix
    */
   BigintIntoHexString(bigint: bigint): string {
-    return '0x' + bigint.toString(16);
+    return "0x" + bigint.toString(16);
   },
 
   /**
@@ -71,8 +76,12 @@ export const parsers = {
    */
   hexStringToUint8Array(hexString: string): Uint8Array {
     // Remove 0x prefix if present
-    const cleanHex = hexString.startsWith('0x') ? hexString.slice(2) : hexString;
-    return new Uint8Array((cleanHex?.match(/../g) || []).map((byte) => parseInt(byte, 16)));
+    const cleanHex = hexString.startsWith("0x")
+      ? hexString.slice(2)
+      : hexString;
+    return new Uint8Array(
+      (cleanHex?.match(/../g) || []).map((byte) => parseInt(byte, 16)),
+    );
   },
 
   /**
@@ -81,7 +90,7 @@ export const parsers = {
    * @returns Hex string with 0x prefix
    */
   BufferToHexString(buffer: Buffer): string {
-    return '0x' + buffer.toString('hex');
+    return "0x" + buffer.toString("hex");
   },
 };
 

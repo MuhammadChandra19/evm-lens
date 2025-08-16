@@ -9,6 +9,7 @@ The Playground Store provides a complete interface for interacting with an EVM b
 ## Features
 
 ### 🔧 Core Functionality
+
 - **Contract Deployment**: Deploy and manage smart contracts
 - **Account Management**: Create and fund blockchain accounts
 - **Token Operations**: ERC-20 token transfers, approvals, and balance queries
@@ -16,6 +17,7 @@ The Playground Store provides a complete interface for interacting with an EVM b
 - **Price Discovery**: Real-time price calculations and reserve monitoring
 
 ### 💾 Persistence
+
 - **Dual-Layer Persistence**: Basic state and complex EVM blockchain state
 - **Automatic Save**: State changes trigger automatic persistence
 - **Complete Restoration**: Full blockchain state recovery on page reload
@@ -39,46 +41,52 @@ src/store/playground/
 
 ```typescript
 interface PlaygroundState {
-  contractAddress?: Address;        // Deployed contract address
-  constructorBytecode: string;     // Contract constructor bytecode
-  abi: ContractMetadata;           // Contract ABI and metadata
+  contractAddress?: Address; // Deployed contract address
+  constructorBytecode: string; // Contract constructor bytecode
+  abi: ContractMetadata; // Contract ABI and metadata
   functions?: Map<string, FunctionInfo>; // Contract function mappings
-  ownerAddress?: Address;          // Contract owner address
-  totalSupply: bigint;             // Token total supply
-  decimals: number;                // Token decimal places
-  evm?: EVMAnalyzer;              // EVM blockchain simulator instance
+  ownerAddress?: Address; // Contract owner address
+  totalSupply: bigint; // Token total supply
+  decimals: number; // Token decimal places
+  evm?: EVMAnalyzer; // EVM blockchain simulator instance
 }
 ```
 
 ### Available Actions
 
 #### Contract Management
+
 - `createNewPlayground(payload)` - Deploy new contract with configuration
 - `deployContract(bytecode)` - Deploy contract from bytecode
 - `deployContractToAddress(address, bytecode)` - Deploy to specific address
 - `callContract(txData)` - Execute contract function calls
 
 #### Account Operations
+
 - `createAccount(address)` - Create new blockchain account
 - `fundAccount(address, balance)` - Fund account with ETH balance
 
 #### Token Functions
+
 - `getTokenBalance(userAddress)` - Query token balance
 - `transferTokens(from, to, amount)` - Transfer tokens between accounts
 - `approveTokens(user, spender, amount)` - Approve token spending
 
 #### DEX Trading
+
 - `addLiquidity(user, tokenAmount, ethAmount)` - Add liquidity to pool
 - `swapEthForTokens(user, ethAmount)` - Swap ETH for tokens
 - `swapTokensForEth(user, tokenAmount)` - Swap tokens for ETH
 
 #### Price & Reserve Queries
+
 - `getReserves()` - Get current pool reserves
 - `getTokenPrice()` - Calculate current token price
 - `getEthAmountForTokens(tokenAmount)` - Calculate ETH for token amount
 - `getTokenAmountForEth(ethAmount)` - Calculate tokens for ETH amount
 
 #### Persistence Management
+
 - `initializeEVM()` - Manually initialize EVM instance
 - `saveEVMState()` - Manually trigger state persistence
 - `clearPersistedState()` - Clear all persisted data
@@ -88,7 +96,7 @@ interface PlaygroundState {
 ### Basic Setup
 
 ```typescript
-import usePlaygroundStore from '@/store/playground';
+import usePlaygroundStore from "@/store/playground";
 
 const MyComponent = () => {
   const {
@@ -96,7 +104,7 @@ const MyComponent = () => {
     getTokenBalance,
     transferTokens,
     swapEthForTokens,
-    getReserves
+    getReserves,
   } = usePlaygroundStore();
 
   // Component logic here
@@ -108,16 +116,16 @@ const MyComponent = () => {
 ```typescript
 const deployNewContract = async () => {
   const result = await createNewPlayground({
-    contractAddress: '0x742d35cc6ab4c3c8b9f4c6d5e7f8a9b0c1d2e3f4',
-    constructorBytecode: '0x608060405234801561001057600080fd5b50...',
+    contractAddress: "0x742d35cc6ab4c3c8b9f4c6d5e7f8a9b0c1d2e3f4",
+    constructorBytecode: "0x608060405234801561001057600080fd5b50...",
     abi: contractMetadata,
-    ownerAddress: '0x1234567890123456789012345678901234567890',
-    totalSupply: BigInt('1000000'),
-    decimals: 18
+    ownerAddress: "0x1234567890123456789012345678901234567890",
+    totalSupply: BigInt("1000000"),
+    decimals: 18,
   });
 
   if (result.success) {
-    console.log('Contract deployed successfully');
+    console.log("Contract deployed successfully");
   }
 };
 ```
@@ -126,23 +134,23 @@ const deployNewContract = async () => {
 
 ```typescript
 const handleTokenTransfer = async () => {
-  const fromAddress = '0x1234567890123456789012345678901234567890';
-  const toAddress = '0x0987654321098765432109876543210987654321';
-  const amount = BigInt('1000000000000000000'); // 1 token with 18 decimals
+  const fromAddress = "0x1234567890123456789012345678901234567890";
+  const toAddress = "0x0987654321098765432109876543210987654321";
+  const amount = BigInt("1000000000000000000"); // 1 token with 18 decimals
 
   // Check balance before transfer
   const balance = await getTokenBalance(fromAddress);
-  console.log('Balance before:', balance);
+  console.log("Balance before:", balance);
 
   // Execute transfer
   const result = await transferTokens(fromAddress, toAddress, amount);
   if (result) {
-    console.log('Transfer successful');
+    console.log("Transfer successful");
   }
 
   // Check balance after transfer
   const newBalance = await getTokenBalance(fromAddress);
-  console.log('Balance after:', newBalance);
+  console.log("Balance after:", newBalance);
 };
 ```
 
@@ -150,22 +158,22 @@ const handleTokenTransfer = async () => {
 
 ```typescript
 const handleSwap = async () => {
-  const userAddress = '0x1234567890123456789012345678901234567890';
-  const ethAmount = BigInt('1000000000000000000'); // 1 ETH
+  const userAddress = "0x1234567890123456789012345678901234567890";
+  const ethAmount = BigInt("1000000000000000000"); // 1 ETH
 
   // Check reserves before swap
   const { tokenReserve, ethReserve } = await getReserves();
-  console.log('Reserves before:', { tokenReserve, ethReserve });
+  console.log("Reserves before:", { tokenReserve, ethReserve });
 
   // Execute swap
   const result = await swapEthForTokens(userAddress, ethAmount);
   if (result) {
-    console.log('Swap successful');
+    console.log("Swap successful");
   }
 
   // Check reserves after swap
   const newReserves = await getReserves();
-  console.log('Reserves after:', newReserves);
+  console.log("Reserves after:", newReserves);
 };
 ```
 
@@ -175,16 +183,16 @@ const handleSwap = async () => {
 const getPriceInfo = async () => {
   // Get current token price in ETH
   const price = await getTokenPrice();
-  console.log('Current token price:', price, 'ETH');
+  console.log("Current token price:", price, "ETH");
 
   // Calculate swap amounts
-  const tokenAmount = BigInt('1000000000000000000'); // 1 token
+  const tokenAmount = BigInt("1000000000000000000"); // 1 token
   const ethForTokens = await getEthAmountForTokens(tokenAmount);
-  console.log('1 token =', ethForTokens, 'wei ETH');
+  console.log("1 token =", ethForTokens, "wei ETH");
 
-  const ethAmount = BigInt('1000000000000000000'); // 1 ETH
+  const ethAmount = BigInt("1000000000000000000"); // 1 ETH
   const tokensForEth = await getTokenAmountForEth(ethAmount);
-  console.log('1 ETH =', tokensForEth, 'wei tokens');
+  console.log("1 ETH =", tokensForEth, "wei tokens");
 };
 ```
 
@@ -200,12 +208,14 @@ The store uses two localStorage keys:
 ### What Gets Persisted
 
 #### Basic State
+
 - Contract and owner addresses
 - Constructor bytecode and ABI
 - Function mappings
 - Total supply and decimals
 
 #### EVM Blockchain State
+
 - Account balances and nonces
 - Contract bytecode
 - Storage slots (including token balances)
@@ -214,6 +224,7 @@ The store uses two localStorage keys:
 ### Automatic Persistence
 
 State is automatically saved after:
+
 - Contract deployment
 - Account creation or funding
 - Contract function calls
@@ -236,18 +247,22 @@ await initializeEVM();
 ## Storage Serialization
 
 ### Address Objects
+
 - Serialized as hex strings
 - Restored as proper Address instances
 
 ### BigInt Values
+
 - Serialized as strings
 - Restored as BigInt instances
 
 ### Function Maps
+
 - Serialized as arrays of key-value pairs
 - Restored as Map instances
 
 ### EVM State
+
 - Accounts with balances, nonces, and code
 - Storage slots with keccak256-calculated mapping slots
 - Only non-zero values to optimize space
@@ -259,11 +274,12 @@ All operations include comprehensive error handling:
 ```typescript
 const result = await fundAccount(address, balance);
 if (!result.success) {
-  console.error('Funding failed:', result.error);
+  console.error("Funding failed:", result.error);
 }
 ```
 
 Common error scenarios:
+
 - EVM not initialized
 - Invalid addresses
 - Insufficient balances

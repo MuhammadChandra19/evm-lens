@@ -1,4 +1,4 @@
-import { Gas, Log, ProgramCounter, State, TxData, Block } from './types';
+import { Gas, Log, ProgramCounter, State, TxData, Block } from "./types";
 
 // Enhanced instruction info for control flow analysis
 export interface InstructionInfo {
@@ -151,7 +151,13 @@ export interface EVMAnalyzer {
   detectFunctions(cfg: ControlFlowGraph): DetectedFunction[];
 
   // Execution with tracing
-  executeWithTrace(code: Uint8Array, txData: TxData, block: Block, state?: State, maxSteps?: number): Promise<ExecutionTrace>;
+  executeWithTrace(
+    code: Uint8Array,
+    txData: TxData,
+    block: Block,
+    state?: State,
+    maxSteps?: number,
+  ): Promise<ExecutionTrace>;
 
   // Utilities
   disassemble(code: Uint8Array): InstructionInfo[];

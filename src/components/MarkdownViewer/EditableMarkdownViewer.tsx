@@ -1,19 +1,24 @@
-import { useState } from 'react';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import MarkdownViewer from './index';
+import { useState } from "react";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import MarkdownViewer from "./index";
 
 type Props = {
   source: string;
-  type: 'json' | 'markdown';
+  type: "json" | "markdown";
   onChange?: (value: string) => void;
   placeholder?: string;
-}
+};
 
-const EditableMarkdownViewer = ({ source, type, onChange, placeholder }: Props) => {
+const EditableMarkdownViewer = ({
+  source,
+  type,
+  onChange,
+  placeholder,
+}: Props) => {
   const [isEditing, setIsEditing] = useState(false);
   const [tempValue, setTempValue] = useState(source);
-  const isEmpty = !source || source.trim() === '';
+  const isEmpty = !source || source.trim() === "";
 
   const handleSave = () => {
     onChange?.(tempValue);
@@ -31,7 +36,10 @@ const EditableMarkdownViewer = ({ source, type, onChange, placeholder }: Props) 
         <Textarea
           value={tempValue}
           onChange={(e) => setTempValue(e.target.value)}
-          placeholder={placeholder || (type === 'json' ? 'Enter JSON data...' : 'Enter markdown...')}
+          placeholder={
+            placeholder ||
+            (type === "json" ? "Enter JSON data..." : "Enter markdown...")
+          }
           className="min-h-32 w-full font-mono text-sm"
         />
         {isEditing && (
@@ -50,11 +58,7 @@ const EditableMarkdownViewer = ({ source, type, onChange, placeholder }: Props) 
 
   return (
     <div className="space-y-2">
-      <MarkdownViewer
-        value={source}
-        type={type}
-        editable={false}
-      />
+      <MarkdownViewer value={source} type={type} editable={false} />
       <Button
         variant="outline"
         size="sm"

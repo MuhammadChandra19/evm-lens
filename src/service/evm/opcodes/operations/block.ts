@@ -1,7 +1,7 @@
-import { parsers } from '../utils';
-import { keccak256 } from 'ethereum-cryptography/keccak';
+import { parsers } from "../utils";
+import { keccak256 } from "ethereum-cryptography/keccak";
 
-import type { MachineState } from '../../machine-state/types';
+import type { MachineState } from "../../machine-state/types";
 
 /**
  * Generates a mock block hash for testing purposes
@@ -9,7 +9,7 @@ import type { MachineState } from '../../machine-state/types';
  */
 function generateMockBlockHash(blockNumber: number): Uint8Array {
   // Create deterministic hash based on block number
-  const blockData = Buffer.from(`block_${blockNumber}`, 'utf8');
+  const blockData = Buffer.from(`block_${blockNumber}`, "utf8");
   return keccak256(blockData);
 }
 
@@ -27,7 +27,11 @@ export function BLOCKHASH(ms: MachineState) {
   const currentBlock = Number(currentBlockNumber);
 
   // Validation
-  if (blockNumber >= currentBlockNumber || currentBlock - requestedBlock > 256 || requestedBlock < 0) {
+  if (
+    blockNumber >= currentBlockNumber ||
+    currentBlock - requestedBlock > 256 ||
+    requestedBlock < 0
+  ) {
     ms.stack.push(0n);
     return;
   }

@@ -1,4 +1,4 @@
-import ERRORS from '../errors';
+import ERRORS from "../errors";
 
 // Add this constant at the top
 const MAX_MEMORY_SIZE = 16 * 1024 * 1024; // 16MB limit
@@ -22,7 +22,8 @@ export default class Memory {
    */
   write(offset: number, value: Buffer, size: 1 | 32 | number) {
     if (offset < 0) throw new Error(ERRORS.INVALID_MEMORY_OFFSET);
-    if (value.length !== size) throw new Error(ERRORS.INVALID_MEMORY_VALUE_SIZE);
+    if (value.length !== size)
+      throw new Error(ERRORS.INVALID_MEMORY_VALUE_SIZE);
 
     const newSize = offset + size;
     if (newSize > MAX_MEMORY_SIZE) {
@@ -90,9 +91,9 @@ export default class Memory {
    * @returns String representation of memory as hex, one word per line
    */
   get dump(): string {
-    let dump = '';
+    let dump = "";
     for (let i = 0; i < this._memory.length; i += 32) {
-      dump += this._memory.subarray(i, i + 32).toString('hex') + '\n';
+      dump += this._memory.subarray(i, i + 32).toString("hex") + "\n";
     }
     return dump;
   }

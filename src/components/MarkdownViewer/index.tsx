@@ -1,19 +1,25 @@
-import Markdown from '@uiw/react-markdown-preview';
-import { Textarea } from '@/components/ui/textarea';
-import { getMarkdown } from './helper';
-import { useState } from 'react';
+import Markdown from "@uiw/react-markdown-preview";
+import { Textarea } from "@/components/ui/textarea";
+import { getMarkdown } from "./helper";
+import { useState } from "react";
 
 type Props = {
   value: string;
-  type: 'json' | 'markdown';
+  type: "json" | "markdown";
   onChange?: (value: string) => void;
   placeholder?: string;
   editable?: boolean;
-}
+};
 
-const MarkdownViewer = ({ value: source, type, onChange, placeholder, editable = true }: Props) => {
+const MarkdownViewer = ({
+  value: source,
+  type,
+  onChange,
+  placeholder,
+  editable = true,
+}: Props) => {
   const [isEditing, setIsEditing] = useState(false);
-  const isEmpty = !source || source.trim() === '';
+  const isEmpty = !source || source.trim() === "";
 
   // Show textarea if source is empty or user is editing
   const shouldShowTextarea = editable && (isEmpty || isEditing);
@@ -23,7 +29,10 @@ const MarkdownViewer = ({ value: source, type, onChange, placeholder, editable =
       <Textarea
         value={source}
         onChange={(e) => onChange?.(e.target.value)}
-        placeholder={placeholder || (type === 'json' ? 'Enter JSON data...' : 'Enter markdown...')}
+        placeholder={
+          placeholder ||
+          (type === "json" ? "Enter JSON data..." : "Enter markdown...")
+        }
         className="h-40 w-full font-mono text-sm resize-none"
         onBlur={() => {
           // Switch back to preview mode if content is not empty
@@ -45,6 +54,6 @@ const MarkdownViewer = ({ value: source, type, onChange, placeholder, editable =
       <Markdown source={markdown} className="p-4 rel" />
     </div>
   );
-}
+};
 
 export default MarkdownViewer;

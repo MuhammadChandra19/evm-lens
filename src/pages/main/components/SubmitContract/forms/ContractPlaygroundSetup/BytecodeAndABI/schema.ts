@@ -1,4 +1,4 @@
-import * as z from 'zod';
+import * as z from "zod";
 
 const schema = z.object({
   constructorBytecode: z.string().min(1),
