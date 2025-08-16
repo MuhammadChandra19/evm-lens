@@ -1,21 +1,21 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ContractPlaygroundSchema, contractPlaygroundSchema } from "./schema";
+import { ContractEVMSchema, contractEVMSchema } from "./schema";
 import { DEFAULT_DATA } from "./data";
-import usePlaygroundStore from "@/store/playground";
+import useEVMStore from "@/store/evm";
 import { toast } from "sonner";
-import { ErrorPlayground } from "@/store/playground/errors";
+import { ErrorEVM } from "@/store/evm/errors";
 
 const useDeployContract = () => {
-  const deployContract = usePlaygroundStore(
-    (store) => store.createNewPlayground,
+  const deployContract = useEVMStore(
+    (store) => store.createNewEVM,
   );
-  const method = useForm<ContractPlaygroundSchema>({
-    resolver: zodResolver(contractPlaygroundSchema),
+  const method = useForm<ContractEVMSchema>({
+    resolver: zodResolver(contractEVMSchema),
     defaultValues: DEFAULT_DATA,
   });
 
-  const handleDeploycontract = async (payload: ContractPlaygroundSchema) => {
+  const handleDeploycontract = async (payload: ContractEVMSchema) => {
     try {
       const res = await deployContract({
         abi: JSON.parse(payload.bytecodeAndAbi.contractAbi),
@@ -31,12 +31,12 @@ const useDeployContract = () => {
         return;
       }
 
-      toast.error("failed to create new playground", {
-        description: res.error as ErrorPlayground,
+      toast.error("failed to create new EVM", {
+        description: res.error as ErrorEVM,
       });
     } catch (e) {
       console.error(e);
-      toast.error("failed to create new playground");
+      toast.error("failed to create new EVM");
     }
   };
 

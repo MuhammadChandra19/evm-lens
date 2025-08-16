@@ -1,11 +1,11 @@
 import EVMAnalyzer from "@/service/evm-analyzer";
-import { PlaygroundState } from "./types";
+import { EVMState } from "./types";
 import { Address } from "@ethereumjs/util";
 import { ContractMetadata, FunctionInfo } from "@/service/evm-analyzer/types";
 import { keccak256 } from "ethereum-cryptography/keccak";
 
-// Serializable version of the playground state
-export interface SerializablePlaygroundState {
+// Serializable version of the EVM state
+export interface SerializableEVMState {
   contractAddress?: string;
   constructorBytecode: string;
   abi: ContractMetadata;
@@ -25,10 +25,10 @@ export interface SerializablePlaygroundState {
   };
 }
 
-export const serializePlaygroundState = async (
-  state: PlaygroundState,
-): Promise<SerializablePlaygroundState> => {
-  const serialized: SerializablePlaygroundState = {
+export const serializeEVMState = async (
+  state: EVMState,
+): Promise<SerializableEVMState> => {
+  const serialized: SerializableEVMState = {
     contractAddress: state.contractAddress?.toString(),
     constructorBytecode: state.constructorBytecode,
     abi: state.abi,
@@ -43,16 +43,16 @@ export const serializePlaygroundState = async (
   // Serialize EVM state if available
   if (state.evm) {
     const knownAddresses = getKnownAddresses(state);
-    serialized.evmState = await serializeEVMState(state.evm, knownAddresses);
+    serialized.evmState =  await serializeEVMStateEnhanced(state.evm, knownAddresses);
   }
 
   return serialized;
 };
 
-export const deserializePlaygroundState = async (
-  serialized: SerializablePlaygroundState,
-): Promise<PlaygroundState> => {
-  const state: PlaygroundState = {
+export const deserializeEVMState = async (
+  serialized: SerializableEVMState,
+): Promise<EVMState> => {
+  const state: EVMState = {
     contractAddress: serialized.contractAddress
       ? new Address(
           Buffer.from(
@@ -82,22 +82,15 @@ export const deserializePlaygroundState = async (
 
   // Restore EVM state if available
   if (serialized.evmState) {
-    state.evm = await deserializeEVMState(serialized.evmState);
+    state.evm = await deserializeEVM(serialized.evmState);
   }
 
   return state;
 };
 
-const serializeEVMState = async (
-  evm: EVMAnalyzer,
-  knownAddresses: string[] = [],
-): Promise<SerializablePlaygroundState["evmState"]> => {
-  // Use the enhanced serialization logic
-  return await serializeEVMStateEnhanced(evm, knownAddresses);
-};
 
-const deserializeEVMState = async (
-  evmState: NonNullable<SerializablePlaygroundState["evmState"]>,
+const deserializeEVM = async (
+  evmState: NonNullable<SerializableEVMState["evmState"]>,
 ): Promise<EVMAnalyzer> => {
   // Create a new EVM analyzer instance
   const evm = await EVMAnalyzer.create();
@@ -145,7 +138,7 @@ const deserializeEVMState = async (
 export const serializeEVMStateEnhanced = async (
   evm: EVMAnalyzer,
   knownAddresses: string[] = [],
-): Promise<SerializablePlaygroundState["evmState"]> => {
+): Promise<SerializableEVMState["evmState"]> => {
   const accounts: Array<{
     address: string;
     balance: string;
@@ -269,7 +262,7 @@ export const serializeEVMStateEnhanced = async (
 };
 
 // Helper function to get all addresses that should be persisted
-export const getKnownAddresses = (state: PlaygroundState): string[] => {
+export const getKnownAddresses = (state: EVMState): string[] => {
   const addresses: string[] = [];
 
   if (state.contractAddress) {

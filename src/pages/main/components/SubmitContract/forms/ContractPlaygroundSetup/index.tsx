@@ -5,13 +5,13 @@ import { Play } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import ContractConfiguration from "./ContractConfiguration";
 import BytecodeAndABI from "./BytecodeAndABI";
-import { ContractPlaygroundSchema } from "./schema";
+import { ContractEVMSchema } from "./schema";
 import { useRef } from "react";
 
-const ContractPlaygroundSetup = () => {
+const ContractEVMSetup = () => {
   const { method, handleDeploycontract } = useDeployContract();
   const submitActionRef = useRef<"publish" | "save">("publish");
-  const handleFormSubmit = (data: ContractPlaygroundSchema) => {
+  const handleFormSubmit = (data: ContractEVMSchema) => {
     if (submitActionRef.current === "save") {
       console.log(data);
     } else {
@@ -25,7 +25,7 @@ const ContractPlaygroundSetup = () => {
           <Card className="border-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
             <CardContent className="p-8 text-center">
               <h2 className="text-3xl font-bold mb-4">
-                🎯 Smart Contract Playground Setup
+                🎯 Smart Contract EVM Setup
               </h2>
               <p className="text-blue-100 text-lg">
                 Configure your contract parameters and deploy to your local
@@ -63,4 +63,4 @@ const ContractPlaygroundSetup = () => {
   );
 };
 
-export default ContractPlaygroundSetup;
+export default ContractEVMSetup;

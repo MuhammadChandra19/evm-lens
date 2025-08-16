@@ -1,9 +1,9 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import {
-  PlaygroundState,
-  CreateNewPlaygroundPayload,
-  PlaygroundStore,
+  EVMState,
+  CreateNewEVMPayload,
+  EVMStore,
 } from "./types";
 import { ContractMetadata } from "@/service/evm-analyzer/types";
 import * as actions from "./action";
@@ -11,7 +11,7 @@ import { serializeEVMStateEnhanced, getKnownAddresses } from "./serializers";
 import EVMAnalyzer from "@/service/evm-analyzer";
 import { Address } from "@ethereumjs/util";
 
-const initialState: PlaygroundState = {
+const initialState: EVMState = {
   constructorBytecode: "",
   abi: {} as ContractMetadata,
   totalSupply: BigInt(0),
@@ -19,15 +19,15 @@ const initialState: PlaygroundState = {
 };
 
 /**
- * Playground Store with Persistence
+ * EVM Store with Persistence
  *
- * This store persists both playground state and EVM blockchain state:
+ * This store persists both evm state and EVM blockchain state:
  *
- * 1. Basic State Persistence (localStorage: 'playground-storage'):
+ * 1. Basic State Persistence (localStorage: 'evm-storage'):
  *    - Contract address, bytecode, ABI, functions, owner, supply, decimals
  *    - Uses Zustand persist middleware with custom serialization for Address/BigInt types
  *
- * 2. EVM State Persistence (localStorage: 'playground-evm-state'):
+ * 2. EVM State Persistence (localStorage: 'evm-evm-state'):
  *    - Account balances, contract code, storage slots
  *    - Serialized separately due to complexity of EVM state manager
  *    - Restored during onRehydrateStorage callback
@@ -37,13 +37,13 @@ const initialState: PlaygroundState = {
  *    - Basic state is automatically persisted by Zustand middleware
  */
 
-const usePlaygroundStore = create<PlaygroundStore>()(
+const useEVMStore = create<EVMStore>()(
   persist(
     (set, get) => ({
       ...initialState,
-      createInitialState: (state: PlaygroundState) => set(state),
-      createNewPlayground: async (playground: CreateNewPlaygroundPayload) => {
-        const result = await actions.createNewPlayground(playground, set, get);
+      createInitialState: (state: EVMState) => set(state),
+      createNewEVM: async (evm: CreateNewEVMPayload) => {
+        const result = await actions.createNewEVM(evm, set, get);
         // After successful creation, save the enhanced EVM state
         if (result.success) {
           await saveEVMState();
@@ -177,13 +177,13 @@ const usePlaygroundStore = create<PlaygroundStore>()(
         await saveEVMState();
       },
       clearPersistedState: () => {
-        localStorage.removeItem("playground-storage");
-        localStorage.removeItem("playground-evm-state");
+        localStorage.removeItem("evm-storage");
+        localStorage.removeItem("evm-evm-state");
         set(initialState);
       },
     }),
     {
-      name: "playground-storage",
+      name: "evm-storage",
       storage: createJSONStorage(() => localStorage),
       onRehydrateStorage: () => {
         return async (state) => {
@@ -220,7 +220,7 @@ const usePlaygroundStore = create<PlaygroundStore>()(
             const evm = await EVMAnalyzer.create();
 
             // Try to restore EVM state from separate storage
-            const evmStateStr = localStorage.getItem("playground-evm-state");
+            const evmStateStr = localStorage.getItem("evm-evm-state");
             if (evmStateStr) {
               try {
                 const evmState = JSON.parse(evmStateStr);
@@ -257,14 +257,14 @@ const usePlaygroundStore = create<PlaygroundStore>()(
 // Helper functions
 const saveEVMState = async () => {
   try {
-    const state = usePlaygroundStore.getState();
+    const state = useEVMStore.getState();
     if (state.evm) {
       const knownAddresses = getKnownAddresses(state);
       const evmState = await serializeEVMStateEnhanced(
         state.evm,
         knownAddresses,
       );
-      localStorage.setItem("playground-evm-state", JSON.stringify(evmState));
+      localStorage.setItem("evm-evm-state", JSON.stringify(evmState));
     }
   } catch (error) {
     console.warn("Failed to save EVM state:", error);
@@ -334,4 +334,4 @@ const restoreEVMFromState = async (
   }
 };
 
-export default usePlaygroundStore;
+export default useEVMStore;

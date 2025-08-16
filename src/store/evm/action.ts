@@ -1,51 +1,52 @@
 import EVMAnalyzer, { CallResult, ExecutionStep } from "@/service/evm-analyzer";
 import { Address } from "@ethereumjs/util";
 import {
-  CreateNewPlaygroundPayload,
+  CreateNewEVMPayload,
   ExecutionResult,
-  PlaygroundState,
+  EVMState,
 } from "./types";
 import { keccak256 } from "ethereum-cryptography/keccak";
 import { BytecodeAnalyzer } from "@/service/evm-analyzer/utils/bytecode-analyzer";
 import { ERRORS } from "./errors";
 
-export const createNewPlayground = async (
-  playground: CreateNewPlaygroundPayload,
-  set: (partial: Partial<PlaygroundState>) => void,
-  get: () => PlaygroundState,
+export const createNewEVM = async (
+  EVM: CreateNewEVMPayload,
+  set: (partial: Partial<EVMState>) => void,
+  get: () => EVMState,
 ) => {
   try {
     const evm = get().evm;
     if (!evm) return { success: false, error: "EVM not initialized" };
-    const contractAddress = await evm.createAccount(playground.contractAddress);
+    const contractAddress = await evm.createAccount(EVM.contractAddress);
 
     const runtimeStart =
-      playground.constructorBytecode.indexOf("6080604052600436");
-    const runtimeBytecode = playground.constructorBytecode.slice(runtimeStart);
+      EVM.constructorBytecode.indexOf("6080604052600436");
+    const runtimeBytecode = EVM.constructorBytecode.slice(runtimeStart);
     await evm.deployContractToAddress(
-      playground.contractAddress,
+      EVM.contractAddress,
       runtimeBytecode,
     );
 
     const totalSupply =
-      playground.totalSupply * BigInt(10 ** playground.decimals);
+      EVM.totalSupply * BigInt(10 ** EVM.decimals);
     await initializeContractState(
       evm,
-      playground.contractAddress,
-      playground.ownerAddress,
+      EVM.contractAddress,
+      EVM.ownerAddress,
       totalSupply,
     );
 
     const analysis = BytecodeAnalyzer.analyzeWithMetadata(
       runtimeBytecode,
-      playground.abi,
+      EVM.abi,
     );
     const functions = new Map(analysis.functions.map((f) => [f.name, f]));
 
-    const ownerAddress = await createAccount(playground.ownerAddress, get)
+    const ownerAddress = await createAccount(EVM.ownerAddress, get)
 
     set({
       contractAddress,
+      abi: EVM.abi,
       functions,
       totalSupply,
       ownerAddress: ownerAddress!
@@ -113,7 +114,7 @@ const initializeContractState = async (
 
 export const createAccount = async (
   address: string,
-  get: () => PlaygroundState,
+  get: () => EVMState,
 ) => {
   const evm = get().evm;
   if (!evm) return null;
@@ -124,7 +125,7 @@ export const createAccount = async (
 export const fundAccount = async (
   address: string,
   balance: bigint,
-  get: () => PlaygroundState,
+  get: () => EVMState,
 ) => {
   const evm = get().evm;
   if (!evm) return { success: false, error: ERRORS.EVM_NOT_INITIALIZED };
@@ -140,7 +141,7 @@ export const fundAccount = async (
 
 export const getTokenBalance = async (
   userAdress: string,
-  get: () => PlaygroundState,
+  get: () => EVMState,
 ): Promise<bigint> => {
   const evm = get().evm;
   if (!evm) return BigInt(0);
@@ -170,7 +171,7 @@ export const transferTokens = async (
   fromAddress: string,
   toAddress: string,
   amount: bigint,
-  get: () => PlaygroundState,
+  get: () => EVMState,
 ): Promise<ExecutionResult> => {
   const evm = get().evm;
   if (!evm) return null;
@@ -199,7 +200,7 @@ export const transferTokens = async (
 
 export const deployContract = async (
   bytecode: string,
-  get: () => PlaygroundState,
+  get: () => EVMState,
 ) => {
   const evm = get().evm;
   if (!evm) return null;
@@ -209,7 +210,7 @@ export const deployContract = async (
 export const deployContractToAddress = async (
   address: string,
   bytecode: string,
-  get: () => PlaygroundState,
+  get: () => EVMState,
 ) => {
   const evm = get().evm;
   if (!evm) return null;
@@ -224,7 +225,7 @@ export const callContract = async (
     data: string;
     gasLimit: bigint;
   },
-  get: () => PlaygroundState,
+  get: () => EVMState,
 ) => {
   const evm = get().evm;
   if (!evm) return null;
@@ -235,7 +236,7 @@ export const approveTokens = async (
   userAddress: string,
   spenderAddress: string,
   amount: bigint,
-  get: () => PlaygroundState,
+  get: () => EVMState,
 ): Promise<ExecutionResult> => {
   const evm = get().evm;
   if (!evm) return null;
@@ -267,7 +268,7 @@ export const addLiquidity = async (
   userAddress: string,
   tokenAmount: bigint,
   ethAmount: bigint,
-  get: () => PlaygroundState,
+  get: () => EVMState,
 ): Promise<ExecutionResult> => {
   const evm = get().evm;
   if (!evm) return null;
@@ -304,7 +305,7 @@ export const addLiquidity = async (
 export const swapEthForTokens = async (
   userAddress: string,
   ethAmount: bigint,
-  get: () => PlaygroundState,
+  get: () => EVMState,
 ): Promise<ExecutionResult> => {
   const evm = get().evm;
   if (!evm) return null;
@@ -330,7 +331,7 @@ export const swapEthForTokens = async (
 export const swapTokensForEth = async (
   userAddress: string,
   tokenAmount: bigint,
-  get: () => PlaygroundState,
+  get: () => EVMState,
 ): Promise<ExecutionResult> => {
   const evm = get().evm;
   if (!evm) return null;
@@ -356,7 +357,7 @@ export const swapTokensForEth = async (
 };
 
 export const getReserves = async (
-  get: () => PlaygroundState,
+  get: () => EVMState,
 ): Promise<{ tokenReserve: bigint; ethReserve: bigint }> => {
   const evm = get().evm;
   if (!evm) return { tokenReserve: BigInt(0), ethReserve: BigInt(0) };
@@ -403,7 +404,7 @@ export const getReserves = async (
 };
 
 export const getTokenPrice = async (
-  get: () => PlaygroundState,
+  get: () => EVMState,
 ): Promise<number> => {
   const { tokenReserve, ethReserve } = await getReserves(get);
 
@@ -416,7 +417,7 @@ export const getTokenPrice = async (
 
 export const getEthAmountForTokens = async (
   tokenAmount: bigint,
-  get: () => PlaygroundState,
+  get: () => EVMState,
 ): Promise<bigint> => {
   const evm = get().evm;
   if (!evm) return BigInt(0);
@@ -444,7 +445,7 @@ export const getEthAmountForTokens = async (
 
 export const getTokenAmountForEth = async (
   ethAmount: bigint,
-  get: () => PlaygroundState,
+  get: () => EVMState,
 ): Promise<bigint> => {
   const evm = get().evm;
   if (!evm) return BigInt(0);

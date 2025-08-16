@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 // import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 
-const ContractPlaygroundSetup = () => {
+const ContractEVMSetup = () => {
   const [formData, setFormData] = useState({
     contractAddress: "0x742d35Cc6ab8b2532c4b4b3d34d0f0d1f8b8c8d8",
     ownerAddress: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
@@ -159,7 +159,7 @@ const ContractPlaygroundSetup = () => {
         <Card className="border-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
           <CardContent className="p-8 text-center">
             <h2 className="text-3xl font-bold mb-4">
-              🎯 Smart Contract Playground Setup
+              🎯 Smart Contract EVM Setup
             </h2>
             <p className="text-blue-100 text-lg">
               Configure your contract parameters and deploy to your local
@@ -567,4 +567,4 @@ const ContractPlaygroundSetup = () => {
   );
 };
 
-export default ContractPlaygroundSetup;
+export default ContractEVMSetup;

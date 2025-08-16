@@ -10,7 +10,7 @@ import {
 } from "@/service/evm-analyzer/types";
 import { Address } from "@ethereumjs/util";
 
-export type PlaygroundState = {
+export type EVMState = {
   contractAddress?: Address;
   constructorBytecode: string;
   abi: ContractMetadata;
@@ -21,7 +21,7 @@ export type PlaygroundState = {
   evm?: EVMAnalyzer;
 };
 
-export type CreateNewPlaygroundPayload = {
+export type CreateNewEVMPayload = {
   contractAddress: string;
   constructorBytecode: string;
   abi: ContractMetadata;
@@ -30,9 +30,9 @@ export type CreateNewPlaygroundPayload = {
   decimals: number;
 };
 
-export type PlaygroundAction = {
-  createInitialState: (state: PlaygroundState) => void;
-  createNewPlayground: (payload: CreateNewPlaygroundPayload) => Promise<{
+export type EVMAction = {
+  createInitialState: (state: EVMState) => void;
+  createNewEVM: (payload: CreateNewEVMPayload) => Promise<{
     success: boolean;
     error: unknown;
   }>;
@@ -93,7 +93,7 @@ export type PlaygroundAction = {
   clearPersistedState: () => void;
 };
 
-export type PlaygroundStore = PlaygroundState & PlaygroundAction;
+export type EVMStore = EVMState & EVMAction;
 
 export type ExecutionResult =
   | (CallResult & {

@@ -1,10 +1,10 @@
-# Playground Store
+# EVM Store
 
 A comprehensive Zustand store for managing EVM blockchain simulation state with full persistence capabilities.
 
 ## Overview
 
-The Playground Store provides a complete interface for interacting with an EVM blockchain simulator, including contract deployment, token operations, DEX trading, and persistent state management. All blockchain state is automatically persisted across browser sessions.
+The EVM Store provides a complete interface for interacting with an EVM blockchain simulator, including contract deployment, token operations, DEX trading, and persistent state management. All blockchain state is automatically persisted across browser sessions.
 
 ## Features
 
@@ -26,7 +26,7 @@ The Playground Store provides a complete interface for interacting with an EVM b
 ## Architecture
 
 ```
-src/store/playground/
+src/store/evm/
 ├── README.md              # This documentation
 ├── index.ts              # Main store with Zustand persistence
 ├── action.ts             # Business logic and EVM operations
@@ -40,7 +40,7 @@ src/store/playground/
 ### State Properties
 
 ```typescript
-interface PlaygroundState {
+interface EVMState {
   contractAddress?: Address; // Deployed contract address
   constructorBytecode: string; // Contract constructor bytecode
   abi: ContractMetadata; // Contract ABI and metadata
@@ -56,7 +56,7 @@ interface PlaygroundState {
 
 #### Contract Management
 
-- `createNewPlayground(payload)` - Deploy new contract with configuration
+- `createNewEVM(payload)` - Deploy new contract with configuration
 - `deployContract(bytecode)` - Deploy contract from bytecode
 - `deployContractToAddress(address, bytecode)` - Deploy to specific address
 - `callContract(txData)` - Execute contract function calls
@@ -96,16 +96,16 @@ interface PlaygroundState {
 ### Basic Setup
 
 ```typescript
-import usePlaygroundStore from "@/store/playground";
+import useEVMStore from "@/store/evm";
 
 const MyComponent = () => {
   const {
-    createNewPlayground,
+    createNewEVM,
     getTokenBalance,
     transferTokens,
     swapEthForTokens,
     getReserves,
-  } = usePlaygroundStore();
+  } = useEVMStore();
 
   // Component logic here
 };
@@ -115,7 +115,7 @@ const MyComponent = () => {
 
 ```typescript
 const deployNewContract = async () => {
-  const result = await createNewPlayground({
+  const result = await createNewEVM({
     contractAddress: "0x742d35cc6ab4c3c8b9f4c6d5e7f8a9b0c1d2e3f4",
     constructorBytecode: "0x608060405234801561001057600080fd5b50...",
     abi: contractMetadata,
@@ -202,8 +202,8 @@ const getPriceInfo = async () => {
 
 The store uses two localStorage keys:
 
-1. **`playground-storage`** - Basic state (addresses, bytecode, ABI, etc.)
-2. **`playground-evm-state`** - Complex blockchain state (accounts, balances, storage)
+1. **`evm-storage`** - Basic state (addresses, bytecode, ABI, etc.)
+2. **`evm-evm-state`** - Complex blockchain state (accounts, balances, storage)
 
 ### What Gets Persisted
 
@@ -290,7 +290,7 @@ Common error scenarios:
 ### Adding New Functions
 
 1. Add function to `action.ts` with proper error handling
-2. Update `PlaygroundAction` type in `types.ts`
+2. Update `EVMAction` type in `types.ts`
 3. Add function to store in `index.ts`
 4. Add auto-save trigger if function modifies state
 

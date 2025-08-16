@@ -3,7 +3,7 @@
 // Disable all ESLint rules and TypeScript checking for test file to avoid Jest mock type conflicts
 import { describe, test, expect, beforeEach, jest } from "@jest/globals";
 import * as actions from "./action";
-import { PlaygroundState } from "./types";
+import { EVMState } from "./types";
 import { ContractMetadata } from "@/service/evm-analyzer/types";
 import { Address } from "@ethereumjs/util";
 import EVMAnalyzer from "@/service/evm-analyzer";
@@ -15,7 +15,7 @@ jest.mock("@/service/evm-analyzer");
 // const MockedEVMAnalyzer = EVMAnalyzer as jest.MockedClass<typeof EVMAnalyzer>;
 
 // Global mock objects for set and get functions
-const mockState: PlaygroundState = {
+const mockState: EVMState = {
   constructorBytecode: "0x608060405234801561001057600080fd5b50",
   abi: {} as ContractMetadata,
   totalSupply: BigInt(1000000),
@@ -73,8 +73,8 @@ beforeEach(() => {
 });
 
 describe("Action", () => {
-  describe("createNewPlayground", () => {
-    test("should successfully create a new playground with valid payload", async () => {
+  describe("createNewEVM", () => {
+    test("should successfully create a new EVM with valid payload", async () => {
       const payload = {
         contractAddress: "0x742d35cc6ab4c3c8b9f4c6d5e7f8a9b0c1d2e3f4",
         constructorBytecode: "0x608060405234801561001057600080fd5b50",
@@ -91,7 +91,7 @@ describe("Action", () => {
         {},
       );
 
-      const result = await actions.createNewPlayground(
+      const result = await actions.createNewEVM(
         payload,
         mockSet,
         mockGet,
@@ -117,7 +117,7 @@ describe("Action", () => {
 
       mockGet.mockReturnValue({ ...mockState, evm: undefined });
 
-      const result = await actions.createNewPlayground(
+      const result = await actions.createNewEVM(
         payload,
         mockSet,
         mockGet,
@@ -141,7 +141,7 @@ describe("Action", () => {
         new Error("Deployment failed"),
       );
 
-      const result = await actions.createNewPlayground(
+      const result = await actions.createNewEVM(
         payload,
         mockSet,
         mockGet,

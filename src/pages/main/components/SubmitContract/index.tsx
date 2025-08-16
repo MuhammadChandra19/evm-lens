@@ -1,6 +1,6 @@
 // import DeployContractForm from './forms/DeployContract';
 import { SearchCode } from "lucide-react";
-import ContractPlaygroundSetup from "./forms/ContractPlaygroundSetup";
+import ContractEVMSetup from "./forms/ContractEVMSetup";
 // import useSubmitContract from './use-submit-contract';
 
 const SubmitContract = () => {
@@ -34,7 +34,7 @@ const SubmitContract = () => {
             </div> */}
           </div>
         </div>
-        <ContractPlaygroundSetup />
+        <ContractEVMSetup />
       </div>
     </div>
   );
