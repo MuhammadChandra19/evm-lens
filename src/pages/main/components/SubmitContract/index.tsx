@@ -1,6 +1,6 @@
 // import DeployContractForm from './forms/DeployContract';
 import { SearchCode } from "lucide-react";
-import ContractEVMSetup from "./forms/ContractEVMSetup";
+import ContractEVMSetup from "./forms/ContractPlaygroundSetup";
 // import useSubmitContract from './use-submit-contract';
 
 const SubmitContract = () => {

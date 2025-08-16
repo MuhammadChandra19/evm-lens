@@ -3,6 +3,8 @@ import { EVMState } from "./types";
 import { Address } from "@ethereumjs/util";
 import { ContractMetadata, FunctionInfo } from "@/service/evm-analyzer/types";
 import { keccak256 } from "ethereum-cryptography/keccak";
+import { Abi } from '@/service/evm-analyzer/abi/types';
+import { AbiValidator } from '@/service/evm-analyzer/abi';
 
 // Serializable version of the EVM state
 export interface SerializableEVMState {
@@ -23,6 +25,7 @@ export interface SerializableEVMState {
       storage?: Array<[string, string]>;
     }>;
   };
+  abiMetadata: Abi
 }
 
 export const serializeEVMState = async (
@@ -38,6 +41,7 @@ export const serializeEVMState = async (
     ownerAddress: state.ownerAddress?.toString(),
     totalSupply: state.totalSupply.toString(),
     decimals: state.decimals,
+    abiMetadata: state.abiMetadata.getAbi()
   };
 
   // Serialize EVM state if available
@@ -78,6 +82,7 @@ export const deserializeEVMState = async (
       : undefined,
     totalSupply: BigInt(serialized.totalSupply),
     decimals: serialized.decimals,
+    abiMetadata: new AbiValidator(serialized.abiMetadata)
   };
 
   // Restore EVM state if available

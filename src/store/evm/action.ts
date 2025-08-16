@@ -8,48 +8,52 @@ import {
 import { keccak256 } from "ethereum-cryptography/keccak";
 import { BytecodeAnalyzer } from "@/service/evm-analyzer/utils/bytecode-analyzer";
 import { ERRORS } from "./errors";
+import { AbiFunction } from '@/service/evm-analyzer/abi/types';
+import { generateFunctionHash, generateInputHash } from '@/service/evm-analyzer/abi/util';
+import { AbiValidator } from '@/service/evm-analyzer/abi';
 
 export const createNewEVM = async (
-  EVM: CreateNewEVMPayload,
+  payload: CreateNewEVMPayload,
   set: (partial: Partial<EVMState>) => void,
   get: () => EVMState,
 ) => {
   try {
     const evm = get().evm;
     if (!evm) return { success: false, error: "EVM not initialized" };
-    const contractAddress = await evm.createAccount(EVM.contractAddress);
+    const contractAddress = await evm.createAccount(payload.contractAddress);
 
     const runtimeStart =
-      EVM.constructorBytecode.indexOf("6080604052600436");
-    const runtimeBytecode = EVM.constructorBytecode.slice(runtimeStart);
+      payload.constructorBytecode.indexOf("6080604052600436");
+    const runtimeBytecode = payload.constructorBytecode.slice(runtimeStart);
     await evm.deployContractToAddress(
-      EVM.contractAddress,
+      payload.contractAddress,
       runtimeBytecode,
     );
 
     const totalSupply =
-      EVM.totalSupply * BigInt(10 ** EVM.decimals);
+      payload.totalSupply * BigInt(10 ** payload.decimals);
     await initializeContractState(
       evm,
-      EVM.contractAddress,
-      EVM.ownerAddress,
+      payload.contractAddress,
+      payload.ownerAddress,
       totalSupply,
     );
 
     const analysis = BytecodeAnalyzer.analyzeWithMetadata(
       runtimeBytecode,
-      EVM.abi,
+      payload.abi,
     );
     const functions = new Map(analysis.functions.map((f) => [f.name, f]));
 
-    const ownerAddress = await createAccount(EVM.ownerAddress, get)
+    const ownerAddress = await createAccount(payload.ownerAddress, get)
 
     set({
       contractAddress,
-      abi: EVM.abi,
+      abi: payload.abi,
       functions,
       totalSupply,
-      ownerAddress: ownerAddress!
+      ownerAddress: ownerAddress!,
+      abiMetadata: new AbiValidator(payload.abi)
     });
 
     return { success: true, error: null };
@@ -58,6 +62,36 @@ export const createNewEVM = async (
     return { success: false, error: e };
   }
 };
+
+export const callFunction = async (
+  executorAddres: string,
+  func: AbiFunction,
+  args: string[],
+  gasLimit: number,
+  get: () => EVMState,
+): Promise<ExecutionResult> => {
+  const evm = get().evm;
+  if (!evm) return null;
+
+  const contractAddress = get().contractAddress;
+  if (!contractAddress) return null;
+
+  let data = generateFunctionHash(func)
+  data += generateInputHash(func, args)
+
+  const result = await evm.callContract({
+    data,
+    from: executorAddres,
+    to: contractAddress.toString(),
+    gasLimit: BigInt(gasLimit),
+    value: 0n
+  }, {
+    includeMemory: true,
+    includeStack: true,
+    includeStorage: true,
+  })
+  return result
+}
 
 const initializeContractState = async (
   evm: EVMAnalyzer,

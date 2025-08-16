@@ -10,12 +10,15 @@ import * as actions from "./action";
 import { serializeEVMStateEnhanced, getKnownAddresses } from "./serializers";
 import EVMAnalyzer from "@/service/evm-analyzer";
 import { Address } from "@ethereumjs/util";
+import { AbiFunction } from '@/service/evm-analyzer/abi/types';
+import { AbiValidator } from '@/service/evm-analyzer/abi';
 
 const initialState: EVMState = {
   constructorBytecode: "",
   abi: {} as ContractMetadata,
   totalSupply: BigInt(0),
   decimals: 18,
+  abiMetadata: new AbiValidator({})
 };
 
 /**
@@ -48,6 +51,11 @@ const useEVMStore = create<EVMStore>()(
         if (result.success) {
           await saveEVMState();
         }
+        return result;
+      },
+      callFunction: async (executorAddres: string, func: AbiFunction, args: string[], gasLimit: number) =>  {
+        const result = await actions.callFunction(executorAddres, func, args, gasLimit, get)
+        await saveEVMState();
         return result;
       },
 
