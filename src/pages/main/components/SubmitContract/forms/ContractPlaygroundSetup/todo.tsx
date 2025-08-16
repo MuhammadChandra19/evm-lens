@@ -63,11 +63,11 @@ const ContractPlaygroundSetup = () => {
     autoExplore: true
   });
 
-  const updateFormData = (field, value) => {
+  const updateFormData = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const onSubmit = (data) => {
+  const onSubmit = (data: { contractAddress: string; ownerAddress: string; totalSupply: string; decimals: string; constructorBytecode: string; contractAbi: string; gasLimit: string; gasPrice: string; enableDebug: boolean; enableTrace: boolean; recordStateChanges: boolean; autoExplore: boolean; }) => {
     console.log('Deploy Contract:', data);
   };
 
@@ -76,7 +76,7 @@ const ContractPlaygroundSetup = () => {
     updateFormData('contractAddress', randomAddress);
   };
 
-  const loadTemplate = (template) => {
+  const loadTemplate = (template: string) => {
     if (template === 'erc20') {
       updateFormData('contractAbi', `[
         {
