@@ -5,12 +5,22 @@ import { Play } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import ContractConfiguration from './ContractConfiguration';
 import BytecodeAndABI from './BytecodeAndABI';
+import { ContractPlaygroundSchema } from './schema';
+import { useRef } from 'react';
 
 const ContractPlaygroundSetup = () => {
-  const { method } = useDeployContract();
+  const { method, handleDeploycontract } = useDeployContract();
+  const submitActionRef = useRef<"publish" | "save">('publish')
+  const handleFormSubmit = (data: ContractPlaygroundSchema) => {
+    if(submitActionRef.current === 'save') {
+      console.log(data)
+    } else {
+      handleDeploycontract(data)
+    }
+  }
   return (
     <FormProvider {...method}>
-      <form>
+      <form onSubmit={method.handleSubmit(handleFormSubmit)}>
         <div className="max-w-6xl mx-auto space-y-8">
           <Card className="border-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
             <CardContent className="p-8 text-center">

@@ -20,7 +20,7 @@ const useSubmitContract = () => {
         createInitialState({
           contractAddress: data.contractAddress,
           constructorBytecode: data.constructorBytecode,
-          contractMetadata: JSON.parse(data.contractMetadata),
+          abi: JSON.parse(data.contractMetadata),
           ownerAddress: data.ownerAddress,
           totalSupply: BigInt(data.totalSupply),
         });
