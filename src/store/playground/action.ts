@@ -42,10 +42,13 @@ export const createNewPlayground = async (
     );
     const functions = new Map(analysis.functions.map((f) => [f.name, f]));
 
+    const ownerAddress = await createAccount(playground.ownerAddress, get)
+
     set({
       contractAddress,
       functions,
       totalSupply,
+      ownerAddress: ownerAddress!
     });
 
     return { success: true, error: null };
