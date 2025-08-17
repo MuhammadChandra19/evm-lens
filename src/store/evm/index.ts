@@ -40,15 +40,27 @@ const useEVMStore = create<EVMStore>()(
   persist(
     (set, get) => ({
       ...initialState,
-      createInitialState: (state: EVMState) => set(state),
-      createNewEVM: async (evm: CreateNewEVMPayload) => {
-        const result = await actions.createNewEVM(evm, set, get);
-        // After successful creation, save the enhanced EVM state
+
+      // Basic EVM functions
+      createAccount: async (address: string) => {
+        const result = await actions.createAccount(address, get);
+        await saveEVMState();
+        return result;
+      },
+      fundAccount: async (address: string, balance: bigint) => {
+        const result = await actions.fundAccount(address, balance, get);
         if (result.success) {
           await saveEVMState();
         }
         return result;
       },
+
+      deployContractToEVM: async (payload: CreateNewEVMPayload) => {
+        const result = await actions.deployContractToEVM(payload, set, get);
+        await saveEVMState();
+        return result;
+      },
+
       callFunction: async (
         executorAddres: string,
         func: AbiFunction,
@@ -64,120 +76,6 @@ const useEVMStore = create<EVMStore>()(
         );
         await saveEVMState();
         return result;
-      },
-
-      // Basic EVM functions
-      createAccount: async (address: string) => {
-        const result = await actions.createAccount(address, get);
-        await saveEVMState();
-        return result;
-      },
-      fundAccount: async (address: string, balance: bigint) => {
-        const result = await actions.fundAccount(address, balance, get);
-        if (result.success) {
-          await saveEVMState();
-        }
-        return result;
-      },
-      deployContract: async (bytecode: string) => {
-        const result = await actions.deployContract(bytecode, get);
-        await saveEVMState();
-        return result;
-      },
-      deployContractToAddress: async (address: string, bytecode: string) => {
-        const result = await actions.deployContractToAddress(
-          address,
-          bytecode,
-          get,
-        );
-        await saveEVMState();
-        return result;
-      },
-      callContract: async (txData) => {
-        const result = await actions.callContract(txData, get);
-        await saveEVMState();
-        return result;
-      },
-
-      // Token functions
-      getTokenBalance: async (userAddress: string) => {
-        return actions.getTokenBalance(userAddress, get);
-      },
-      approveTokens: async (
-        userAddress: string,
-        spenderAddress: string,
-        amount: bigint,
-      ) => {
-        const result = await actions.approveTokens(
-          userAddress,
-          spenderAddress,
-          amount,
-          get,
-        );
-        await saveEVMState();
-        return result;
-      },
-      transferTokens: async (
-        fromAddress: string,
-        toAddress: string,
-        amount: bigint,
-      ) => {
-        const result = await actions.transferTokens(
-          fromAddress,
-          toAddress,
-          amount,
-          get,
-        );
-        await saveEVMState();
-        return result;
-      },
-
-      // DEX trading functions
-      addLiquidity: async (
-        userAddress: string,
-        tokenAmount: bigint,
-        ethAmount: bigint,
-      ) => {
-        const result = await actions.addLiquidity(
-          userAddress,
-          tokenAmount,
-          ethAmount,
-          get,
-        );
-        await saveEVMState();
-        return result;
-      },
-      swapEthForTokens: async (userAddress: string, ethAmount: bigint) => {
-        const result = await actions.swapEthForTokens(
-          userAddress,
-          ethAmount,
-          get,
-        );
-        await saveEVMState();
-        return result;
-      },
-      swapTokensForEth: async (userAddress: string, tokenAmount: bigint) => {
-        const result = await actions.swapTokensForEth(
-          userAddress,
-          tokenAmount,
-          get,
-        );
-        await saveEVMState();
-        return result;
-      },
-
-      // Price & reserve functions
-      getReserves: async () => {
-        return actions.getReserves(get);
-      },
-      getTokenPrice: async () => {
-        return actions.getTokenPrice(get);
-      },
-      getEthAmountForTokens: async (tokenAmount: bigint) => {
-        return actions.getEthAmountForTokens(tokenAmount, get);
-      },
-      getTokenAmountForEth: async (ethAmount: bigint) => {
-        return actions.getTokenAmountForEth(ethAmount, get);
       },
 
       // Persistence helpers

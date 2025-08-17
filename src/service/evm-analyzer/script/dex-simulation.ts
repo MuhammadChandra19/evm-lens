@@ -1,10 +1,15 @@
-import EVMAnalyzer from '..';
-import test_abi from './test_abi.json';
-import { Address } from '@ethereumjs/util';
-import tokenBytecode from './token';
-import { AbiValidator } from '../abi';
-import { generateFunctionHash, generateFunctionSignature, generateInputHash, generateSelector } from '../abi/util';
-import { extractUint256 } from '../../../lib/utils';
+import EVMAnalyzer from "..";
+import test_abi from "./test_abi.json";
+import { Address } from "@ethereumjs/util";
+import tokenBytecode from "./token";
+import { AbiValidator } from "../abi";
+import {
+  generateFunctionHash,
+  generateFunctionSignature,
+  generateInputHash,
+  generateSelector,
+} from "../abi/util";
+import { extractUint256 } from "../../../lib/utils";
 
 // Helper functions
 // function encodeUint256(value: bigint): string {
@@ -17,36 +22,42 @@ import { extractUint256 } from '../../../lib/utils';
 // }
 
 async function main() {
-  console.log('🚀 SimpleToken DEX - Clean Simulation\n');
+  console.log("🚀 SimpleToken DEX - Clean Simulation\n");
 
   const analyzer = await EVMAnalyzer.create();
   const abi = new AbiValidator(test_abi);
   try {
     // === ADDRESSES ===
-    const contractAddr = new Address(Buffer.from('1234567890123456789012345678901234567890', 'hex'));
-    const devAddr = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
-    const user1Addr = '0x1111111111111111111111111111111111111111';
-    const user2Addr = '0x2222222222222222222222222222222222222222';
-    const user3Addr = '0x3333333333333333333333333333333333333333';
+    const contractAddr = new Address(
+      Buffer.from("1234567890123456789012345678901234567890", "hex"),
+    );
+    const devAddr = "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd";
+    const user1Addr = "0x1111111111111111111111111111111111111111";
+    const user2Addr = "0x2222222222222222222222222222222222222222";
+    const user3Addr = "0x3333333333333333333333333333333333333333";
 
-    console.log('📋 Setup:');
+    console.log("📋 Setup:");
     console.log(`Contract: ${contractAddr.toString()}`);
     console.log(`Developer: ${devAddr}`);
     console.log(`User1-3: ${user1Addr}, ${user2Addr}, ${user3Addr}\n`);
 
     // === FUND ACCOUNTS ===
-    console.log('💰 Developer getting initial funds...');
-    await analyzer.fundAccount(devAddr, BigInt('1000000000000000000000')); // 1000 ETH
-    await analyzer.fundAccount(user1Addr, BigInt('50000000000000000000')); // 50 ETH
-    await analyzer.fundAccount(user2Addr, BigInt('50000000000000000000')); // 50 ETH
-    await analyzer.fundAccount(user3Addr, BigInt('50000000000000000000')); // 50 ETH
-    console.log('✅ All accounts funded\n');
+    console.log("💰 Developer getting initial funds...");
+    await analyzer.fundAccount(devAddr, BigInt("1000000000000000000000")); // 1000 ETH
+    await analyzer.fundAccount(user1Addr, BigInt("50000000000000000000")); // 50 ETH
+    await analyzer.fundAccount(user2Addr, BigInt("50000000000000000000")); // 50 ETH
+    await analyzer.fundAccount(user3Addr, BigInt("50000000000000000000")); // 50 ETH
+    console.log("✅ All accounts funded\n");
 
     // === DEPLOY CONTRACT ===
-    console.log('🏗️ Developer deploying contract...');
+    console.log("🏗️ Developer deploying contract...");
 
     // Use the proper deployment method with constructor execution
-    const deploymentResult = await analyzer.deployContract(devAddr, tokenBytecode, contractAddr.toString());
+    const deploymentResult = await analyzer.deployContract(
+      devAddr,
+      tokenBytecode,
+      contractAddr.toString(),
+    );
 
     if (!deploymentResult.success) {
       throw new Error(`Contract deployment failed`);
@@ -55,25 +66,46 @@ async function main() {
     console.log(`✅ Contract deployed with constructor execution!`);
     console.log(`Gas used: ${deploymentResult.gasUsed}`);
     console.log(`Contract address: ${deploymentResult.contractAddress}`);
-    console.log(`Runtime bytecode length: ${deploymentResult.returnValue.length}`);
+    console.log(
+      `Runtime bytecode length: ${deploymentResult.returnValue.length}`,
+    );
     console.log(`Deployment success: ${deploymentResult.success}\n`);
 
     // === DEBUG: CHECK STORAGE ===
-    console.log('🔍 Checking storage slots...');
-    const addr = new Address(Buffer.from(contractAddr.toString().startsWith('0x') ? contractAddr.toString().slice(2) : contractAddr.toString(), 'hex'));
+    console.log("🔍 Checking storage slots...");
+    const addr = new Address(
+      Buffer.from(
+        contractAddr.toString().startsWith("0x")
+          ? contractAddr.toString().slice(2)
+          : contractAddr.toString(),
+        "hex",
+      ),
+    );
 
     // Check totalSupply storage (slot 3)
-    const slot3 = Buffer.from('0000000000000000000000000000000000000000000000000000000000000003', 'hex');
-    const totalSupplyStorage = await analyzer.stateManagerService.stateManager.getStorage(addr, slot3);
-    console.log(`Storage slot 3 (totalSupply): ${Buffer.from(totalSupplyStorage).toString('hex')}`);
+    const slot3 = Buffer.from(
+      "0000000000000000000000000000000000000000000000000000000000000003",
+      "hex",
+    );
+    const totalSupplyStorage =
+      await analyzer.stateManagerService.stateManager.getStorage(addr, slot3);
+    console.log(
+      `Storage slot 3 (totalSupply): ${Buffer.from(totalSupplyStorage).toString("hex")}`,
+    );
 
     // Check owner storage (slot 6)
-    const slot6 = Buffer.from('0000000000000000000000000000000000000000000000000000000000000006', 'hex');
-    const ownerStorage = await analyzer.stateManagerService.stateManager.getStorage(addr, slot6);
-    console.log(`Storage slot 6 (owner): ${Buffer.from(ownerStorage).toString('hex')}`);
+    const slot6 = Buffer.from(
+      "0000000000000000000000000000000000000000000000000000000000000006",
+      "hex",
+    );
+    const ownerStorage =
+      await analyzer.stateManagerService.stateManager.getStorage(addr, slot6);
+    console.log(
+      `Storage slot 6 (owner): ${Buffer.from(ownerStorage).toString("hex")}`,
+    );
     console.log();
 
-    const totalSupplyFunc = abi.getFunction('totalSupply');
+    const totalSupplyFunc = abi.getFunction("totalSupply");
     if (totalSupplyFunc) {
       const signature = generateFunctionSignature(totalSupplyFunc);
       const selector = generateSelector(signature);
@@ -88,19 +120,19 @@ async function main() {
         gasLimit: BigInt(500000),
       });
 
-      console.log('totalSupply', extractUint256(totalSupyResult.returnValue));
+      console.log("totalSupply", extractUint256(totalSupyResult.returnValue));
     } else {
-      console.error('❌ Error:', 'No function available');
+      console.error("❌ Error:", "No function available");
     }
 
-    const addLiquidityFunc = abi.getFunction('addLiquidity');
+    const addLiquidityFunc = abi.getFunction("addLiquidity");
     if (addLiquidityFunc) {
       let data = generateFunctionHash(addLiquidityFunc);
       const tokenAmount = BigInt(500000) * BigInt(10 ** 18);
       const ethAmount = BigInt(100) * BigInt(10 ** 18); // 100 ETH
       data += generateInputHash(addLiquidityFunc, [tokenAmount.toString()]);
 
-      console.log('🏦 Calling addLiquidity...');
+      console.log("🏦 Calling addLiquidity...");
       console.log(`Token amount: ${tokenAmount.toString()}`);
       console.log(`ETH amount: ${ethAmount.toString()}`);
 
@@ -116,51 +148,64 @@ async function main() {
       console.log(`Gas used: ${addLiquidityResult.gasUsed}`);
 
       if (addLiquidityResult.success) {
-        console.log('✅ addLiquidity succeeded');
+        console.log("✅ addLiquidity succeeded");
         if (addLiquidityResult.returnValue.length > 0) {
-          console.log('Return value:', extractUint256(addLiquidityResult.returnValue));
+          console.log(
+            "Return value:",
+            extractUint256(addLiquidityResult.returnValue),
+          );
         }
 
         // === CHECK LIQUIDITY POOLS ===
-        console.log('\n💧 Checking liquidity pools...');
+        console.log("\n💧 Checking liquidity pools...");
 
         await checkLiquidityPools(analyzer, contractAddr, abi, devAddr);
       } else {
-        console.log('❌ addLiquidity failed');
+        console.log("❌ addLiquidity failed");
 
         // Decode the revert reason
         if (addLiquidityResult.returnValue.length >= 4) {
-          const returnHex = Buffer.from(addLiquidityResult.returnValue).toString('hex');
-          console.log('Return data (hex):', returnHex);
+          const returnHex = Buffer.from(
+            addLiquidityResult.returnValue,
+          ).toString("hex");
+          console.log("Return data (hex):", returnHex);
 
           // Check if it's a revert with Error(string) - selector 0x08c379a0
-          if (returnHex.startsWith('08c379a0')) {
+          if (returnHex.startsWith("08c379a0")) {
             try {
               // Skip function selector (4 bytes = 8 hex chars) and ABI decode the string
               const errorDataHex = returnHex.slice(8);
-              console.log('Error data hex:', errorDataHex);
+              console.log("Error data hex:", errorDataHex);
 
               // ABI decode: offset (32 bytes) + length (32 bytes) + string data
               if (errorDataHex.length >= 128) {
                 // At least 64 bytes for offset+length
                 const stringLengthHex = errorDataHex.slice(64, 128); // bytes 32-64
                 const stringLength = parseInt(stringLengthHex, 16);
-                const stringDataHex = errorDataHex.slice(128, 128 + stringLength * 2);
-                const errorMessage = Buffer.from(stringDataHex, 'hex').toString('utf8');
+                const stringDataHex = errorDataHex.slice(
+                  128,
+                  128 + stringLength * 2,
+                );
+                const errorMessage = Buffer.from(stringDataHex, "hex").toString(
+                  "utf8",
+                );
                 console.log(`Revert reason: "${errorMessage}"`);
               }
             } catch (e) {
-              console.log('Could not decode revert message:', e);
+              console.log("Could not decode revert message:", e);
             }
           } else {
-            console.log('Unknown revert format');
-            console.log('Raw return value as uint256:', extractUint256(addLiquidityResult.returnValue));
+            console.log("Unknown revert format");
+            console.log(
+              "Raw return value as uint256:",
+              extractUint256(addLiquidityResult.returnValue),
+            );
           }
         }
       }
     }
 
-    const swapEthFunc = abi.getFunction('swapEthForTokens');
+    const swapEthFunc = abi.getFunction("swapEthForTokens");
     if (swapEthFunc) {
       const data = generateFunctionHash(swapEthFunc);
       const result = await analyzer.callContract({
@@ -171,17 +216,20 @@ async function main() {
         gasLimit: BigInt(100000),
       });
 
-      console.log('\n \n swapEthForTokensResult', extractUint256(result.returnValue));
+      console.log(
+        "\n \n swapEthForTokensResult",
+        extractUint256(result.returnValue),
+      );
       if (result.success) {
-        console.log('✅ swapEthForTokens succeeded');
-        console.log('Gas used:', result.gasUsed);
+        console.log("✅ swapEthForTokens succeeded");
+        console.log("Gas used:", result.gasUsed);
         await checkLiquidityPools(analyzer, contractAddr, abi, devAddr);
       } else {
-        console.log('❌ swapEthForTokens failed');
+        console.log("❌ swapEthForTokens failed");
       }
     }
 
-    const swapTokenFunc = abi.getFunction('swapTokensForEth');
+    const swapTokenFunc = abi.getFunction("swapTokensForEth");
     if (swapTokenFunc) {
       let data = generateFunctionHash(swapTokenFunc);
       const tokenAmount = BigInt(5000) * BigInt(10 ** 18);
@@ -195,26 +243,34 @@ async function main() {
         gasLimit: BigInt(100000),
       });
 
-      console.log('\n \n swapTokensForEthResult', extractUint256(result.returnValue));
+      console.log(
+        "\n \n swapTokensForEthResult",
+        extractUint256(result.returnValue),
+      );
       if (result.success) {
-        console.log('✅ swapTokensForEth succeeded');
-        console.log('Gas used:', result.gasUsed);
+        console.log("✅ swapTokensForEth succeeded");
+        console.log("Gas used:", result.gasUsed);
         await checkLiquidityPools(analyzer, contractAddr, abi, devAddr);
       } else {
-        console.log('❌ swapTokensForEth failed');
+        console.log("❌ swapTokensForEth failed");
       }
     }
   } catch (error) {
-    console.error('❌ Error:', error);
+    console.error("❌ Error:", error);
   }
 }
 
-const checkLiquidityPools = async (analyzer: EVMAnalyzer, contractAddr: Address, abi: AbiValidator, devAddr: string) => {
+const checkLiquidityPools = async (
+  analyzer: EVMAnalyzer,
+  contractAddr: Address,
+  abi: AbiValidator,
+  devAddr: string,
+) => {
   // === CHECK LIQUIDITY POOLS ===
-  console.log('\n💧 Checking liquidity pools...');
+  console.log("\n💧 Checking liquidity pools...");
 
   // Check token reserves
-  const tokenReserveFunc = abi.getFunction('tokenReserve');
+  const tokenReserveFunc = abi.getFunction("tokenReserve");
   if (tokenReserveFunc) {
     const tokenReserveData = generateFunctionHash(tokenReserveFunc);
     const tokenReserveResult = await analyzer.callContract({
@@ -232,7 +288,7 @@ const checkLiquidityPools = async (analyzer: EVMAnalyzer, contractAddr: Address,
   }
 
   // Check ETH reserves
-  const ethReserveFunc = abi.getFunction('ethReserve');
+  const ethReserveFunc = abi.getFunction("ethReserve");
   if (ethReserveFunc) {
     const ethReserveData = generateFunctionHash(ethReserveFunc);
     const ethReserveResult = await analyzer.callContract({
@@ -245,12 +301,14 @@ const checkLiquidityPools = async (analyzer: EVMAnalyzer, contractAddr: Address,
 
     if (ethReserveResult.success) {
       const ethReserve = extractUint256(ethReserveResult.returnValue);
-      console.log(`ETH Reserve: ${ethReserve.toString()} wei (${Number(ethReserve) / 1e18} ETH)`);
+      console.log(
+        `ETH Reserve: ${ethReserve.toString()} wei (${Number(ethReserve) / 1e18} ETH)`,
+      );
     }
   }
 
   // Check contract ETH balance
-  const contractBalanceFunc = abi.getFunction('getContractEthBalance');
+  const contractBalanceFunc = abi.getFunction("getContractEthBalance");
   if (contractBalanceFunc) {
     const contractBalanceData = generateFunctionHash(contractBalanceFunc);
     const contractBalanceResult = await analyzer.callContract({
@@ -263,12 +321,14 @@ const checkLiquidityPools = async (analyzer: EVMAnalyzer, contractAddr: Address,
 
     if (contractBalanceResult.success) {
       const contractBalance = extractUint256(contractBalanceResult.returnValue);
-      console.log(`Contract ETH Balance: ${contractBalance.toString()} wei (${Number(contractBalance) / 1e18} ETH)`);
+      console.log(
+        `Contract ETH Balance: ${contractBalance.toString()} wei (${Number(contractBalance) / 1e18} ETH)`,
+      );
     }
   }
 
   // Check developer's remaining token balance
-  const balanceOfFunc = abi.getFunction('balanceOf');
+  const balanceOfFunc = abi.getFunction("balanceOf");
   if (balanceOfFunc) {
     let balanceData = generateFunctionHash(balanceOfFunc);
     balanceData += generateInputHash(balanceOfFunc, [devAddr]);
@@ -288,13 +348,13 @@ const checkLiquidityPools = async (analyzer: EVMAnalyzer, contractAddr: Address,
   }
 
   // === CALCULATE TOKEN PRICES ===
-  console.log('\n💰 Token Price Analysis...');
+  console.log("\n💰 Token Price Analysis...");
 
   // Get current reserves for price calculation
   let currentTokenReserve = 0n;
   let currentEthReserve = 0n;
 
-  const tokenReserveFuncPrice = abi.getFunction('tokenReserve');
+  const tokenReserveFuncPrice = abi.getFunction("tokenReserve");
   if (tokenReserveFuncPrice) {
     const tokenReserveDataPrice = generateFunctionHash(tokenReserveFuncPrice);
     const tokenReserveResultPrice = await analyzer.callContract({
@@ -310,7 +370,7 @@ const checkLiquidityPools = async (analyzer: EVMAnalyzer, contractAddr: Address,
     }
   }
 
-  const ethReserveFuncPrice = abi.getFunction('ethReserve');
+  const ethReserveFuncPrice = abi.getFunction("ethReserve");
   if (ethReserveFuncPrice) {
     const ethReserveDataPrice = generateFunctionHash(ethReserveFuncPrice);
     const ethReserveResultPrice = await analyzer.callContract({
@@ -328,14 +388,17 @@ const checkLiquidityPools = async (analyzer: EVMAnalyzer, contractAddr: Address,
 
   // Calculate spot price (direct ratio)
   if (currentTokenReserve > 0n && currentEthReserve > 0n) {
-    const spotPriceWei = (currentEthReserve * BigInt(1e18)) / currentTokenReserve;
+    const spotPriceWei =
+      (currentEthReserve * BigInt(1e18)) / currentTokenReserve;
     const spotPriceEth = Number(spotPriceWei) / 1e18;
     console.log(`Spot Price: ${spotPriceEth.toFixed(8)} ETH per token`);
-    console.log(`Inverse Price: ${(1 / spotPriceEth).toFixed(2)} tokens per ETH`);
+    console.log(
+      `Inverse Price: ${(1 / spotPriceEth).toFixed(2)} tokens per ETH`,
+    );
   }
 
   // Test price functions with 1 ETH
-  const getTokenAmountFunc = abi.getFunction('getTokenAmountForEth');
+  const getTokenAmountFunc = abi.getFunction("getTokenAmountForEth");
   if (getTokenAmountFunc) {
     let data = generateFunctionHash(getTokenAmountFunc);
     const oneEth = BigInt(1e18); // 1 ETH in wei
@@ -352,13 +415,17 @@ const checkLiquidityPools = async (analyzer: EVMAnalyzer, contractAddr: Address,
     if (result.success) {
       const tokensFor1Eth = extractUint256(result.returnValue);
       const tokensFor1EthFormatted = Number(tokensFor1Eth) / 1e18;
-      console.log(`Exchange Rate: 1 ETH = ${tokensFor1EthFormatted.toFixed(2)} tokens`);
-      console.log(`Token Price: ${(1 / tokensFor1EthFormatted).toFixed(8)} ETH per token`);
+      console.log(
+        `Exchange Rate: 1 ETH = ${tokensFor1EthFormatted.toFixed(2)} tokens`,
+      );
+      console.log(
+        `Token Price: ${(1 / tokensFor1EthFormatted).toFixed(8)} ETH per token`,
+      );
     }
   }
 
   // Test price functions with 1000 tokens
-  const getEthAmountFunc = abi.getFunction('getEthAmountForTokens');
+  const getEthAmountFunc = abi.getFunction("getEthAmountForTokens");
   if (getEthAmountFunc) {
     let data = generateFunctionHash(getEthAmountFunc);
     const oneThousandTokens = BigInt(1000) * BigInt(1e18); // 1000 tokens
@@ -376,7 +443,9 @@ const checkLiquidityPools = async (analyzer: EVMAnalyzer, contractAddr: Address,
       const ethFor1000Tokens = extractUint256(result.returnValue);
       const ethFor1000TokensFormatted = Number(ethFor1000Tokens) / 1e18;
       const ethPerToken = ethFor1000TokensFormatted / 1000;
-      console.log(`Exchange Rate: 1000 tokens = ${ethFor1000TokensFormatted.toFixed(6)} ETH`);
+      console.log(
+        `Exchange Rate: 1000 tokens = ${ethFor1000TokensFormatted.toFixed(6)} ETH`,
+      );
       console.log(`Token Price: ${ethPerToken.toFixed(8)} ETH per token`);
     }
   }
