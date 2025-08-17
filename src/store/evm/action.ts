@@ -21,11 +21,11 @@ export const deployContractToEVM = async (
   const evm = get().evm;
   if (!evm) return null;
 
-  const owner = new Address(Buffer.from(payload.ownerAddress, "hex"));
+  const owner = new Address(Buffer.from(payload.ownerAddress.slice(2), "hex"));
   const ownerAddress = await createAccount(owner, get);
   if (!ownerAddress) return null;
 
-  const contract = new Address(Buffer.from(payload.contractAddress, "hex"));
+  const contract = new Address(Buffer.from(payload.contractAddress.slice(2), "hex"));
   const contractAddress = await createAccount(contract, get);
   if (!contractAddress) return null;
 

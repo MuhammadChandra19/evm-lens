@@ -14,7 +14,7 @@ export interface SerializableAccountInfo {
   /** The account nonce as string */
   nonce: string;
   /** Whether this account is a contract (has code) */
-  isContract: boolean;
+  isContract?: boolean;
   /** Hash of the contract code (if isContract is true) */
   codeHash?: string;
   /** Hash of the storage root */

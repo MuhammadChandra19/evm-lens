@@ -28,8 +28,6 @@ export type CreateNewEVMPayload = {
   constructorBytecode: string;
   abi: Abi;
   ownerAddress: string;
-  totalSupply: bigint;
-  decimals: number;
 };
 
 export type EVMAction = {
