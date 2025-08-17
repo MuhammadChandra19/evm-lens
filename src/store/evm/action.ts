@@ -1,16 +1,15 @@
 import EVMAnalyzer, { CallResult, ExecutionStep } from "@/service/evm-analyzer";
 import { Address } from "@ethereumjs/util";
-import {
-  CreateNewEVMPayload,
-  ExecutionResult,
-  EVMState,
-} from "./types";
+import { CreateNewEVMPayload, ExecutionResult, EVMState } from "./types";
 import { keccak256 } from "ethereum-cryptography/keccak";
 import { BytecodeAnalyzer } from "@/service/evm-analyzer/utils/bytecode-analyzer";
 import { ERRORS } from "./errors";
-import { AbiFunction } from '@/service/evm-analyzer/abi/types';
-import { generateFunctionHash, generateInputHash } from '@/service/evm-analyzer/abi/util';
-import { AbiValidator } from '@/service/evm-analyzer/abi';
+import { AbiFunction } from "@/service/evm-analyzer/abi/types";
+import {
+  generateFunctionHash,
+  generateInputHash,
+} from "@/service/evm-analyzer/abi/util";
+import { AbiValidator } from "@/service/evm-analyzer/abi";
 
 export const createNewEVM = async (
   payload: CreateNewEVMPayload,
@@ -25,13 +24,9 @@ export const createNewEVM = async (
     const runtimeStart =
       payload.constructorBytecode.indexOf("6080604052600436");
     const runtimeBytecode = payload.constructorBytecode.slice(runtimeStart);
-    await evm.deployContractToAddress(
-      payload.contractAddress,
-      runtimeBytecode,
-    );
+    await evm.deployContractToAddress(payload.contractAddress, runtimeBytecode);
 
-    const totalSupply =
-      payload.totalSupply * BigInt(10 ** payload.decimals);
+    const totalSupply = payload.totalSupply * BigInt(10 ** payload.decimals);
     await initializeContractState(
       evm,
       payload.contractAddress,
@@ -45,7 +40,7 @@ export const createNewEVM = async (
     );
     const functions = new Map(analysis.functions.map((f) => [f.name, f]));
 
-    const ownerAddress = await createAccount(payload.ownerAddress, get)
+    const ownerAddress = await createAccount(payload.ownerAddress, get);
 
     set({
       contractAddress,
@@ -53,7 +48,7 @@ export const createNewEVM = async (
       functions,
       totalSupply,
       ownerAddress: ownerAddress!,
-      abiMetadata: new AbiValidator(payload.abi)
+      abiMetadata: new AbiValidator(payload.abi),
     });
 
     return { success: true, error: null };
@@ -76,22 +71,25 @@ export const callFunction = async (
   const contractAddress = get().contractAddress;
   if (!contractAddress) return null;
 
-  let data = generateFunctionHash(func)
-  data += generateInputHash(func, args)
+  let data = generateFunctionHash(func);
+  data += generateInputHash(func, args);
 
-  const result = await evm.callContract({
-    data,
-    from: executorAddres,
-    to: contractAddress.toString(),
-    gasLimit: BigInt(gasLimit),
-    value: 0n
-  }, {
-    includeMemory: true,
-    includeStack: true,
-    includeStorage: true,
-  })
-  return result
-}
+  const result = await evm.callContract(
+    {
+      data,
+      from: executorAddres,
+      to: contractAddress.toString(),
+      gasLimit: BigInt(gasLimit),
+      value: 0n,
+    },
+    {
+      includeMemory: true,
+      includeStack: true,
+      includeStorage: true,
+    },
+  );
+  return result;
+};
 
 const initializeContractState = async (
   evm: EVMAnalyzer,
@@ -146,10 +144,7 @@ const initializeContractState = async (
   await setStorage(ownerBalanceSlot, totalSupply.toString(16));
 };
 
-export const createAccount = async (
-  address: string,
-  get: () => EVMState,
-) => {
+export const createAccount = async (address: string, get: () => EVMState) => {
   const evm = get().evm;
   if (!evm) return null;
   const account = await evm.createAccount(address);
@@ -232,10 +227,7 @@ export const transferTokens = async (
   });
 };
 
-export const deployContract = async (
-  bytecode: string,
-  get: () => EVMState,
-) => {
+export const deployContract = async (bytecode: string, get: () => EVMState) => {
   const evm = get().evm;
   if (!evm) return null;
   return evm.deployContract(bytecode);
@@ -437,9 +429,7 @@ export const getReserves = async (
   };
 };
 
-export const getTokenPrice = async (
-  get: () => EVMState,
-): Promise<number> => {
+export const getTokenPrice = async (get: () => EVMState): Promise<number> => {
   const { tokenReserve, ethReserve } = await getReserves(get);
 
   if (tokenReserve > 0 && ethReserve > 0) {

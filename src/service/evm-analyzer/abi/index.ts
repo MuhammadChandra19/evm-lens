@@ -1,5 +1,5 @@
-import { AbiSchema } from './schema';
-import { Abi, AbiEvent, AbiFunction } from './types';
+import { AbiSchema } from "./schema";
+import { Abi, AbiEvent, AbiFunction } from "./types";
 
 export class AbiValidator {
   private abi: Abi;
@@ -10,22 +10,26 @@ export class AbiValidator {
 
   // Get all functions from the ABI
   getFunctions(): AbiFunction[] {
-    return this.abi.filter((entry): entry is AbiFunction => entry.type === 'function');
+    return this.abi.filter(
+      (entry): entry is AbiFunction => entry.type === "function",
+    );
   }
 
   // Get all events from the ABI
   getEvents(): AbiEvent[] {
-    return this.abi.filter((entry): entry is AbiEvent => entry.type === 'event');
+    return this.abi.filter(
+      (entry): entry is AbiEvent => entry.type === "event",
+    );
   }
 
   // Get a specific function by name
   getFunction(name: string): AbiFunction | undefined {
-    return this.getFunctions().find(fn => fn.name === name);
+    return this.getFunctions().find((fn) => fn.name === name);
   }
 
   // Get a specific event by name
   getEvent(name: string): AbiEvent | undefined {
-    return this.getEvents().find(event => event.name === name);
+    return this.getEvents().find((event) => event.name === name);
   }
 
   // Validate function call parameters
@@ -42,13 +46,13 @@ export class AbiValidator {
 
   // Get payable functions
   getPayableFunctions(): AbiFunction[] {
-    return this.getFunctions().filter(fn => fn.stateMutability === 'payable');
+    return this.getFunctions().filter((fn) => fn.stateMutability === "payable");
   }
 
   // Get view/pure functions
   getViewFunctions(): AbiFunction[] {
-    return this.getFunctions().filter(fn => 
-      fn.stateMutability === 'view' || fn.stateMutability === 'pure'
+    return this.getFunctions().filter(
+      (fn) => fn.stateMutability === "view" || fn.stateMutability === "pure",
     );
   }
 

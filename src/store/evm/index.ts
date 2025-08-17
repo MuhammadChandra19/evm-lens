@@ -1,24 +1,20 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import {
-  EVMState,
-  CreateNewEVMPayload,
-  EVMStore,
-} from "./types";
+import { EVMState, CreateNewEVMPayload, EVMStore } from "./types";
 import { ContractMetadata } from "@/service/evm-analyzer/types";
 import * as actions from "./action";
 import { serializeEVMStateEnhanced, getKnownAddresses } from "./serializers";
 import EVMAnalyzer from "@/service/evm-analyzer";
 import { Address } from "@ethereumjs/util";
-import { AbiFunction } from '@/service/evm-analyzer/abi/types';
-import { AbiValidator } from '@/service/evm-analyzer/abi';
+import { AbiFunction } from "@/service/evm-analyzer/abi/types";
+import { AbiValidator } from "@/service/evm-analyzer/abi";
 
 const initialState: EVMState = {
   constructorBytecode: "",
   abi: {} as ContractMetadata,
   totalSupply: BigInt(0),
   decimals: 18,
-  abiMetadata: new AbiValidator({})
+  abiMetadata: new AbiValidator({}),
 };
 
 /**
@@ -53,8 +49,19 @@ const useEVMStore = create<EVMStore>()(
         }
         return result;
       },
-      callFunction: async (executorAddres: string, func: AbiFunction, args: string[], gasLimit: number) =>  {
-        const result = await actions.callFunction(executorAddres, func, args, gasLimit, get)
+      callFunction: async (
+        executorAddres: string,
+        func: AbiFunction,
+        args: string[],
+        gasLimit: number,
+      ) => {
+        const result = await actions.callFunction(
+          executorAddres,
+          func,
+          args,
+          gasLimit,
+          get,
+        );
         await saveEVMState();
         return result;
       },

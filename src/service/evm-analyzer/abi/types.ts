@@ -1,5 +1,12 @@
-import { z } from 'zod';
-import { AbiEntrySchema, AbiSchema, AbiType, ConstructorSchema, EventSchema, FunctionSchema } from './schema';
+import { z } from "zod";
+import {
+  AbiEntrySchema,
+  AbiSchema,
+  AbiType,
+  ConstructorSchema,
+  EventSchema,
+  FunctionSchema,
+} from "./schema";
 export type AbiParameter = {
   name?: string;
   type: string;

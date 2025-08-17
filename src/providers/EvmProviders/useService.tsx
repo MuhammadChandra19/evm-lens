@@ -1,7 +1,6 @@
 import EVMAnalyzer from "@/service/evm-analyzer";
 import { useEffect, useRef } from "react";
 
-
 const useService = () => {
   const evmRef = useRef<EVMAnalyzer | null>(null);
 

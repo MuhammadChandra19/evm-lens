@@ -1,14 +1,14 @@
 import { keccak256 } from 'ethereum-cryptography/keccak';
-import { ABIConstructor, ABIEvent } from '../types'
-import { AbiFunction } from './types'
+import { ABIConstructor, ABIEvent } from '../types';
+import { AbiFunction } from './types';
 
 const encodeUint256 = (value: bigint): string => {
-  return value.toString(16).padStart(64, "0");
+  return value.toString(16).padStart(64, '0');
 };
 
 const encodeAddress = (address: string): string => {
-  const cleanAddr = address.startsWith("0x") ? address.slice(2) : address;
-  return cleanAddr.padStart(64, "0");
+  const cleanAddr = address.startsWith('0x') ? address.slice(2) : address;
+  return cleanAddr.padStart(64, '0');
 };
 
 // Additional encoding functions for other types
@@ -17,8 +17,8 @@ const encodeBool = (value: boolean): string => {
 };
 
 const encodeBytes32 = (value: string): string => {
-  const cleanHex = value.startsWith("0x") ? value.slice(2) : value;
-  return cleanHex.padEnd(64, "0");
+  const cleanHex = value.startsWith('0x') ? value.slice(2) : value;
+  return cleanHex.padEnd(64, '0');
 };
 
 const encodeString = (value: string): string => {
@@ -31,7 +31,7 @@ const encodeString = (value: string): string => {
 };
 
 const encodeBytes = (value: string): string => {
-  const cleanHex = value.startsWith("0x") ? value.slice(2) : value;
+  const cleanHex = value.startsWith('0x') ? value.slice(2) : value;
   const length = encodeUint256(BigInt(cleanHex.length / 2));
   const paddedHex = cleanHex.padEnd(Math.ceil(cleanHex.length / 64) * 64, '0');
   return length + paddedHex;
@@ -45,23 +45,23 @@ const encodeParameter = (type: string, value: any): string => {
     if (!Array.isArray(value)) {
       throw new Error(`Expected array for type ${type}, got ${typeof value}`);
     }
-    
+
     const baseType = type.split('[')[0];
     const arrayMatch = type.match(/\[(\d*)\]/);
     const isFixedArray = arrayMatch && arrayMatch[1];
-    
+
     let encoded = '';
-    
+
     // For dynamic arrays, encode length first
     if (!isFixedArray) {
       encoded += encodeUint256(BigInt(value.length));
     }
-    
+
     // Encode each element
     for (const item of value) {
       encoded += encodeParameter(baseType, item);
     }
-    
+
     return encoded;
   }
 
@@ -69,16 +69,16 @@ const encodeParameter = (type: string, value: any): string => {
   switch (type) {
     case 'address':
       return encodeAddress(value);
-    
+
     case 'bool':
       return encodeBool(value);
-    
+
     case 'string':
       return encodeString(value);
-    
+
     case 'bytes':
       return encodeBytes(value);
-    
+
     default:
       // Handle uintX, intX, bytesX
       if (type.startsWith('uint') || type.startsWith('int')) {
@@ -88,47 +88,43 @@ const encodeParameter = (type: string, value: any): string => {
         // Fixed bytes like bytes32
         return encodeBytes32(value);
       }
-      
+
       throw new Error(`Unsupported type: ${type}`);
   }
 };
 
-
 export const generateFunctionSignature = (func: AbiFunction | ABIEvent): string => {
-  const inputs = func.inputs.map((input) => input.type).join(",");
+  const inputs = func.inputs.map((input) => input.type).join(',');
   return `${func.name}(${inputs})`;
-}
+};
 
-export const generateConstructorSignature = (
-    constructor: ABIConstructor,
-  ): string => {
-  const inputs = constructor.inputs.map((input) => input.type).join(",");
+export const generateConstructorSignature = (constructor: ABIConstructor): string => {
+  const inputs = constructor.inputs.map((input) => input.type).join(',');
   return `constructor(${inputs})`;
-}
-
+};
 
 export const generateSelector = (signature: string): string => {
-  const hash = keccak256(Buffer.from(signature, "utf8"));
-  return "0x" + Buffer.from(hash.slice(0, 4)).toString("hex");
-}
+  const hash = keccak256(Buffer.from(signature, 'utf8'));
+  return '0x' + Buffer.from(hash.slice(0, 4)).toString('hex');
+};
 
 export const generateEventHash = (signature: string): string => {
-  const hash = keccak256(Buffer.from(signature, "utf8"));
-  return "0x" + Buffer.from(hash).toString("hex");
-}
+  const hash = keccak256(Buffer.from(signature, 'utf8'));
+  return '0x' + Buffer.from(hash).toString('hex');
+};
 
 export const generateFunctionHash = (func: AbiFunction | ABIEvent): string => {
-  const signature = generateFunctionSignature(func)
-  const selector = generateSelector(signature)
-  return selector
-}
+  const signature = generateFunctionSignature(func);
+  const selector = generateSelector(signature);
+  return selector;
+};
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const generateInputHash = (func: AbiFunction | ABIEvent, args: any[]): string => {
-  let result = ""
+export const generateInputHash = (func: AbiFunction | ABIEvent, args: string[]): string => {
+  let result = '';
 
-  for(let i = 0; i < func.inputs.length; i++) {
-    const current = func.inputs[i]
+  for (let i = 0; i < func.inputs.length; i++) {
+    const current = func.inputs[i];
     const value = args[i];
     if (current.type) {
       try {
@@ -138,8 +134,7 @@ export const generateInputHash = (func: AbiFunction | ABIEvent, args: any[]): st
         throw new Error(`Error encoding parameter '${current.name}' of type '${current.type}': ${error}`);
       }
     }
-
   }
 
-  return result
-}
+  return result;
+};

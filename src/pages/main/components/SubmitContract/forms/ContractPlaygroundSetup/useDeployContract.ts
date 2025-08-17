@@ -7,9 +7,7 @@ import { toast } from "sonner";
 import { ErrorEVM } from "@/store/evm/errors";
 
 const useDeployContract = () => {
-  const deployContract = useEVMStore(
-    (store) => store.createNewEVM,
-  );
+  const deployContract = useEVMStore((store) => store.createNewEVM);
   const method = useForm<ContractEVMSchema>({
     resolver: zodResolver(contractEVMSchema),
     defaultValues: DEFAULT_DATA,

@@ -1,6 +1,6 @@
 import EVMAnalyzer from "@/service/evm-analyzer";
-import { AbiValidator } from '@/service/evm-analyzer/abi';
-import { AbiFunction } from '@/service/evm-analyzer/abi/types';
+import { AbiValidator } from "@/service/evm-analyzer/abi";
+import { AbiFunction } from "@/service/evm-analyzer/abi/types";
 import {
   CallResult,
   ContractMetadata,
@@ -16,7 +16,7 @@ export type EVMState = {
   contractAddress?: Address;
   constructorBytecode: string;
   abi: ContractMetadata;
-  abiMetadata: AbiValidator
+  abiMetadata: AbiValidator;
   functions?: Map<string | undefined, FunctionInfo>;
   ownerAddress?: Address;
   totalSupply: bigint;
@@ -55,7 +55,12 @@ export type EVMAction = {
     bytecode: string,
   ) => Promise<{ analysis: ContractAnalysis } | null>;
   callContract: (txData: TxData) => Promise<CallResult | null>;
-  callFunction: (executorAddres: string, func: AbiFunction, args: string[], gasLimit: number) => Promise<ExecutionResult>
+  callFunction: (
+    executorAddres: string,
+    func: AbiFunction,
+    args: string[],
+    gasLimit: number,
+  ) => Promise<ExecutionResult>;
 
   // Token functions
   getTokenBalance: (userAddress: string) => Promise<bigint>;

@@ -91,11 +91,7 @@ describe("Action", () => {
         {},
       );
 
-      const result = await actions.createNewEVM(
-        payload,
-        mockSet,
-        mockGet,
-      );
+      const result = await actions.createNewEVM(payload, mockSet, mockGet);
 
       expect(result.success).toBe(true);
       expect(result.error).toBe(null);
@@ -117,11 +113,7 @@ describe("Action", () => {
 
       mockGet.mockReturnValue({ ...mockState, evm: undefined });
 
-      const result = await actions.createNewEVM(
-        payload,
-        mockSet,
-        mockGet,
-      );
+      const result = await actions.createNewEVM(payload, mockSet, mockGet);
 
       expect(result.success).toBe(false);
       expect(result.error).toBe("EVM not initialized");
@@ -141,11 +133,7 @@ describe("Action", () => {
         new Error("Deployment failed"),
       );
 
-      const result = await actions.createNewEVM(
-        payload,
-        mockSet,
-        mockGet,
-      );
+      const result = await actions.createNewEVM(payload, mockSet, mockGet);
 
       expect(result.success).toBe(false);
       expect(result.error).toBeInstanceOf(Error);

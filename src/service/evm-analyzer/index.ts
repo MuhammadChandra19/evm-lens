@@ -34,8 +34,18 @@ export class EVMAnalyzer {
   }
 
   // Contract management
-  async deployContract(bytecode: string, options?: TraceOptions) {
-    return this.contractManager.deployContract(bytecode, options);
+  async deployContract(
+    fromAddress: string,
+    bytecode: string,
+    contractAddress: string,
+    options?: TraceOptions,
+  ) {
+    return this.contractManager.deployContract(
+      fromAddress,
+      bytecode,
+      contractAddress,
+      options,
+    );
   }
 
   async deployContractToAddress(address: string, runtimeBytecode: string) {
