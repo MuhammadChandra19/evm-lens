@@ -2,8 +2,8 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { EVMState, CreateNewEVMPayload, EVMStore } from "./types";
 import * as actions from "./action";
-import { serializeEVMStateEnhanced, getKnownAddresses } from "./serializers";
-import EVMAnalyzer from "@/service/evm-analyzer";
+import { serializeEVMState, deserializeEVMState } from "./serializers";
+import EVMAnalyzer, { AccountInfo } from "@/service/evm-analyzer";
 import { Address } from "@ethereumjs/util";
 import { Abi, AbiFunction } from "@/service/evm-analyzer/abi/types";
 
@@ -40,11 +40,12 @@ const useEVMStore = create<EVMStore>()(
 
       // Basic EVM functions
       createAccount: async (address: string) => {
-        const result = await actions.createAccount(address, get);
+        const addressType = new Address(Buffer.from(address, "hex"));
+        const result = await actions.createAccount(addressType, get);
         await saveEVMState();
         return result;
       },
-      fundAccount: async (address: string, balance: bigint) => {
+      fundAccount: async (address: Address, balance: bigint) => {
         const result = await actions.fundAccount(address, balance, get);
         if (result.success) {
           await saveEVMState();
@@ -59,7 +60,7 @@ const useEVMStore = create<EVMStore>()(
       },
 
       callFunction: async (
-        executorAddres: string,
+        executorAddres: Address,
         func: AbiFunction,
         args: string[],
         gasLimit: number,
@@ -73,6 +74,25 @@ const useEVMStore = create<EVMStore>()(
         );
         await saveEVMState();
         return result;
+      },
+
+      registerAccount: async (address: Address) => {
+        const result = await actions.createAccount(address, get);
+        if (result) {
+          await saveEVMState();
+          const accounts = get().accounts || {};
+
+          set({
+            accounts: {
+              ...accounts,
+              [result.toString()]: {
+                address: result,
+                balance: 0n,
+                storage: [[]],
+              } as unknown as AccountInfo,
+            },
+          });
+        }
       },
 
       // Persistence helpers
@@ -133,10 +153,12 @@ const useEVMStore = create<EVMStore>()(
             const evmStateStr = localStorage.getItem("evm-state");
             if (evmStateStr) {
               try {
-                const evmState = JSON.parse(evmStateStr);
-                const restoredEvm = await restoreEVMFromState(evmState);
-                if (restoredEvm) {
-                  state.evm = restoredEvm;
+                const serializedState = JSON.parse(evmStateStr);
+                const restoredState =
+                  await deserializeEVMState(serializedState);
+                if (restoredState.evm) {
+                  // Restore the full state
+                  Object.assign(state, restoredState);
                   return;
                 }
               } catch (error) {
@@ -169,79 +191,14 @@ const saveEVMState = async () => {
   try {
     const state = useEVMStore.getState();
     if (state.evm) {
-      const knownAddresses = getKnownAddresses(state);
-      const evmState = await serializeEVMStateEnhanced(
-        state.evm,
-        knownAddresses,
-      );
-      localStorage.setItem("evm-state", JSON.stringify(evmState));
+      const serializedState = await serializeEVMState(state);
+      localStorage.setItem("evm-state", JSON.stringify(serializedState));
     }
   } catch (error) {
     console.warn("Failed to save EVM state:", error);
   }
 };
 
-const restoreEVMFromState = async (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  evmState: any,
-): Promise<EVMAnalyzer | null> => {
-  try {
-    const evm = await EVMAnalyzer.create();
-
-    // Restore accounts and their state
-    if (evmState.accounts) {
-      for (const accountData of evmState.accounts) {
-        try {
-          // Create the account
-          await evm.createAccount(accountData.address);
-
-          // Fund the account with the stored balance
-          if (accountData.balance !== "0") {
-            await evm.fundAccount(
-              accountData.address,
-              BigInt(accountData.balance),
-            );
-          }
-
-          // Restore contract code if present
-          if (accountData.code) {
-            const codeBytes = new Uint8Array(
-              Buffer.from(accountData.code, "hex"),
-            );
-            await evm.stateManagerService.setCode(
-              accountData.address,
-              codeBytes,
-            );
-          }
-
-          // Restore storage if present
-          if (accountData.storage) {
-            for (const [slot, value] of accountData.storage) {
-              const cleanAddr = accountData.address.startsWith("0x")
-                ? accountData.address.slice(2)
-                : accountData.address;
-              const addr = new Address(Buffer.from(cleanAddr, "hex"));
-              await evm.stateManagerService.stateManager.putStorage(
-                addr,
-                Buffer.from(slot, "hex"),
-                Buffer.from(value, "hex"),
-              );
-            }
-          }
-        } catch (error) {
-          console.warn(
-            `Failed to restore account ${accountData.address}:`,
-            error,
-          );
-        }
-      }
-    }
-
-    return evm;
-  } catch (error) {
-    console.error("Failed to restore EVM from state:", error);
-    return null;
-  }
-};
+// EVM restoration is now handled by deserializeEVM in serializers.ts
 
 export default useEVMStore;

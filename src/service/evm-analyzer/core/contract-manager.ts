@@ -17,10 +17,18 @@ export class ContractManager {
     private stateManager: StateManagerService,
   ) {}
 
+  /**
+   * Deploy a contract to the EVM
+   * @param fromAddress - The deployer address
+   * @param bytecode - The contract bytecode (including constructor)
+   * @param contractAddress - The target contract address
+   * @param options - Tracing options
+   * @returns Deployment result
+   */
   async deployContract(
-    fromAddress: string,
+    fromAddress: Address,
     bytecode: string,
-    contractAddress: string,
+    contractAddress: Address,
     options: TraceOptions = {},
   ): Promise<DeploymentResult> {
     const tracer = new ExecutionTracer(options);
@@ -39,21 +47,9 @@ export class ContractManager {
         parsers.hexStringToUint8Array(bytecode),
       );
 
-      // Create addresses
-      const fromAddr = new Address(
-        Buffer.from(
-          fromAddress.startsWith("0x") ? fromAddress.slice(2) : fromAddress,
-          "hex",
-        ),
-      );
-      const toAddr = new Address(
-        Buffer.from(
-          contractAddress.startsWith("0x")
-            ? contractAddress.slice(2)
-            : contractAddress,
-          "hex",
-        ),
-      );
+      // Use addresses directly
+      const fromAddr = fromAddress;
+      const toAddr = contractAddress;
 
       // Execute constructor by calling the contract with empty data (constructor execution)
       const result = await evm.runCall({
@@ -79,7 +75,7 @@ export class ContractManager {
       );
 
       return {
-        contractAddress,
+        contractAddress: contractAddress,
         gasUsed: result.execResult.executionGasUsed,
         success: !result.execResult.exceptionError,
         returnValue: parsers.hexStringToUint8Array(runtimeBytecode),
@@ -102,20 +98,10 @@ export class ContractManager {
     evm.events.on("step", stepHandler);
 
     try {
-      const fromAddr = new Address(
-        Buffer.from(
-          txData.from.startsWith("0x") ? txData.from.slice(2) : txData.from,
-          "hex",
-        ),
-      );
+      const fromAddr = txData.from;
       let toAddr: Address | undefined;
       if (txData.to) {
-        toAddr = new Address(
-          Buffer.from(
-            txData.to.startsWith("0x") ? txData.to.slice(2) : txData.to,
-            "hex",
-          ),
-        );
+        toAddr = txData.to;
       }
 
       const result = await evm.runCall({

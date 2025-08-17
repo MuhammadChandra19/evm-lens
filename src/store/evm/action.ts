@@ -11,6 +11,7 @@ import {
   generateInputHash,
 } from "@/service/evm-analyzer/abi/util";
 import { AbiValidator } from "@/service/evm-analyzer/abi";
+import { Address } from "@/service/evm-analyzer/utils/address";
 
 export const deployContractToEVM = async (
   payload: CreateNewEVMPayload,
@@ -20,22 +21,23 @@ export const deployContractToEVM = async (
   const evm = get().evm;
   if (!evm) return null;
 
-  const res = await evm.deployContract(
-    payload.ownerAddress,
-    payload.constructorBytecode,
-    payload.contractAddress,
-  );
-  if (!res.success) return null;
-
-  const contractAddress = await evm.createAccount(payload.contractAddress);
-  if (!contractAddress) return null;
-  const ownerAddress = await createAccount(payload.ownerAddress, get);
+  const owner = new Address(Buffer.from(payload.ownerAddress, "hex"));
+  const ownerAddress = await createAccount(owner, get);
   if (!ownerAddress) return null;
 
+  const contract = new Address(Buffer.from(payload.contractAddress, "hex"));
+  const contractAddress = await createAccount(contract, get);
+  if (!contractAddress) return null;
 
+  const res = await evm.deployContract(
+    ownerAddress,
+    payload.constructorBytecode,
+    contractAddress,
+  );
+  if (!res.success) return null;
   set({
     abiMetadata: new AbiValidator(payload.abi),
-    abi:payload.abi, 
+    abi: payload.abi,
     ownerAddress,
     contractAddress,
   });
@@ -44,7 +46,7 @@ export const deployContractToEVM = async (
 };
 
 export const callFunction = async (
-  executorAddres: string,
+  executorAddres: Address,
   func: AbiFunction,
   args: string[],
   gasLimit: number,
@@ -63,7 +65,7 @@ export const callFunction = async (
     {
       data,
       from: executorAddres,
-      to: contractAddress.toString(),
+      to: contractAddress,
       gasLimit: BigInt(gasLimit),
       value: 0n,
     },
@@ -76,7 +78,7 @@ export const callFunction = async (
   return result;
 };
 
-export const createAccount = async (address: string, get: () => EVMState) => {
+export const createAccount = async (address: Address, get: () => EVMState) => {
   const evm = get().evm;
   if (!evm) return null;
   const account = await evm.createAccount(address);
@@ -84,7 +86,7 @@ export const createAccount = async (address: string, get: () => EVMState) => {
 };
 
 export const fundAccount = async (
-  address: string,
+  address: Address,
   balance: bigint,
   get: () => EVMState,
 ) => {

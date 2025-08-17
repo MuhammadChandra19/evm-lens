@@ -5,8 +5,8 @@ import { DEFAULT_DATA } from "./data";
 import useEVMStore from "@/store/evm";
 import { toast } from "sonner";
 import { ERRORS } from "@/store/evm/errors";
-import { AbiValidator } from '@/service/evm-analyzer/abi';
-import { Abi } from '@/service/evm-analyzer/abi/types';
+import { AbiValidator } from "@/service/evm-analyzer/abi";
+import { Abi } from "@/service/evm-analyzer/abi/types";
 
 const useDeployContract = () => {
   const deployContract = useEVMStore((store) => store.deployContractToEVM);
@@ -17,27 +17,26 @@ const useDeployContract = () => {
 
   const validateAbi = (abiStr: string): Abi | undefined => {
     try {
-      const abiJson = JSON.parse(abiStr)
-      const abi = new AbiValidator(abiJson)
+      const abiJson = JSON.parse(abiStr);
+      const abi = new AbiValidator(abiJson);
 
-      return abi.getAbi()
-    } catch(e) {
-      method.setError('bytecodeAndAbi.contractAbi',{
+      return abi.getAbi();
+    } catch (e) {
+      method.setError("bytecodeAndAbi.contractAbi", {
         message: "invalid abi",
-      })
-      console.error(e)
+      });
+      console.error(e);
     }
-  }
+  };
 
   const handleDeploycontract = async (payload: ContractEVMSchema) => {
     try {
-
-      const abi = validateAbi(payload.bytecodeAndAbi.contractAbi)
-      if(!abi) {
+      const abi = validateAbi(payload.bytecodeAndAbi.contractAbi);
+      if (!abi) {
         toast.error("failed to create new EVM", {
           description: "Invalid Abi",
         });
-        return
+        return;
       }
 
       const res = await deployContract({
@@ -46,15 +45,15 @@ const useDeployContract = () => {
         constructorBytecode: payload.bytecodeAndAbi.constructorBytecode,
         ownerAddress: payload.contractConfiguration.ownerAddress,
         totalSupply: 0n,
-        decimals: 0
+        decimals: 0,
       });
 
-      if(!res || !res.success) {
+      if (!res || !res.success) {
         toast.error("failed to create new EVM", {
           description: ERRORS.EVM_NOT_INITIALIZED,
         });
 
-        return
+        return;
       }
 
       if (res.success) {

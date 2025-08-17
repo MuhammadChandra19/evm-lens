@@ -1,8 +1,9 @@
-import { EVMManager } from './core/evm-manager';
-import { StateManagerService } from './core/state-manager';
-import { ContractManager } from './core/contract-manager';
-import { ExecutionAnalyzer } from './analysis/analyzer';
-import { TxData, TraceOptions, AccountInfo, ExecutionStep, ExportedEVMState, ImportableEVMState } from './types';
+import { EVMManager } from "./core/evm-manager";
+import { StateManagerService } from "./core/state-manager";
+import { ContractManager } from "./core/contract-manager";
+import { ExecutionAnalyzer } from "./analysis/analyzer";
+import { TxData, TraceOptions, AccountInfo, ExecutionStep } from "./types";
+import { Address } from "@ethereumjs/util";
 
 export class EVMAnalyzer {
   private evmManager: EVMManager;
@@ -21,23 +22,63 @@ export class EVMAnalyzer {
   }
 
   // State management
-  async createAccount(address: string) {
+  /**
+   * Create a new account
+   * @param address - The Address object to create
+   * @returns The created Address object
+   */
+  async createAccount(address: Address) {
     return this.stateManager.createAccount(address);
   }
 
-  async fundAccount(address: string, balance: bigint) {
+  /**
+   * Fund an account with the specified balance
+   * @param address - The Address object to fund
+   * @param balance - The balance in wei
+   * @returns The Address object
+   */
+  async fundAccount(address: Address, balance: bigint) {
     return this.stateManager.fundAccount(address, balance);
   }
 
-  async getAccountInfo(address: string): Promise<AccountInfo | null> {
+  /**
+   * Get comprehensive account information
+   * @param address - The Address object to query
+   * @returns AccountInfo object or null if account doesn't exist
+   */
+  async getAccountInfo(address: Address): Promise<AccountInfo | null> {
     return this.stateManager.getAccountInfo(address);
   }
 
   // Contract management
-  async deployContract(fromAddress: string, bytecode: string, contractAddress: string, options?: TraceOptions) {
-    return this.contractManager.deployContract(fromAddress, bytecode, contractAddress, options);
+  /**
+   * Deploy a contract to the EVM
+   * @param fromAddress - The deployer Address object
+   * @param bytecode - The contract bytecode (including constructor)
+   * @param contractAddress - The target contract Address object
+   * @param options - Tracing options
+   * @returns Deployment result
+   */
+  async deployContract(
+    fromAddress: Address,
+    bytecode: string,
+    contractAddress: Address,
+    options?: TraceOptions,
+  ) {
+    return this.contractManager.deployContract(
+      fromAddress,
+      bytecode,
+      contractAddress,
+      options,
+    );
   }
 
+  /**
+   * Call a contract function
+   * @param txData - Transaction data
+   * @param options - Tracing options
+   * @returns Call result with execution steps
+   */
   async callContract(txData: TxData, options?: TraceOptions) {
     return this.contractManager.callContract(txData, options);
   }
@@ -95,62 +136,8 @@ export class EVMAnalyzer {
     await this.revert();
   }
 
-  // Export complete EVM state
-  async exportState(): Promise<ExportedEVMState> {
-    const stateRoot = await this.getStateRoot();
-    const blockchain = this.evmManager.getBlockchain();
-
-    // Get latest block info
-    const latestBlock = await blockchain.getCanonicalHeadBlock();
-
-    return {
-      stateRoot: Buffer.from(stateRoot).toString('hex'),
-      accounts: [], // Would need to be populated with known accounts
-      blockchain: {
-        latestBlockNumber: latestBlock.header.number,
-        latestBlockHash: Buffer.from(latestBlock.hash()).toString('hex'),
-      },
-    };
-  }
-
-  // Import state from exported data
-  async importState(stateData: ImportableEVMState): Promise<void> {
-    // Set the state root
-    const stateRoot = Buffer.from(stateData.stateRoot, 'hex');
-    await this.setStateRoot(stateRoot);
-
-    // Restore accounts if provided
-    if (stateData.accounts) {
-      for (const accountData of stateData.accounts) {
-        try {
-          // Create account
-          await this.createAccount(accountData.address);
-
-          // Set balance
-          if (accountData.balance !== '0') {
-            await this.fundAccount(accountData.address, BigInt(accountData.balance));
-          }
-
-          // Set code if it's a contract
-          if (accountData.code) {
-            const codeBytes = Buffer.from(accountData.code, 'hex');
-            await this.stateManager.setCode(accountData.address, codeBytes);
-          }
-
-          // Restore storage
-          if (accountData.storage) {
-            for (const [slot, value] of accountData.storage) {
-              const slotBytes = Buffer.from(slot, 'hex');
-              const valueBytes = Buffer.from(value, 'hex');
-              await this.stateManager.putStorage(accountData.address, slotBytes, valueBytes);
-            }
-          }
-        } catch (error) {
-          console.warn(`Failed to restore account ${accountData.address}:`, error);
-        }
-      }
-    }
-  }
+  // State import/export is handled by the EVM store serializers
+  // These methods provide direct access to state root for advanced usage
 
   // Direct access to underlying components for advanced usage
   get evmManagerInstance() {
@@ -171,5 +158,5 @@ export class EVMAnalyzer {
 }
 
 export default EVMAnalyzer;
-export * from './types';
-export { ExecutionAnalyzer } from './analysis/analyzer';
+export * from "./types";
+export { ExecutionAnalyzer } from "./analysis/analyzer";

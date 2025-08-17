@@ -31,15 +31,25 @@ async function main() {
     const contractAddr = new Address(
       Buffer.from("1234567890123456789012345678901234567890", "hex"),
     );
-    const devAddr = "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd";
-    const user1Addr = "0x1111111111111111111111111111111111111111";
-    const user2Addr = "0x2222222222222222222222222222222222222222";
-    const user3Addr = "0x3333333333333333333333333333333333333333";
+    const devAddr = new Address(
+      Buffer.from("abcdefabcdefabcdefabcdefabcdefabcdefabcd", "hex"),
+    );
+    const user1Addr = new Address(
+      Buffer.from("1111111111111111111111111111111111111111", "hex"),
+    );
+    const user2Addr = new Address(
+      Buffer.from("2222222222222222222222222222222222222222", "hex"),
+    );
+    const user3Addr = new Address(
+      Buffer.from("3333333333333333333333333333333333333333", "hex"),
+    );
 
     console.log("📋 Setup:");
     console.log(`Contract: ${contractAddr.toString()}`);
-    console.log(`Developer: ${devAddr}`);
-    console.log(`User1-3: ${user1Addr}, ${user2Addr}, ${user3Addr}\n`);
+    console.log(`Developer: ${devAddr.toString()}`);
+    console.log(
+      `User1-3: ${user1Addr.toString()}, ${user2Addr.toString()}, ${user3Addr.toString()}\n`,
+    );
 
     // === FUND ACCOUNTS ===
     console.log("💰 Developer getting initial funds...");
@@ -56,7 +66,7 @@ async function main() {
     const deploymentResult = await analyzer.deployContract(
       devAddr,
       tokenBytecode,
-      contractAddr.toString(),
+      contractAddr,
     );
 
     if (!deploymentResult.success) {
@@ -114,7 +124,7 @@ async function main() {
 
       const totalSupyResult = await analyzer.callContract({
         from: devAddr,
-        to: contractAddr.toString(),
+        to: contractAddr,
         value: 0n,
         data,
         gasLimit: BigInt(500000),
@@ -138,7 +148,7 @@ async function main() {
 
       const addLiquidityResult = await analyzer.callContract({
         from: devAddr,
-        to: contractAddr.toString(),
+        to: contractAddr,
         value: ethAmount,
         data,
         gasLimit: BigInt(500000),
@@ -210,7 +220,7 @@ async function main() {
       const data = generateFunctionHash(swapEthFunc);
       const result = await analyzer.callContract({
         from: user1Addr,
-        to: contractAddr.toString(),
+        to: contractAddr,
         value: BigInt(10) * BigInt(10 ** 18),
         data,
         gasLimit: BigInt(100000),
@@ -237,7 +247,7 @@ async function main() {
 
       const result = await analyzer.callContract({
         from: user1Addr,
-        to: contractAddr.toString(),
+        to: contractAddr,
         value: BigInt(0),
         data,
         gasLimit: BigInt(100000),
@@ -264,7 +274,7 @@ const checkLiquidityPools = async (
   analyzer: EVMAnalyzer,
   contractAddr: Address,
   abi: AbiValidator,
-  devAddr: string,
+  devAddr: Address,
 ) => {
   // === CHECK LIQUIDITY POOLS ===
   console.log("\n💧 Checking liquidity pools...");
@@ -275,7 +285,7 @@ const checkLiquidityPools = async (
     const tokenReserveData = generateFunctionHash(tokenReserveFunc);
     const tokenReserveResult = await analyzer.callContract({
       from: devAddr,
-      to: contractAddr.toString(),
+      to: contractAddr,
       value: 0n,
       data: tokenReserveData,
       gasLimit: BigInt(100000),
@@ -293,7 +303,7 @@ const checkLiquidityPools = async (
     const ethReserveData = generateFunctionHash(ethReserveFunc);
     const ethReserveResult = await analyzer.callContract({
       from: devAddr,
-      to: contractAddr.toString(),
+      to: contractAddr,
       value: 0n,
       data: ethReserveData,
       gasLimit: BigInt(100000),
@@ -313,7 +323,7 @@ const checkLiquidityPools = async (
     const contractBalanceData = generateFunctionHash(contractBalanceFunc);
     const contractBalanceResult = await analyzer.callContract({
       from: devAddr,
-      to: contractAddr.toString(),
+      to: contractAddr,
       value: 0n,
       data: contractBalanceData,
       gasLimit: BigInt(100000),
@@ -331,11 +341,11 @@ const checkLiquidityPools = async (
   const balanceOfFunc = abi.getFunction("balanceOf");
   if (balanceOfFunc) {
     let balanceData = generateFunctionHash(balanceOfFunc);
-    balanceData += generateInputHash(balanceOfFunc, [devAddr]);
+    balanceData += generateInputHash(balanceOfFunc, [devAddr.toString()]);
 
     const balanceResult = await analyzer.callContract({
       from: devAddr,
-      to: contractAddr.toString(),
+      to: contractAddr,
       value: 0n,
       data: balanceData,
       gasLimit: BigInt(100000),
@@ -359,7 +369,7 @@ const checkLiquidityPools = async (
     const tokenReserveDataPrice = generateFunctionHash(tokenReserveFuncPrice);
     const tokenReserveResultPrice = await analyzer.callContract({
       from: devAddr,
-      to: contractAddr.toString(),
+      to: contractAddr,
       value: 0n,
       data: tokenReserveDataPrice,
       gasLimit: BigInt(100000),
@@ -375,7 +385,7 @@ const checkLiquidityPools = async (
     const ethReserveDataPrice = generateFunctionHash(ethReserveFuncPrice);
     const ethReserveResultPrice = await analyzer.callContract({
       from: devAddr,
-      to: contractAddr.toString(),
+      to: contractAddr,
       value: 0n,
       data: ethReserveDataPrice,
       gasLimit: BigInt(100000),
@@ -406,7 +416,7 @@ const checkLiquidityPools = async (
 
     const result = await analyzer.callContract({
       from: devAddr,
-      to: contractAddr.toString(),
+      to: contractAddr,
       value: 0n,
       data,
       gasLimit: BigInt(100000),
@@ -433,7 +443,7 @@ const checkLiquidityPools = async (
 
     const result = await analyzer.callContract({
       from: devAddr,
-      to: contractAddr.toString(),
+      to: contractAddr,
       value: 0n,
       data,
       gasLimit: BigInt(100000),

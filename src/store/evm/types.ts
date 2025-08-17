@@ -6,6 +6,7 @@ import {
   ExecutionStep,
   FunctionInfo,
   DeploymentResult,
+  AccountInfo,
 } from "@/service/evm-analyzer/types";
 import { Address } from "@ethereumjs/util";
 
@@ -19,6 +20,7 @@ export type EVMState = {
   totalSupply: bigint;
   decimals: number;
   evm?: EVMAnalyzer;
+  accounts?: Record<string, AccountInfo>;
 };
 
 export type CreateNewEVMPayload = {
@@ -38,18 +40,20 @@ export type EVMAction = {
   // Basic EVM functions
   createAccount: (address: string) => Promise<Address | null>;
   fundAccount: (
-    address: string,
+    address: Address,
     balance: bigint,
   ) => Promise<{
     success: boolean;
     error: unknown;
   }>;
   callFunction: (
-    executorAddres: string,
+    executorAddres: Address,
     func: AbiFunction,
     args: string[],
     gasLimit: number,
   ) => Promise<ExecutionResult>;
+
+  registerAccount: (address: Address) => Promise<void>;
 
   // Persistence helpers
   initializeEVM: () => Promise<void>;

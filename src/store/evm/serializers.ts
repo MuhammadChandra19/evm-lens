@@ -2,11 +2,30 @@ import EVMAnalyzer from "@/service/evm-analyzer";
 import { EVMState } from "./types";
 import { Address } from "@ethereumjs/util";
 import { FunctionInfo } from "@/service/evm-analyzer/types";
-import { keccak256 } from "ethereum-cryptography/keccak";
 import { AbiValidator } from "@/service/evm-analyzer/abi";
-import { Abi } from '@/service/evm-analyzer/abi/types';
+import { Abi } from "@/service/evm-analyzer/abi/types";
 
-// Serializable version of the EVM state
+// Serializable version of AccountInfo (Address and bigint converted to strings)
+export interface SerializableAccountInfo {
+  /** The account address as hex string */
+  address: string;
+  /** The account balance in wei as string */
+  balance: string;
+  /** The account nonce as string */
+  nonce: string;
+  /** Whether this account is a contract (has code) */
+  isContract: boolean;
+  /** Hash of the contract code (if isContract is true) */
+  codeHash?: string;
+  /** Hash of the storage root */
+  storageRoot?: string;
+  /** Contract bytecode as hex string (if isContract is true) */
+  code?: string;
+  // Note: Storage is handled separately by the EVM state manager via getStorage/putStorage
+  // AccountInfo does not contain storage data, only the storageRoot hash
+}
+
+// Serializable version of the EVM state - matches store structure
 export interface SerializableEVMState {
   contractAddress?: string;
   constructorBytecode: string;
@@ -15,17 +34,9 @@ export interface SerializableEVMState {
   ownerAddress?: string;
   totalSupply: string; // BigInt as string
   decimals: number;
-  // EVM state will be handled separately
-  evmState?: {
-    accounts: Array<{
-      address: string;
-      balance: string;
-      nonce: string;
-      code?: string;
-      storage?: Array<[string, string]>;
-    }>;
-  };
-  abiMetadata: AbiValidator | undefined;
+  abiMetadata?: AbiValidator;
+  // Match store structure: accounts as Record<string, SerializableAccountInfo>
+  accounts?: Record<string, SerializableAccountInfo>;
 }
 
 export const serializeEVMState = async (
@@ -47,7 +58,7 @@ export const serializeEVMState = async (
   // Serialize EVM state if available
   if (state.evm) {
     const knownAddresses = getKnownAddresses(state);
-    serialized.evmState = await serializeEVMStateEnhanced(
+    serialized.accounts = await serializeAccountsToRecord(
       state.evm,
       knownAddresses,
     );
@@ -89,211 +100,184 @@ export const deserializeEVMState = async (
   };
 
   // Restore EVM state if available
-  if (serialized.evmState) {
-    state.evm = await deserializeEVM(serialized.evmState);
+  if (serialized.accounts) {
+    state.evm = await deserializeEVMFromAccounts(serialized.accounts);
+    // Also set the accounts in the store state for consistency
+    state.accounts = await convertSerializedAccountsToStore(
+      serialized.accounts,
+    );
   }
 
   return state;
 };
 
-const deserializeEVM = async (
-  evmState: NonNullable<SerializableEVMState["evmState"]>,
-): Promise<EVMAnalyzer> => {
-  // Create a new EVM analyzer instance
-  const evm = await EVMAnalyzer.create();
-
-  // Restore accounts and their state
-  for (const accountData of evmState.accounts) {
-    try {
-      // Create the account
-      await evm.createAccount(accountData.address);
-
-      // Fund the account with the stored balance
-      if (accountData.balance !== "0") {
-        await evm.fundAccount(accountData.address, BigInt(accountData.balance));
-      }
-
-      // Restore contract code if present
-      if (accountData.code) {
-        const codeBytes = new Uint8Array(Buffer.from(accountData.code, "hex"));
-        await evm.stateManagerService.setCode(accountData.address, codeBytes);
-      }
-
-      // Restore storage if present
-      if (accountData.storage) {
-        for (const [slot, value] of accountData.storage) {
-          const cleanAddr = accountData.address.startsWith("0x")
-            ? accountData.address.slice(2)
-            : accountData.address;
-          const addr = new Address(Buffer.from(cleanAddr, "hex"));
-          await evm.stateManagerService.stateManager.putStorage(
-            addr,
-            Buffer.from(slot, "hex"),
-            Buffer.from(value, "hex"),
-          );
-        }
-      }
-    } catch (error) {
-      console.warn(`Failed to restore account ${accountData.address}:`, error);
-    }
-  }
-
-  return evm;
-};
-
-// Enhanced serialization that captures more EVM state
-export const serializeEVMStateEnhanced = async (
+// Helper function to serialize accounts to Record format (matches store structure)
+const serializeAccountsToRecord = async (
   evm: EVMAnalyzer,
-  knownAddresses: string[] = [],
-): Promise<SerializableEVMState["evmState"]> => {
-  const accounts: Array<{
-    address: string;
-    balance: string;
-    nonce: string;
-    code?: string;
-    storage?: Array<[string, string]>;
-  }> = [];
+  knownAddresses: Address[] = [],
+): Promise<SerializableEVMState["accounts"]> => {
+  const accounts: NonNullable<SerializableEVMState["accounts"]> = {};
 
-  // Serialize known addresses (contract address, owner address, etc.)
+  // Serialize known addresses
   for (const address of knownAddresses) {
     if (!address) continue;
 
     try {
       const accountInfo = await evm.getAccountInfo(address);
       if (accountInfo) {
-        const accountData: (typeof accounts)[0] = {
-          address: address,
+        const addressKey = address.toString(); // Use full address as key
+
+        accounts[addressKey] = {
+          address: address.toString().slice(2), // Remove 0x prefix for storage
           balance: accountInfo.balance.toString(),
           nonce: accountInfo.nonce.toString(),
+          isContract: accountInfo.isContract,
+          codeHash: accountInfo.codeHash,
+          storageRoot: accountInfo.storageRoot,
         };
 
-        // Get contract code if it's a contract
-        if (accountInfo.isContract) {
-          const code = await evm.stateManagerService.getCode(address);
-          if (code && code.length > 0) {
-            accountData.code = Buffer.from(code).toString("hex");
-          }
+        // Add contract code if present
+        if (accountInfo.isContract && accountInfo.code) {
+          accounts[addressKey].code = Buffer.from(accountInfo.code).toString(
+            "hex",
+          );
         }
 
-        // Serialize important storage slots for token contracts
-        if (accountInfo.isContract) {
-          const storage: Array<[string, string]> = [];
-
-          try {
-            // Common ERC-20 storage slots
-            const importantSlots = [
-              "0x0000000000000000000000000000000000000000000000000000000000000000", // slot 0
-              "0x0000000000000000000000000000000000000000000000000000000000000001", // slot 1
-              "0x0000000000000000000000000000000000000000000000000000000000000002", // slot 2
-              "0x0000000000000000000000000000000000000000000000000000000000000003", // slot 3 (totalSupply)
-              "0x0000000000000000000000000000000000000000000000000000000000000004", // slot 4 (balances mapping base)
-              "0x0000000000000000000000000000000000000000000000000000000000000005", // slot 5
-              "0x0000000000000000000000000000000000000000000000000000000000000006", // slot 6 (owner)
-            ];
-
-            const cleanAddr = address.startsWith("0x")
-              ? address.slice(2)
-              : address;
-            const addr = new Address(Buffer.from(cleanAddr, "hex"));
-
-            for (const slot of importantSlots) {
-              const slotBuffer = Buffer.from(slot.slice(2), "hex");
-              const value =
-                await evm.stateManagerService.stateManager.getStorage(
-                  addr,
-                  slotBuffer,
-                );
-
-              if (value && value.length > 0) {
-                // Only store non-zero values
-                const valueHex = Buffer.from(value).toString("hex");
-                if (
-                  valueHex !==
-                  "0000000000000000000000000000000000000000000000000000000000000000"
-                ) {
-                  storage.push([slot.slice(2), valueHex]);
-                }
-              }
-            }
-
-            // Also serialize balance mapping slots for known addresses
-            const balanceMappingSlot = 4; // ERC-20 balances are typically in slot 4
-            for (const knownAddr of knownAddresses) {
-              if (knownAddr && knownAddr !== address) {
-                try {
-                  const balanceSlot = getBalanceSlot(
-                    knownAddr,
-                    balanceMappingSlot,
-                  );
-                  const slotBuffer = Buffer.from(balanceSlot, "hex");
-                  const value =
-                    await evm.stateManagerService.stateManager.getStorage(
-                      addr,
-                      slotBuffer,
-                    );
-
-                  if (value && value.length > 0) {
-                    const valueHex = Buffer.from(value).toString("hex");
-                    if (
-                      valueHex !==
-                      "0000000000000000000000000000000000000000000000000000000000000000"
-                    ) {
-                      storage.push([balanceSlot, valueHex]);
-                    }
-                  }
-                } catch (error) {
-                  console.warn(
-                    `Failed to serialize balance slot for ${knownAddr}:`,
-                    error,
-                  );
-                }
-              }
-            }
-
-            if (storage.length > 0) {
-              accountData.storage = storage;
-            }
-          } catch (error) {
-            console.warn(`Failed to serialize storage for ${address}:`, error);
-          }
-        }
-
-        accounts.push(accountData);
+        // Note: Storage is NOT serialized here because:
+        // 1. AccountInfo doesn't contain storage data (only storageRoot hash)
+        // 2. Storage is managed separately by MerkleStateManager
+        // 3. The storageRoot hash is sufficient for the state manager to restore storage
       }
     } catch (error) {
-      console.warn(`Failed to serialize account ${address}:`, error);
+      console.warn(`Failed to serialize account ${address.toString()}:`, error);
     }
   }
 
-  return { accounts };
+  return accounts;
 };
 
+// Helper function to deserialize EVM from accounts Record
+const deserializeEVMFromAccounts = async (
+  accounts: NonNullable<SerializableEVMState["accounts"]>,
+): Promise<EVMAnalyzer> => {
+  const evm = await EVMAnalyzer.create();
+
+  // Restore accounts and their state
+  for (const [addressKey, accountData] of Object.entries(accounts)) {
+    try {
+      const address = new Address(Buffer.from(accountData.address, "hex"));
+
+      // Create the account
+      await evm.createAccount(address);
+
+      // Fund the account with the stored balance
+      if (accountData.balance !== "0") {
+        await evm.fundAccount(address, BigInt(accountData.balance));
+      }
+
+      // Restore contract code if present
+      if (accountData.code) {
+        const codeBytes = new Uint8Array(Buffer.from(accountData.code, "hex"));
+        await evm.stateManagerService.setCode(address, codeBytes);
+      }
+
+      // Note: Storage restoration is NOT needed here because:
+      // 1. AccountInfo doesn't contain storage data
+      // 2. Storage is automatically handled by MerkleStateManager via storageRoot
+      // 3. The state manager will restore storage from the storageRoot hash
+    } catch (error) {
+      console.warn(`Failed to restore account ${addressKey}:`, error);
+    }
+  }
+
+  return evm;
+};
+
+// Helper function to convert serialized accounts to store AccountInfo format
+const convertSerializedAccountsToStore = async (
+  serializedAccounts: NonNullable<SerializableEVMState["accounts"]>,
+): Promise<
+  Record<string, import("@/service/evm-analyzer/types").AccountInfo>
+> => {
+  const storeAccounts: Record<
+    string,
+    import("@/service/evm-analyzer/types").AccountInfo
+  > = {};
+
+  for (const [addressKey, accountData] of Object.entries(serializedAccounts)) {
+    const address = new Address(Buffer.from(accountData.address, "hex"));
+
+    storeAccounts[addressKey] = {
+      address: address,
+      balance: BigInt(accountData.balance),
+      nonce: BigInt(accountData.nonce),
+      isContract: accountData.isContract,
+      codeHash: accountData.codeHash,
+      storageRoot: accountData.storageRoot,
+      code: accountData.code
+        ? new Uint8Array(Buffer.from(accountData.code, "hex"))
+        : undefined,
+    };
+  }
+
+  return storeAccounts;
+};
+
+// Legacy function - now redirects to new structure
+export const deserializeEVM = async (
+  accountsData:
+    | NonNullable<SerializableEVMState["accounts"]>
+    | {
+        accounts: Array<{
+          address: string;
+          balance: string;
+          nonce?: string;
+          code?: string;
+          codeHash?: string;
+          storageRoot?: string;
+        }>;
+      },
+): Promise<EVMAnalyzer> => {
+  // Handle both old array format and new Record format
+  if ("accounts" in accountsData && Array.isArray(accountsData.accounts)) {
+    // Convert old array format to new Record format
+    const recordAccounts: NonNullable<SerializableEVMState["accounts"]> = {};
+    for (const accountData of accountsData.accounts) {
+      const addressKey = `0x${accountData.address}`;
+      recordAccounts[addressKey] = {
+        address: accountData.address,
+        balance: accountData.balance,
+        nonce: accountData.nonce || "0",
+        isContract: Boolean(accountData.code),
+        codeHash: accountData.codeHash,
+        storageRoot: accountData.storageRoot,
+        code: accountData.code,
+      };
+    }
+    return deserializeEVMFromAccounts(recordAccounts);
+  } else {
+    // New Record format
+    return deserializeEVMFromAccounts(
+      accountsData as NonNullable<SerializableEVMState["accounts"]>,
+    );
+  }
+};
+
+// Legacy function removed - now using serializeEVMState with Record structure
+
 // Helper function to get all addresses that should be persisted
-export const getKnownAddresses = (state: EVMState): string[] => {
-  const addresses: string[] = [];
+export const getKnownAddresses = (state: EVMState): Address[] => {
+  const addresses: Address[] = [];
 
   if (state.contractAddress) {
-    addresses.push(state.contractAddress.toString());
+    addresses.push(state.contractAddress);
   }
 
   if (state.ownerAddress) {
-    addresses.push(state.ownerAddress.toString());
+    addresses.push(state.ownerAddress);
   }
 
   return addresses.filter(Boolean);
 };
 
-// Helper to calculate balance mapping slot (same logic as in action.ts)
-const getBalanceSlot = (address: string, mappingSlot: number): string => {
-  const cleanAddr = address.startsWith("0x") ? address.slice(2) : address;
-  const addrBuffer = Buffer.from(cleanAddr.padStart(64, "0"), "hex");
-  const slotBuffer = Buffer.from(
-    mappingSlot.toString(16).padStart(64, "0"),
-    "hex",
-  );
-
-  const combined = Buffer.concat([addrBuffer, slotBuffer]);
-  const hash = keccak256(combined);
-
-  return Buffer.from(hash).toString("hex");
-};
+// Storage slot calculation is no longer needed - EVM state manager handles all storage

@@ -1,6 +1,6 @@
 # EVM State Export Documentation
 
-This document describes the state export and management capabilities added to the EVM Analyzer service layer.
+This document describes the state export and management capabilities added to the EVM Analyzer service layer, including the new consistent address handling system.
 
 ## Overview
 
@@ -77,7 +77,7 @@ get rawStateManager(): MerkleStateManager
 ### Basic State Export
 
 ```typescript
-import EVMAnalyzer from './service/evm-analyzer';
+import EVMAnalyzer from "./service/evm-analyzer";
 
 const evm = await EVMAnalyzer.create();
 
@@ -86,8 +86,8 @@ const evm = await EVMAnalyzer.create();
 
 // Export complete state
 const exportedState = await evm.exportState();
-console.log('State Root:', exportedState.stateRoot);
-console.log('Block Number:', exportedState.blockchain.latestBlockNumber);
+console.log("State Root:", exportedState.stateRoot);
+console.log("Block Number:", exportedState.blockchain.latestBlockNumber);
 ```
 
 ### Checkpoint and Rollback
@@ -97,8 +97,8 @@ console.log('Block Number:', exportedState.blockchain.latestBlockNumber);
 await evm.createCheckpoint();
 
 // Make some changes
-await evm.createAccount('0x123...');
-await evm.fundAccount('0x123...', BigInt(1000));
+await evm.createAccount("0x123...");
+await evm.fundAccount("0x123...", BigInt(1000));
 
 // Rollback to checkpoint
 await evm.restoreCheckpoint();
@@ -119,12 +119,12 @@ await newEvm.importState({
   stateRoot: stateData.stateRoot,
   accounts: [
     {
-      address: '0x123...',
-      balance: '1000000000000000000',
-      nonce: '0',
-      code: '0x608060405234801561001057600080fd5b50...'
-    }
-  ]
+      address: "0x123...",
+      balance: "1000000000000000000",
+      nonce: "0",
+      code: "0x608060405234801561001057600080fd5b50...",
+    },
+  ],
 });
 ```
 
@@ -212,10 +212,10 @@ The new service-layer functionality is designed to work alongside the existing Z
 ```typescript
 // In your store actions
 const exportedState = await evm.exportState();
-localStorage.setItem('evm-state-backup', JSON.stringify(exportedState));
+localStorage.setItem("evm-state-backup", JSON.stringify(exportedState));
 
 // Later restore
-const backupData = JSON.parse(localStorage.getItem('evm-state-backup'));
+const backupData = JSON.parse(localStorage.getItem("evm-state-backup"));
 await evm.importState(backupData);
 ```
 

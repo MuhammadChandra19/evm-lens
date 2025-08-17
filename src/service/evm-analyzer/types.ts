@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { InterpreterStep } from '@ethereumjs/evm';
-import { PrefixedHexString } from '@ethereumjs/util';
+import { InterpreterStep } from "@ethereumjs/evm";
+import { Address, PrefixedHexString } from "@ethereumjs/util";
 
 export interface TxData {
-  from: string;
-  to?: string;
+  from: Address;
+  to?: Address;
   value: bigint;
   data: string;
   gasLimit: bigint;
@@ -33,24 +33,35 @@ export interface ExecutionResult<T = any> {
 }
 
 export interface ContractInfo {
-  address: string;
+  address: Address;
   code: Uint8Array;
   codeSize: number;
   balance: bigint;
   nonce: bigint;
 }
 
+/**
+ * Comprehensive account information from the EVM state
+ */
 export interface AccountInfo {
-  address: string;
+  /** The account address */
+  address: Address;
+  /** The account balance in wei */
   balance: bigint;
+  /** The account nonce */
   nonce: bigint;
+  /** Whether this account is a contract (has code) */
   isContract: boolean;
+  /** Hash of the contract code (if isContract is true) */
   codeHash?: string;
+  /** Hash of the storage root */
   storageRoot?: string;
+  /** Contract bytecode (if isContract is true) */
+  code?: Uint8Array;
 }
 
 export interface DeploymentResult {
-  contractAddress: string;
+  contractAddress: Address;
   transactionHash?: string;
   gasUsed: bigint;
   success: boolean;
@@ -94,8 +105,8 @@ export interface FunctionInfo {
   name?: string; // Function name (e.g., "transfer")
   inputs?: Parameter[];
   outputs?: Parameter[];
-  stateMutability?: 'pure' | 'view' | 'nonpayable' | 'payable';
-  type: 'function' | 'constructor' | 'fallback' | 'receive';
+  stateMutability?: "pure" | "view" | "nonpayable" | "payable";
+  type: "function" | "constructor" | "fallback" | "receive";
 }
 
 export interface Parameter {
@@ -128,21 +139,21 @@ export interface ABIFunction {
   inputs: ABIInput[];
   name: string;
   outputs: ABIOutput[];
-  stateMutability: 'pure' | 'view' | 'nonpayable' | 'payable';
-  type: 'function';
+  stateMutability: "pure" | "view" | "nonpayable" | "payable";
+  type: "function";
 }
 
 export interface ABIEvent {
   anonymous: boolean;
   inputs: ABIInput[];
   name: string;
-  type: 'event';
+  type: "event";
 }
 
 export interface ABIConstructor {
   inputs: ABIInput[];
-  stateMutability: 'nonpayable' | 'payable';
-  type: 'constructor';
+  stateMutability: "nonpayable" | "payable";
+  type: "constructor";
 }
 
 export type ABIItem = ABIFunction | ABIEvent | ABIConstructor;
@@ -162,34 +173,7 @@ export interface ContractMetadata {
   version: number;
 }
 
-// State export types
-export interface ExportedAccountState {
-  address: string;
-  balance: string;
-  nonce: string;
-  code?: string;
-  storage?: Array<[string, string]>;
-}
-
-export interface ExportedEVMState {
-  stateRoot: string;
-  accounts: ExportedAccountState[];
-  blockchain: {
-    latestBlockNumber: bigint;
-    latestBlockHash?: string;
-  };
-}
-
-export interface ImportableEVMState {
-  stateRoot: string;
-  accounts?: Array<{
-    address: string;
-    balance: string;
-    nonce: string;
-    code?: string;
-    storage?: Array<[string, string]>;
-  }>;
-}
+// State export is handled by the EVM store serializers
 
 export interface StateSnapshot {
   id: string;
