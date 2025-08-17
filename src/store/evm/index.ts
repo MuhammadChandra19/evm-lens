@@ -1,20 +1,17 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { EVMState, CreateNewEVMPayload, EVMStore } from "./types";
-import { ContractMetadata } from "@/service/evm-analyzer/types";
 import * as actions from "./action";
 import { serializeEVMStateEnhanced, getKnownAddresses } from "./serializers";
 import EVMAnalyzer from "@/service/evm-analyzer";
 import { Address } from "@ethereumjs/util";
-import { AbiFunction } from "@/service/evm-analyzer/abi/types";
-import { AbiValidator } from "@/service/evm-analyzer/abi";
+import { Abi, AbiFunction } from "@/service/evm-analyzer/abi/types";
 
 const initialState: EVMState = {
   constructorBytecode: "",
-  abi: {} as ContractMetadata,
+  abi: {} as Abi,
   totalSupply: BigInt(0),
   decimals: 18,
-  abiMetadata: new AbiValidator({}),
 };
 
 /**
@@ -91,7 +88,7 @@ const useEVMStore = create<EVMStore>()(
       },
       clearPersistedState: () => {
         localStorage.removeItem("evm-storage");
-        localStorage.removeItem("evm-evm-state");
+        localStorage.removeItem("evm-state");
         set(initialState);
       },
     }),
@@ -133,7 +130,7 @@ const useEVMStore = create<EVMStore>()(
             const evm = await EVMAnalyzer.create();
 
             // Try to restore EVM state from separate storage
-            const evmStateStr = localStorage.getItem("evm-evm-state");
+            const evmStateStr = localStorage.getItem("evm-state");
             if (evmStateStr) {
               try {
                 const evmState = JSON.parse(evmStateStr);
@@ -177,7 +174,7 @@ const saveEVMState = async () => {
         state.evm,
         knownAddresses,
       );
-      localStorage.setItem("evm-evm-state", JSON.stringify(evmState));
+      localStorage.setItem("evm-state", JSON.stringify(evmState));
     }
   } catch (error) {
     console.warn("Failed to save EVM state:", error);

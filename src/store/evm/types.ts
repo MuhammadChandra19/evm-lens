@@ -1,21 +1,19 @@
 import EVMAnalyzer from "@/service/evm-analyzer";
 import { AbiValidator } from "@/service/evm-analyzer/abi";
-import { AbiFunction } from "@/service/evm-analyzer/abi/types";
+import { Abi, AbiFunction } from "@/service/evm-analyzer/abi/types";
 import {
   CallResult,
-  ContractMetadata,
   ExecutionStep,
   FunctionInfo,
   DeploymentResult,
-  ContractAnalysis,
 } from "@/service/evm-analyzer/types";
 import { Address } from "@ethereumjs/util";
 
 export type EVMState = {
   contractAddress?: Address;
   constructorBytecode: string;
-  abi: ContractMetadata;
-  abiMetadata: AbiValidator;
+  abi: Abi;
+  abiMetadata?: AbiValidator;
   functions?: Map<string | undefined, FunctionInfo>;
   ownerAddress?: Address;
   totalSupply: bigint;
@@ -26,7 +24,7 @@ export type EVMState = {
 export type CreateNewEVMPayload = {
   contractAddress: string;
   constructorBytecode: string;
-  abi: ContractMetadata;
+  abi: Abi;
   ownerAddress: string;
   totalSupply: bigint;
   decimals: number;
@@ -67,6 +65,4 @@ export type ExecutionResult =
     })
   | null;
 
-export type ContractDeploymentResult = DeploymentResult & {
-  analysis: ContractAnalysis;
-};
+export type ContractDeploymentResult = DeploymentResult;

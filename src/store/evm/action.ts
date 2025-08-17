@@ -31,8 +31,11 @@ export const deployContractToEVM = async (
   if (!contractAddress) return null;
   const ownerAddress = await createAccount(payload.ownerAddress, get);
   if (!ownerAddress) return null;
+
+
   set({
     abiMetadata: new AbiValidator(payload.abi),
+    abi:payload.abi, 
     ownerAddress,
     contractAddress,
   });

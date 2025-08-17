@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { InterpreterStep } from "@ethereumjs/evm";
-import { PrefixedHexString } from "@ethereumjs/util";
+import { InterpreterStep } from '@ethereumjs/evm';
+import { PrefixedHexString } from '@ethereumjs/util';
 
 export interface TxData {
   from: string;
@@ -94,26 +94,14 @@ export interface FunctionInfo {
   name?: string; // Function name (e.g., "transfer")
   inputs?: Parameter[];
   outputs?: Parameter[];
-  stateMutability?: "pure" | "view" | "nonpayable" | "payable";
-  type: "function" | "constructor" | "fallback" | "receive";
+  stateMutability?: 'pure' | 'view' | 'nonpayable' | 'payable';
+  type: 'function' | 'constructor' | 'fallback' | 'receive';
 }
 
 export interface Parameter {
   name: string;
   type: string;
   indexed?: boolean;
-}
-
-export interface ContractAnalysis {
-  functions: FunctionInfo[];
-  events: EventInfo[];
-  constructor?: FunctionInfo;
-  fallback?: FunctionInfo;
-  receive?: FunctionInfo;
-  totalSupply?: bigint;
-  name?: string;
-  symbol?: string;
-  decimals?: number;
 }
 
 export interface EventInfo {
@@ -140,21 +128,21 @@ export interface ABIFunction {
   inputs: ABIInput[];
   name: string;
   outputs: ABIOutput[];
-  stateMutability: "pure" | "view" | "nonpayable" | "payable";
-  type: "function";
+  stateMutability: 'pure' | 'view' | 'nonpayable' | 'payable';
+  type: 'function';
 }
 
 export interface ABIEvent {
   anonymous: boolean;
   inputs: ABIInput[];
   name: string;
-  type: "event";
+  type: 'event';
 }
 
 export interface ABIConstructor {
   inputs: ABIInput[];
-  stateMutability: "nonpayable" | "payable";
-  type: "constructor";
+  stateMutability: 'nonpayable' | 'payable';
+  type: 'constructor';
 }
 
 export type ABIItem = ABIFunction | ABIEvent | ABIConstructor;
@@ -174,7 +162,43 @@ export interface ContractMetadata {
   version: number;
 }
 
-export interface EnhancedContractAnalysis extends ContractAnalysis {
-  metadata?: ContractMetadata;
-  abiDerived: boolean; // Whether analysis was derived from ABI
+// State export types
+export interface ExportedAccountState {
+  address: string;
+  balance: string;
+  nonce: string;
+  code?: string;
+  storage?: Array<[string, string]>;
+}
+
+export interface ExportedEVMState {
+  stateRoot: string;
+  accounts: ExportedAccountState[];
+  blockchain: {
+    latestBlockNumber: bigint;
+    latestBlockHash?: string;
+  };
+}
+
+export interface ImportableEVMState {
+  stateRoot: string;
+  accounts?: Array<{
+    address: string;
+    balance: string;
+    nonce: string;
+    code?: string;
+    storage?: Array<[string, string]>;
+  }>;
+}
+
+export interface StateSnapshot {
+  id: string;
+  timestamp: number;
+  stateRoot: string;
+  description?: string;
+  metadata?: {
+    blockNumber: bigint;
+    accountCount: number;
+    contractCount: number;
+  };
 }
