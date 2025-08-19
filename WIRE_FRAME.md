@@ -226,3 +226,65 @@
                         │  [⏮ Reset State] [📷 Snapshot] [⏭ Fast Forward]        │
                         │  [🔄 Replay Last] [📜 Export Trace] [🎯 Benchmark]      │
                         └─────────────────────────────────────────────────────────┘
+
+
+┌─────────────────────────────────────────────────────────┐
+│                  EXECUTION VIEWER                       │
+│                                                         │
+│  ┌─ Function: swapExactETHForTokens                     │
+│  │  📝 Description: Swap ETH for tokens with exact input│
+│  │  🔓 Visibility: external payable                     │
+│  │  ⛽ Est. Gas: ~120,000                               │
+│  │                                                     │
+│  │  📥 INPUTS:                                          │
+│  │  ├ amountOutMin (uint256) [________] Wei             │
+│  │  ├ path (address[])       [Add Token Addresses]     │
+│  │  ├ to (address)           [0x742d35Cc6aF...]        │
+│  │  └ deadline (uint256)     [1692547200] Timestamp    │
+│  │                                                     │
+│  │  💰 ETH Value: [_______] ETH                        │
+│  │                                                     │
+│  │  [🚀 Execute] [🔍 Simulate] [📋 View ABI] [⚙️ Advanced]│
+│  └─────────────────────────────────────────────────── │
+│                                                         │
+│  📋 FUNCTION SIGNATURE                                  │
+│  swapExactETHForTokens(uint256,address[],address,uint256)│
+│                                                         │
+│  🔗 RELATED FUNCTIONS                                   │
+│  • swapTokensForExactETH() - Reverse swap              │
+│  • getAmountsOut() - Get expected output               │
+│                                                         │
+│  ⚠️  IMPORTANT NOTES                                    │
+│  • This function is payable - ETH will be sent         │
+│  • Ensure sufficient slippage tolerance                │
+│  • Deadline prevents transaction from hanging          │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+
+
+┌─────────────────────────────────────────────────────────┐
+│                  EXECUTION VIEWER                       │
+│                                                         │
+│  🧪 Smart Contract Playground                           │
+│                                                         │
+│  This is a safe simulation environment where you can:   │
+│  • Execute any function without real-world consequences │
+│  • Fund your account with unlimited test ETH           │
+│  • Experiment with different parameters freely         │
+│  • Learn how EVM opcodes work under the hood           │
+│                                                         │
+│  💰 Your Balance: 1000.0 ETH (simulated)               │
+│  [💸 Add More ETH] [🔄 Reset State]                     │
+│                                                         │
+│  🎯 Try These Popular Functions:                        │
+│  • balanceOf() - Check token balances                  │
+│  • transfer() - Move tokens between accounts           │
+│  • swapETHForTokens() - Experience DeFi swaps          │
+│                                                         │
+│  📊 Simulation Stats:                                   │
+│  • Block Number: #1,337,420                            │
+│  • Gas Price: 20 gwei                                  │
+│  • Network: Local Testnet                              │
+│                                                         │
+│  Select any function to start experimenting! →         │
+└─────────────────────────────────────────────────────────┘
