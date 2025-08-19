@@ -10,7 +10,6 @@ import {
   generateFunctionHash,
   generateInputHash,
 } from "@/service/evm-analyzer/abi/util";
-import { AbiValidator } from "@/service/evm-analyzer/abi";
 import { Address } from "@/service/evm-analyzer/utils/address";
 
 export const deployContractToEVM = async (
@@ -36,7 +35,6 @@ export const deployContractToEVM = async (
   );
   if (!res.success) return null;
   set({
-    abiMetadata: new AbiValidator(payload.abi),
     abi: payload.abi,
     ownerAddress,
     contractAddress,

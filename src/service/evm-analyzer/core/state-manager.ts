@@ -47,7 +47,7 @@ export class StateManagerService {
 
     if (!account) return null;
 
-    const isContract = !account.isEmpty() && account.codeHash.length > 0;
+    const isContract = !account.isEmpty() && account.nonce === 0n;
 
     const accountInfo: AccountInfo = {
       address: address,

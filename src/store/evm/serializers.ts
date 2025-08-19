@@ -96,7 +96,7 @@ export const deserializeEVMState = async (
       : undefined,
     totalSupply: BigInt(serialized.totalSupply),
     decimals: serialized.decimals,
-    abiMetadata: new AbiValidator(serialized.abiMetadata),
+    abiMetadata: new AbiValidator(serialized.abi),
   };
 
   // Restore EVM state if available
@@ -142,11 +142,6 @@ const serializeAccountsToRecord = async (
             "hex",
           );
         }
-
-        // Note: Storage is NOT serialized here because:
-        // 1. AccountInfo doesn't contain storage data (only storageRoot hash)
-        // 2. Storage is managed separately by MerkleStateManager
-        // 3. The storageRoot hash is sufficient for the state manager to restore storage
       }
     } catch (error) {
       console.warn(`Failed to serialize account ${address.toString()}:`, error);

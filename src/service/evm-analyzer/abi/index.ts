@@ -15,6 +15,18 @@ export class AbiValidator {
     );
   }
 
+  getWriteFunctions(): AbiFunction[] {
+    return this.abi.filter(
+      (entry): entry is AbiFunction => entry.type === "function" && entry.stateMutability !== "view"
+    )
+  }
+
+  getReadFunctions(): AbiFunction[] {
+    return this.abi.filter(
+      (entry): entry is AbiFunction => entry.type === "function" && entry.stateMutability === "view"
+    )
+  }
+
   // Get all events from the ABI
   getEvents(): AbiEvent[] {
     return this.abi.filter(
