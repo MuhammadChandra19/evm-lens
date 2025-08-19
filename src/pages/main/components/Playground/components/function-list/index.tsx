@@ -1,19 +1,25 @@
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton } from '@/components/ui/sidebar'
-import { SquareFunction } from 'lucide-react'
-import React from 'react'
-import useFunctionList from './use-function-list'
-import FunctionNav from './function-nav'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+} from "@/components/ui/sidebar";
+import { SquareFunction } from "lucide-react";
+import React from "react";
+import useFunctionList from "./use-function-list";
+import FunctionNav from "./function-nav";
 
 type Props = {
-  
-  sidebar?: React.ComponentProps<typeof Sidebar>
-}
+  sidebar?: React.ComponentProps<typeof Sidebar>;
+};
 
 const FunctionList = ({ sidebar }: Props) => {
   // TODO: sidebar header to switch project ref: https://ui.shadcn.com/blocks/sidebar#sidebar-07
-  const { functions } = useFunctionList()
+  const { functions } = useFunctionList();
   return (
-    <Sidebar collapsible="icon" { ...sidebar}>
+    <Sidebar collapsible="icon" {...sidebar}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuButton size="lg" asChild>
@@ -30,12 +36,11 @@ const FunctionList = ({ sidebar }: Props) => {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <FunctionNav items={functions}/>
+        <FunctionNav items={functions} />
       </SidebarContent>
       <SidebarFooter></SidebarFooter>
     </Sidebar>
-  )
-
-}
+  );
+};
 
 export default FunctionList;

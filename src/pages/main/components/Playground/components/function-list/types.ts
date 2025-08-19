@@ -1,22 +1,21 @@
-import { LucideIcon } from 'lucide-react'
+import { LucideIcon } from "lucide-react";
 
 type MenuAction = {
-  id: string
-}
+  id: string;
+};
 
 type MenuItem = {
-  title: string
-  icon: LucideIcon
-  isActive?: boolean
-  items?: MenuItemChild[]
-  onClick?: (action: MenuAction) => void
-}
+  title: string;
+  icon: LucideIcon;
+  isActive?: boolean;
+  items?: MenuItemChild[];
+  onClick?: (action: MenuAction) => void;
+};
 
 type MenuItemChild = {
-  id: string
-  title: string
-  onClick?: (action: MenuAction) => void
-}
+  id: string;
+  title: string;
+  onClick?: (action: MenuAction) => void;
+};
 
-export type { MenuItem, MenuItemChild, MenuAction }
-
+export type { MenuItem, MenuItemChild, MenuAction };

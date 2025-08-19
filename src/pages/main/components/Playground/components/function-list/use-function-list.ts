@@ -1,39 +1,39 @@
-import { AbiValidator } from '@/service/evm-analyzer/abi'
-import useEVMStore from '@/store/evm'
-import { useMemo } from 'react'
-import { MenuAction, MenuItem, MenuItemChild } from './types'
-import { BookText, PencilLine, Zap } from 'lucide-react'
+import { AbiValidator } from "@/service/evm-analyzer/abi";
+import useEVMStore from "@/store/evm";
+import { useMemo } from "react";
+import { MenuAction, MenuItem, MenuItemChild } from "./types";
+import { BookText, PencilLine, Zap } from "lucide-react";
 
 const useFunctionList = () => {
-  const abi = useEVMStore(store => store.abi)
+  const abi = useEVMStore((store) => store.abi);
 
   const handleClickFunction = (action: MenuAction) => {
-    console.log(action)
-  }
+    console.log(action);
+  };
 
   const functions = useMemo(() => {
-    const abiValidator = new AbiValidator(abi)
-    const readFunctions = abiValidator.getReadFunctions()
-    const writeFunctions = abiValidator.getWriteFunctions()
-    const events = abiValidator.getEvents()
+    const abiValidator = new AbiValidator(abi);
+    const readFunctions = abiValidator.getReadFunctions();
+    const writeFunctions = abiValidator.getWriteFunctions();
+    const events = abiValidator.getEvents();
 
-    const readFunctionsMenu: MenuItemChild[] = readFunctions.map(f => ({
+    const readFunctionsMenu: MenuItemChild[] = readFunctions.map((f) => ({
       id: f.name,
       title: f.name,
-      onClick: handleClickFunction
-    }))
+      onClick: handleClickFunction,
+    }));
 
-    const writeFunctionsMenu: MenuItemChild[] = writeFunctions.map(f => ({
+    const writeFunctionsMenu: MenuItemChild[] = writeFunctions.map((f) => ({
       id: f.name,
       title: f.name,
-      onClick: handleClickFunction
-    }))
+      onClick: handleClickFunction,
+    }));
 
-    const eventsMenu: MenuItemChild[] = events.map(f => ({
+    const eventsMenu: MenuItemChild[] = events.map((f) => ({
       id: f.name,
       title: f.name,
-      onClick: handleClickFunction
-    }))
+      onClick: handleClickFunction,
+    }));
 
     return [
       {
@@ -53,13 +53,13 @@ const useFunctionList = () => {
         title: "Events",
         isActive: false,
         items: eventsMenu,
-      }
-    ] as MenuItem[]
-  }, [abi])
+      },
+    ] as MenuItem[];
+  }, [abi]);
 
   return {
-    functions
-  }
-}
+    functions,
+  };
+};
 
 export default useFunctionList;

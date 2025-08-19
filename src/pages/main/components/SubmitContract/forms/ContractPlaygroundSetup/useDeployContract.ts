@@ -43,7 +43,7 @@ const useDeployContract = () => {
         abi,
         contractAddress: payload.contractConfiguration.contractAddress,
         constructorBytecode: payload.bytecodeAndAbi.constructorBytecode,
-        ownerAddress: payload.contractConfiguration.ownerAddress
+        ownerAddress: payload.contractConfiguration.ownerAddress,
       });
 
       if (!res || !res.success) {

@@ -40,32 +40,33 @@ const useEVMStore = create<EVMStore>()(
 
       // Basic EVM functions
       createAccount: async (address: string) => {
-        const fixAddress = address.startsWith("0x") ? address.slice(2) : address
+        const fixAddress = address.startsWith("0x")
+          ? address.slice(2)
+          : address;
         const addressType = new Address(Buffer.from(fixAddress, "hex"));
         const result = await actions.createAccount(addressType, get);
-        if(!result) {
-          return null
+        if (!result) {
+          return null;
         }
         const accounts: Record<string, AccountInfo> = get().accounts || {};
         const newAccount: AccountInfo = {
           address: result,
           balance: 0n,
           nonce: 0n,
-        }
+        };
 
         set({
           accounts: {
             ...accounts,
-            [result.toString()]: newAccount
-          }
-        })
+            [result.toString()]: newAccount,
+          },
+        });
         await saveEVMState();
         return result;
       },
       fundAccount: async (address: Address, balance: bigint) => {
         const result = await actions.fundAccount(address, balance, get);
         if (result.success) {
-
           await saveEVMState();
         }
         return result;
