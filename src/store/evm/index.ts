@@ -134,61 +134,7 @@ const useEVMStore = create<EVMStore>()(
     {
       name: "evm-storage",
       storage: createJSONStorage(() => localStorage),
-      onRehydrateStorage: () => {
-        return async (state) => {
-          if (!state) return;
-          // Convert serialized Address strings back to Address objects
-          if (typeof state.contractAddress === "string") {
-            const addrStr = state.contractAddress as string;
-            const cleanAddr = addrStr.startsWith("0x")
-              ? addrStr.slice(2)
-              : addrStr;
-            state.contractAddress = new Address(Buffer.from(cleanAddr, "hex"));
-          }
-
-          if (typeof state.ownerAddress === "string") {
-            const addrStr = state.ownerAddress as string;
-            const cleanAddr = addrStr.startsWith("0x")
-              ? addrStr.slice(2)
-              : addrStr;
-            state.ownerAddress = new Address(Buffer.from(cleanAddr, "hex"));
-          }
-
-          // Convert serialized BigInt strings back to BigInt
-          if (typeof state.totalSupply === "string") {
-            state.totalSupply = BigInt(state.totalSupply);
-          }
-
-          // Convert serialized functions array back to Map
-          if (Array.isArray(state.functions)) {
-            state.functions = new Map(state.functions);
-          }
-
-          // Initialize EVM if not present
-          if (!state.evm) {
-            const evm = await EVMAnalyzer.create();
-
-            // Try to restore EVM state from separate storage
-            const evmStateStr = localStorage.getItem("evm-state");
-            if (evmStateStr) {
-              try {
-                const serializedState = JSON.parse(evmStateStr);
-                const restoredState =
-                  await deserializeEVMState(serializedState);
-                if (restoredState.evm) {
-                  // Restore the full state
-                  Object.assign(state, restoredState);
-                  return;
-                }
-              } catch (error) {
-                console.warn("Failed to restore EVM state:", error);
-              }
-            }
-
-            state.evm = evm;
-          }
-        };
-      },
+      onRehydrateStorage: () => handlePopulateState,
       partialize: (state) => ({
         contractAddress: state.contractAddress?.toString(),
         constructorBytecode: state.constructorBytecode,
@@ -217,6 +163,60 @@ const saveEVMState = async () => {
     console.warn("Failed to save EVM state:", error);
   }
 };
+
+const handlePopulateState = async (state: EVMStore | undefined) => {
+  if (!state) return;
+    // Convert serialized Address strings back to Address objects
+    if (typeof state.contractAddress === "string") {
+      const addrStr = state.contractAddress as string;
+      const cleanAddr = addrStr.startsWith("0x")
+        ? addrStr.slice(2)
+        : addrStr;
+      state.contractAddress = new Address(Buffer.from(cleanAddr, "hex"));
+    }
+
+    if (typeof state.ownerAddress === "string") {
+      const addrStr = state.ownerAddress as string;
+      const cleanAddr = addrStr.startsWith("0x")
+        ? addrStr.slice(2)
+        : addrStr;
+      state.ownerAddress = new Address(Buffer.from(cleanAddr, "hex"));
+    }
+
+    // Convert serialized BigInt strings back to BigInt
+    if (typeof state.totalSupply === "string") {
+      state.totalSupply = BigInt(state.totalSupply);
+    }
+
+    // Convert serialized functions array back to Map
+    if (Array.isArray(state.functions)) {
+      state.functions = new Map(state.functions);
+    }
+
+    // Initialize EVM if not present
+    if (!state.evm) {
+      const evm = await EVMAnalyzer.create();
+
+      // Try to restore EVM state from separate storage
+      const evmStateStr = localStorage.getItem("evm-state");
+      if (evmStateStr) {
+        try {
+          const serializedState = JSON.parse(evmStateStr);
+          const restoredState =
+            await deserializeEVMState(serializedState);
+          if (restoredState.evm) {
+            // Restore the full state
+            Object.assign(state, restoredState);
+            return;
+          }
+        } catch (error) {
+          console.warn("Failed to restore EVM state:", error);
+        }
+      }
+
+      state.evm = evm;
+    }
+}
 
 // EVM restoration is now handled by deserializeEVM in serializers.ts
 

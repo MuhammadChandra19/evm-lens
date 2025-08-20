@@ -21,6 +21,8 @@ export type EVMState = {
   decimals: number;
   evm?: EVMAnalyzer;
   accounts?: Record<string, AccountInfo>;
+
+  projectID?: string;
 };
 
 export type CreateNewEVMPayload = {
