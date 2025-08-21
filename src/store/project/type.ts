@@ -1,5 +1,5 @@
-import { Abi } from '@/service/evm-analyzer/abi/types';
-import { Address } from '@/service/evm-analyzer/utils/address';
+import { Abi } from "@/service/evm-analyzer/abi/types";
+import { Address } from "@/service/evm-analyzer/utils/address";
 
 export interface Project {
   id: string;
@@ -7,7 +7,7 @@ export interface Project {
   description?: string;
   createdAt: Date;
   updatedAt: Date;
-  
+
   // Contract Configuration
   contractAddress?: Address;
   constructorBytecode: string;
@@ -15,7 +15,7 @@ export interface Project {
   ownerAddress?: Address;
   totalSupply: bigint;
   decimals: number;
-  
+
   // EVM State Reference
   evmStateId: string;
 }
@@ -33,15 +33,18 @@ export type CreateProjectPayload = {
   constructorBytecode: string;
   abi: Abi;
   ownerAddress: string;
-}
+};
 
 export interface ProjectActions {
   // Project Management
   createProject: (config: CreateProjectPayload) => Promise<Project>;
   deleteProject: (projectId: string) => Promise<void>;
   switchProject: (projectId: string) => Promise<void>;
-  updateProject: (projectId: string, updates: Partial<Project>) => Promise<void>;
-  
+  updateProject: (
+    projectId: string,
+    updates: Partial<Project>,
+  ) => Promise<void>;
+
   // Project List
   getAllProjects: () => Project[];
   getCurrentProject: () => Project | null;

@@ -45,7 +45,16 @@ const FunctionNav = ({ items }: Props) => {
                     <SidebarMenuSub>
                       {item.items?.map((subItem) => (
                         <SidebarMenuSubItem key={subItem.title}>
-                          <SidebarMenuSubButton asChild>
+                          <SidebarMenuSubButton
+                            asChild
+                            onClick={() => {
+                              if (subItem.onClick) {
+                                subItem.onClick({
+                                  id: subItem.title,
+                                });
+                              }
+                            }}
+                          >
                             <div>
                               <span>{subItem.title}</span>
                             </div>
