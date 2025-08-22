@@ -5,7 +5,7 @@ import BalanceForm from './components/balance-form';
 import ExecutionFlow from './components/execution-flow';
 
 const Playground = () => {
-  const { ownerAccount } = usePlayground();
+  const { ownerAccount, lastExecutionResult } = usePlayground();
 
   return (
     <Layout>
@@ -23,7 +23,7 @@ const Playground = () => {
         </div>
       </div>
       <FunctionForm />
-      <ExecutionFlow />
+      { lastExecutionResult && <ExecutionFlow />}
     </Layout>
   );
 };

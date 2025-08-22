@@ -25,7 +25,7 @@ const usePlayground = () => {
     try {
       const res = await callFunction(ownerAddress, activeFunction!, Object.values(data), 300000)
       if(res?.success) {
-        const flowData = parseEVMStepsToFlow(res?.steps)
+        const flowData = parseEVMStepsToFlow(res?.steps, (data) => console.log(data))
         saveExecutionResult({
           executedAt: Date.now().toString(),
           executionFlow: flowData,
