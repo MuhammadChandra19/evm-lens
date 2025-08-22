@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { InterpreterStep } from "@ethereumjs/evm";
+import { ExecResult, InterpreterStep } from "@ethereumjs/evm";
 import { Address, PrefixedHexString } from "@ethereumjs/util";
 
 export interface TxData {
@@ -67,6 +67,7 @@ export interface DeploymentResult {
   success: boolean;
   returnValue: Uint8Array;
   steps: ExecutionStep[];
+  executionResult: ExecResult
 }
 
 export interface CallResult {

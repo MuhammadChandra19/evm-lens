@@ -1,5 +1,4 @@
-import { useFormContext } from "react-hook-form";
-import { AbiFunction } from "@/service/evm-analyzer/abi/types";
+import { FormProvider, useForm } from "react-hook-form";
 import {
   FormControl,
   FormField,
@@ -8,52 +7,83 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { FunctionCallForm } from "@/service/evm-analyzer/abi/schema-validator";
+import { FunctionCallForm, FunctionCallSchemaFactory } from "@/service/evm-analyzer/abi/schema-validator";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import usePlayground from '../../../use-playground';
 
-type Props = {
-  abiFunction: AbiFunction;
-};
-const FunctionInput = ({ abiFunction }: Props) => {
-  const { control } = useFormContext<FunctionCallForm>();
+const FunctionInput = () => {
+  const { activeFunction: abiFunction, handleExecute} = usePlayground()
+  const schema = FunctionCallSchemaFactory.create(abiFunction!.inputs);
+  const method = useForm<FunctionCallForm>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(schema as any),
+    reValidateMode: "onChange",
+  });
+
+  const handleSubmit = (data: FunctionCallForm) => {
+    handleExecute(data)
+  }
+
+  useEffect(() => {
+    method.reset();
+  }, [abiFunction!.name]);
 
   return (
-    <div className="flex flex-col gap-2">
-      {abiFunction.inputs.map((input, idx) => {
-        const fieldName = input.name || `param_${idx}`;
-        return (
-          <div key={idx} className="w-full">
-            <FormField
-              control={control}
-              name={fieldName}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{input.name}</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder={getPlaceholderForType(
-                        input.type,
-                        input.name,
+    <Card className="@container/card col-span-1">
+        <CardHeader>
+          <CardTitle>Function</CardTitle>
+          <CardDescription>
+            <span className="hidden @[540px]/card:block">
+              Funtion: {abiFunction!.name}
+            </span>
+            <span className="@[540px]/card:hidden">{abiFunction!.name}</span>
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="px-2 pt-2 sm:px-6 sm:pt-2">
+          <FormProvider { ...method}>
+            <form onSubmit={method.handleSubmit(handleSubmit)}>
+              {abiFunction!.inputs.map((input, idx) => {
+                const fieldName = input.name || `param_${idx}`;
+                return (
+                  <div key={idx} className="w-full">
+                    <FormField
+                      control={method.control}
+                      name={fieldName}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{input.name}</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder={getPlaceholderForType(
+                                input.type,
+                                input.name,
+                              )}
+                              {...field}
+                              className="font-mono text-sm"
+                            />
+                          </FormControl>
+                        </FormItem>
                       )}
-                      {...field}
-                      className="font-mono text-sm"
                     />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          </div>
-        );
-      })}
-      <Button
-        type="submit"
-        size="lg"
-        className="w-full cursor-pointer"
-        variant="outline"
-      >
-        {" "}
-        ⚡️ Execute
-      </Button>
-    </div>
+                  </div>
+                );
+              })}
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full cursor-pointer mt-3"
+                variant="outline"
+              >
+                {" "}
+                ⚡️ Execute
+              </Button>
+            </form>
+          </FormProvider>
+        </CardContent>
+    </Card>
+  
   );
 };
 

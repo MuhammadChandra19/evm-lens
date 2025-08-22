@@ -80,6 +80,7 @@ export class ContractManager {
         success: !result.execResult.exceptionError,
         returnValue: parsers.hexStringToUint8Array(runtimeBytecode),
         steps: tracer.getSteps(),
+        executionResult: result.execResult
       };
     } catch (error) {
       evm.events.off("step", stepHandler);

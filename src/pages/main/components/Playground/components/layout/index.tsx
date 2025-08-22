@@ -14,12 +14,15 @@ import {
 } from "@/components/ui/breadcrumb";
 import FunctionList from "../function-list";
 import { ReactNode } from "react";
+import usePlayground from '../../use-playground';
+import Intro from '../intro';
 
 type Props = {
   children: ReactNode;
 };
 
 const Layout = ({ children }: Props) => {
+    const { activeFunction } = usePlayground();
   return (
     <SidebarProvider>
       <FunctionList />
@@ -44,7 +47,11 @@ const Layout = ({ children }: Props) => {
             </Breadcrumb>
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">{children}</div>
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+          {
+            !activeFunction ? <Intro /> : children
+          }
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );

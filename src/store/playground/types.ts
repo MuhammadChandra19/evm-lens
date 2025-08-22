@@ -1,4 +1,5 @@
 import { AbiFunction } from "@/service/evm-analyzer/abi/types";
+import { FlowData } from '@/service/evm-analyzer/utils/react-flow-parser';
 
 export type PlaygroundState = {
   playgroundName?: string;
@@ -21,4 +22,5 @@ export type ResultHistory = {
   functionName: string;
   functionDefinitions: AbiFunction;
   executedAt: string;
+  executionFlow: FlowData
 };

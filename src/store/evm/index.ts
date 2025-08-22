@@ -1,14 +1,14 @@
-import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
-import { EVMState, CreateNewEVMPayload, EVMStore } from "./types";
-import * as actions from "./action";
-import { serializeEVMState, handlePopulateState } from "./serializers";
-import EVMAnalyzer, { AccountInfo } from "@/service/evm-analyzer";
-import { Address } from "@ethereumjs/util";
-import { Abi, AbiFunction } from "@/service/evm-analyzer/abi/types";
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { EVMState, CreateNewEVMPayload, EVMStore } from './types';
+import * as actions from './action';
+import { serializeEVMState, handlePopulateState } from './serializers';
+import EVMAnalyzer, { AccountInfo } from '@/service/evm-analyzer';
+import { Address } from '@ethereumjs/util';
+import { Abi, AbiFunction } from '@/service/evm-analyzer/abi/types';
 
 const initialState: EVMState = {
-  constructorBytecode: "",
+  constructorBytecode: '',
   abi: {} as Abi,
   totalSupply: BigInt(0),
   decimals: 18,
@@ -40,10 +40,8 @@ const useEVMStore = create<EVMStore>()(
 
       // Basic EVM functions
       createAccount: async (address: string) => {
-        const fixAddress = address.startsWith("0x")
-          ? address.slice(2)
-          : address;
-        const addressType = new Address(Buffer.from(fixAddress, "hex"));
+        const fixAddress = address.startsWith('0x') ? address.slice(2) : address;
+        const addressType = new Address(Buffer.from(fixAddress, 'hex'));
         const result = await actions.createAccount(addressType, get);
         if (!result) {
           return null;
@@ -65,8 +63,21 @@ const useEVMStore = create<EVMStore>()(
         return result;
       },
       fundAccount: async (address: Address, balance: bigint) => {
-        const result = await actions.fundAccount(address, balance, get);
+        const accounts = get().accounts!;
+        const currentAccount = accounts[address.toString()];
+        const newBalance = currentAccount.balance + balance;
+        const result = await actions.fundAccount(address, newBalance, get);
+
         if (result.success) {
+          set((state) => ({
+            accounts: {
+              ...state.accounts,
+              [address.toString()]: {
+                ...currentAccount,
+                balance: newBalance,
+              },
+            },
+          }));
           await saveEVMState();
         }
         return result;
@@ -78,19 +89,8 @@ const useEVMStore = create<EVMStore>()(
         return result;
       },
 
-      callFunction: async (
-        executorAddres: Address,
-        func: AbiFunction,
-        args: string[],
-        gasLimit: number,
-      ) => {
-        const result = await actions.callFunction(
-          executorAddres,
-          func,
-          args,
-          gasLimit,
-          get,
-        );
+      callFunction: async (executorAddres: Address, func: AbiFunction, args: string[], gasLimit: number) => {
+        const result = await actions.callFunction(executorAddres, func, args, gasLimit, get);
         await saveEVMState();
         return result;
       },
@@ -126,29 +126,27 @@ const useEVMStore = create<EVMStore>()(
         await saveEVMState();
       },
       clearPersistedState: () => {
-        localStorage.removeItem("evm-storage");
-        localStorage.removeItem("evm-state");
+        localStorage.removeItem('evm-storage');
+        localStorage.removeItem('evm-state');
         set(initialState);
       },
     }),
     {
-      name: "evm-storage",
+      name: 'evm-storage',
       storage: createJSONStorage(() => localStorage),
       onRehydrateStorage: () => handlePopulateState,
       partialize: (state) => ({
         contractAddress: state.contractAddress?.toString(),
         constructorBytecode: state.constructorBytecode,
         abi: state.abi,
-        functions: state.functions
-          ? Array.from(state.functions.entries())
-          : undefined,
+        functions: state.functions ? Array.from(state.functions.entries()) : undefined,
         ownerAddress: state.ownerAddress?.toString(),
         totalSupply: state.totalSupply.toString(),
         decimals: state.decimals,
         // Exclude evm from automatic serialization
       }),
-    },
-  ),
+    }
+  )
 );
 
 // Helper functions
@@ -157,10 +155,10 @@ const saveEVMState = async () => {
     const state = useEVMStore.getState();
     if (state.evm) {
       const serializedState = await serializeEVMState(state);
-      localStorage.setItem("evm-state", JSON.stringify(serializedState));
+      localStorage.setItem('evm-state', JSON.stringify(serializedState));
     }
   } catch (error) {
-    console.warn("Failed to save EVM state:", error);
+    console.warn('Failed to save EVM state:', error);
   }
 };
 
