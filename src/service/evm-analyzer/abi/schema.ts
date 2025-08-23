@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { AbiParameter } from "./types";
 
-const AbiParameterSchema: z.ZodType<AbiParameter> = z.lazy(() =>
+export const AbiParameterSchema: z.ZodType<AbiParameter> = z.lazy(() =>
   z.object({
     name: z.string().optional(),
     type: z.string(),

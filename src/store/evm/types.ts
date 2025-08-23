@@ -1,6 +1,6 @@
 import EVMAnalyzer from '@/service/evm-analyzer';
 import { AbiValidator } from '@/service/evm-analyzer/abi';
-import { Abi, AbiFunction } from '@/service/evm-analyzer/abi/types';
+import { Abi, AbiEvent, AbiFunction } from '@/service/evm-analyzer/abi/types';
 import { CallResult, ExecutionStep, FunctionInfo, DeploymentResult, AccountInfo } from '@/service/evm-analyzer/types';
 import { Address } from '@ethereumjs/util';
 
@@ -31,7 +31,7 @@ export type CreateNewEVMPayload = {
 
 export type TxData = {
   executorAddres: Address;
-  func: AbiFunction;
+  func: AbiFunction | AbiEvent;
   args: string[];
   gasLimit: number;
   ethAmount: bigint;
@@ -39,7 +39,7 @@ export type TxData = {
 
 export type EVMAction = {
 
-  getUserAccounts: () => AccountInfo[]
+  getAccounts: () => AccountInfo[]
 
   deployContractToEVM: (payload: CreateNewEVMPayload, shouldRecord?: boolean) => Promise<ContractDeploymentResult | null>;
 

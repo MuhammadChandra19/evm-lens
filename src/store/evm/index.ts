@@ -20,7 +20,7 @@ const actionRecorder = ActionRecorder.getInstance();
 const useEVMStore = create<EVMStore>()((set, get) => ({
   ...initialState,
 
-  getUserAccounts: () => {
+  getAccounts: () => {
     const accounts = get().accounts || {}
     return Object.values(accounts).filter((v) => !v.isContract && v.address.toString())
 

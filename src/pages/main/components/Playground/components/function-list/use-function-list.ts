@@ -4,8 +4,7 @@ import { useCallback, useMemo } from "react";
 import { MenuAction, MenuItem, MenuItemChild } from "./types";
 import { BookText, PencilLine, Zap } from "lucide-react";
 import usePlaygroundStore from "@/store/playground";
-import { AbiFunction } from "@/service/evm-analyzer/abi/types";
-import { ABIFunction } from "@/service/evm-analyzer";
+import { ActiveFunction } from '@/store/playground/types';
 
 const useFunctionList = () => {
   const abi = useEVMStore((store) => store.abi);
@@ -14,8 +13,8 @@ const useFunctionList = () => {
   );
 
   const handleClickFunction = useCallback(
-    (action: MenuAction, abiFunction: AbiFunction) => {
-      setActiveFunction(abiFunction);
+    (action: MenuAction, func: ActiveFunction) => {
+      setActiveFunction(func);
     },
     [setActiveFunction],
   );
@@ -29,20 +28,32 @@ const useFunctionList = () => {
     const readFunctionsMenu: MenuItemChild[] = readFunctions.map((f) => ({
       id: f.name,
       title: f.name,
-      onClick: (action) => handleClickFunction(action, f),
+      onClick: (action) => handleClickFunction(action, {
+        func: f,
+        type: "function"
+      }),
+      type: "function"
     }));
 
     const writeFunctionsMenu: MenuItemChild[] = writeFunctions.map((f) => ({
       id: f.name,
       title: f.name,
-      onClick: (action) => handleClickFunction(action, f),
+      onClick: (action) => handleClickFunction(action, {
+        func: f,
+        type: "function"
+      }),
+      type: "function"
     }));
 
     const eventsMenu: MenuItemChild[] = events.map((f) => ({
       id: f.name,
       title: f.name,
       onClick: (action) =>
-        handleClickFunction(action, f as unknown as ABIFunction),
+        handleClickFunction(action, {
+          func: f,
+          type: "event"
+        }),
+      type: "event"
     }));
 
     return [

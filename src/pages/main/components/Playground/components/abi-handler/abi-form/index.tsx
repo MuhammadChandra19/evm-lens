@@ -1,0 +1,67 @@
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import useAbiForm from './use-abi-form';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+
+const AbiForm = () => {
+  const { activeFunction, form, handleChange, errors, handleSubmit } = useAbiForm()
+  
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Function</CardTitle>
+        <CardDescription>
+          <span>Function: {activeFunction!.func.name}</span>
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col gap-4">
+          {activeFunction!.func.inputs.map((input, idx) => {
+            return (
+              <div key={idx} className="w-full space-y-2">
+                <Label>{input.name}</Label>
+                <Input 
+                  placeholder={getPlaceholderForType(
+                    input.type,
+                    input.name,
+                  )}
+                  name={input.name}
+                  value={form[idx]?.value || ""}
+                  onChange={(e) => handleChange(idx, e.target.value)}
+                />
+                {errors && errors[idx] !== "" && <p className="text-sm text-red-500">{errors[idx]}</p>}
+              </div>
+            )
+          })}
+          <Button
+            size="lg"
+            className="w-full cursor-pointer"
+            variant="outline"
+            onClick={handleSubmit}
+          >
+            ⚡️ Execute
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function getPlaceholderForType(abiType: string, name?: string): string {
+  if (abiType.match(/^u?int(\d+)?$/)) {
+    return `Enter ${name || "number"} (e.g., 1000)`;
+  }
+  if (abiType === "address") {
+    return `Enter ${name || "address"} (e.g., 0x742d35Cc...)`;
+  }
+  if (abiType === "bool") {
+    return `Enter ${name || "boolean"} (true/false)`;
+  }
+  if (abiType.match(/^bytes(\d+)?$/)) {
+    return `Enter ${name || "bytes"} (e.g., 0x1234...)`;
+  }
+  return `Enter ${name || "value"}`;
+}
+
+export default AbiForm;

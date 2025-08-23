@@ -1,6 +1,5 @@
 import { create } from "zustand";
-import { PlaygroundState, PlaygroundStore, ResultHistory } from "./types";
-import { AbiFunction } from "@/service/evm-analyzer/abi/types";
+import { ActiveFunction, PlaygroundState, PlaygroundStore, ResultHistory } from "./types";
 // import { persist } from 'zustand/middleware';
 
 const initialSate: PlaygroundState = {
@@ -15,7 +14,7 @@ const usePlaygroundStore = create<PlaygroundStore>()(
         playgroundName: name,
       });
     },
-    setActiveFunction: (func: AbiFunction) => {
+    setActiveFunction: (func: ActiveFunction) => {
       set({
         activeFunction: func,
       });

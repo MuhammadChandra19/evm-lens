@@ -1,14 +1,14 @@
 import Layout from "./components/layout";
 import usePlayground from "./use-playground";
-import FunctionForm from "./components/function-form";
 import ExecutionFlow from "./components/execution-flow";
+import AbiHandler from './components/abi-handler';
 
 const Playground = () => {
   const { lastExecutionResult } = usePlayground();
 
   return (
     <Layout>
-      <FunctionForm />
+      <AbiHandler />
       {lastExecutionResult && <ExecutionFlow />}
     </Layout>
   );
