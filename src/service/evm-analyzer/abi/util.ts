@@ -1,8 +1,7 @@
 // src/service/evm-analyzer/abi/util.ts
 
 import { keccak256 } from "ethereum-cryptography/keccak";
-import { ABIConstructor, ABIEvent } from "../types";
-import { AbiFunction } from "./types";
+import { AbiConstructor, AbiEvent, AbiFunction } from "./types";
 
 // Simple encoding functions
 const encodeUint256 = (value: bigint): string => {
@@ -67,14 +66,14 @@ const encodeParameter = (type: string, value: any): string => {
 
 // Function signature generation
 export const generateFunctionSignature = (
-  func: AbiFunction | ABIEvent,
+  func: AbiFunction | AbiEvent,
 ): string => {
   const inputs = func.inputs.map((input) => input.type).join(",");
   return `${func.name}(${inputs})`;
 };
 
 export const generateConstructorSignature = (
-  constructor: ABIConstructor,
+  constructor: AbiConstructor,
 ): string => {
   const inputs = constructor.inputs.map((input) => input.type).join(",");
   return `constructor(${inputs})`;
@@ -90,13 +89,13 @@ export const generateEventHash = (signature: string): string => {
   return "0x" + Buffer.from(hash).toString("hex");
 };
 
-export const generateFunctionHash = (func: AbiFunction | ABIEvent): string => {
+export const generateFunctionHash = (func: AbiFunction | AbiEvent): string => {
   const signature = generateFunctionSignature(func);
   return generateSelector(signature);
 };
 
 export const generateInputHash = (
-  func: AbiFunction | ABIEvent,
+  func: AbiFunction | AbiEvent,
   args: string[],
   decimals: number = 0,
 ): string => {
@@ -126,7 +125,6 @@ export const generateInputHash = (
         const num = BigInt(value);
         const scaledValue = num * BigInt(10 ** decimals);
         value = scaledValue.toString();
-        
       } catch {
         // If not parseable as BigInt, use as-is
       }

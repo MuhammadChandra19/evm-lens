@@ -1,5 +1,10 @@
 import { create } from "zustand";
-import { ActiveFunction, PlaygroundState, PlaygroundStore, ResultHistory } from "./types";
+import {
+  ActiveFunction,
+  PlaygroundState,
+  PlaygroundStore,
+  ResultHistory,
+} from "./types";
 // import { persist } from 'zustand/middleware';
 
 const initialSate: PlaygroundState = {

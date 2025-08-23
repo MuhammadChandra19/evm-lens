@@ -1,28 +1,35 @@
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input';
-import { generateRandomAddress } from '@/lib/utils';
-import useEVMStore from '@/store/evm';
-import { CircleUser, Dice6 } from 'lucide-react';
-import { useState } from 'react';
-import { toast } from 'sonner';
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { generateRandomAddress } from "@/lib/utils";
+import useEVMStore from "@/store/evm";
+import { CircleUser, Dice6 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 const NewAccountForm = () => {
   const [open, setOpen] = useState(false);
   const [balance, setBalance] = useState("0");
-  const [address, setAddress] = useState("")
+  const [address, setAddress] = useState("");
   const [errorAddress, setErrorAddress] = useState<string | null>(null);
   const [errorBalance, setErrorBalance] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-
-  const createAccount = useEVMStore((store) => store.createAccount)
+  const createAccount = useEVMStore((store) => store.createAccount);
   const fundAccount = useEVMStore((store) => store.fundAccount);
-
 
   const handleSubmit = async () => {
     setErrorAddress(null);
-    setErrorBalance(null)
+    setErrorBalance(null);
     setIsLoading(true);
 
     try {
@@ -32,36 +39,33 @@ const NewAccountForm = () => {
         return;
       }
 
-
-      if(address.length === 0) {
-        setErrorAddress("Address must be filled")
+      if (address.length === 0) {
+        setErrorAddress("Address must be filled");
       }
 
-      const account = await createAccount(address)
-      if(!account) {
-        toast.error("failed to create accoung")
-        return
+      const account = await createAccount(address);
+      if (!account) {
+        toast.error("failed to create accoung");
+        return;
       }
 
       toast.success("account created ", {
-        description: `Address: ${account.toString()}`
-      })
+        description: `Address: ${account.toString()}`,
+      });
 
-      if(balanceNum === 0) return
+      if (balanceNum === 0) return;
 
-      await fundAccount(account, BigInt(balance))
+      await fundAccount(account, BigInt(balance));
       toast.success("account funded", {
-        description: `Eth amount: ${balance}`
-      })
-
-
-    } catch(e) {
-      console.error(e)
-      toast.error("Failed to create new account")
+        description: `Eth amount: ${balance}`,
+      });
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to create new account");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -69,18 +73,18 @@ const NewAccountForm = () => {
           <CircleUser />
           Add New Account
         </Button>
-      </DialogTrigger> 
+      </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add user to chain</DialogTitle>
           <DialogDescription>
             Execute function to create user with inital balance
           </DialogDescription>
-        </DialogHeader> 
+        </DialogHeader>
         <div className="flex flex-col gap-4">
           <div className="w-full space-y-2">
             <div className="flex gap-2">
-              <Input 
+              <Input
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 placeholder="Enter address (0x)..."
@@ -92,15 +96,15 @@ const NewAccountForm = () => {
                 className="font-mono text-sm flex-1"
                 size="sm"
                 onClick={() => {
-                  setAddress(
-                    generateRandomAddress(),
-                  );
+                  setAddress(generateRandomAddress());
                 }}
               >
                 <Dice6 className="w-4 h-4" />
               </Button>
             </div>
-            {errorAddress && <p className="text-sm text-red-500">{errorAddress}</p>}
+            {errorAddress && (
+              <p className="text-sm text-red-500">{errorAddress}</p>
+            )}
           </div>
           <div className="w-full space-y-2">
             <Input
@@ -109,9 +113,11 @@ const NewAccountForm = () => {
               placeholder="Enter Eth amount..."
               type="number"
             />
-            {errorBalance && <p className="text-sm text-red-500">{errorBalance}</p>}
+            {errorBalance && (
+              <p className="text-sm text-red-500">{errorBalance}</p>
+            )}
           </div>
-        </div> 
+        </div>
         <DialogFooter>
           <DialogClose asChild>
             <Button variant="outline">Cancel</Button>
@@ -123,10 +129,10 @@ const NewAccountForm = () => {
           >
             {isLoading ? "Submitting..." : "Submit"}
           </Button>
-        </DialogFooter>    
+        </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
 export default NewAccountForm;

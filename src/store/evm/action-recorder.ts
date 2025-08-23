@@ -1,7 +1,15 @@
-import { ActionSnapshot, ActionType, ActionHistory, ReplayableAction, EVMStore, CreateNewEVMPayload, TxData } from './types';
-import { Address } from '@ethereumjs/util';
+import {
+  ActionSnapshot,
+  ActionType,
+  ActionHistory,
+  ReplayableAction,
+  EVMStore,
+  CreateNewEVMPayload,
+  TxData,
+} from "./types";
+import { Address } from "@ethereumjs/util";
 
-const ACTION_HISTORY_KEY = 'evm-action-history';
+const ACTION_HISTORY_KEY = "evm-action-history";
 
 /**
  * Action Recorder - Manages action snapshots for replay functionality
@@ -30,7 +38,7 @@ export class ActionRecorder {
   recordAction(type: ActionType, payload: unknown): string {
     // Don't record actions during replay
     if (this.isReplaying) {
-      return '';
+      return "";
     }
 
     const snapshot: ActionSnapshot = {
@@ -63,7 +71,7 @@ export class ActionRecorder {
       snapshots: [],
     };
     this.saveHistory();
-    console.log('[ActionRecorder] Cleared action history');
+    console.log("[ActionRecorder] Cleared action history");
   }
 
   /**
@@ -99,10 +107,12 @@ export class ActionRecorder {
       const stored = localStorage.getItem(ACTION_HISTORY_KEY);
       if (stored) {
         this.history = JSON.parse(stored);
-        console.log(`[ActionRecorder] Loaded ${this.history.snapshots.length} action snapshots`);
+        console.log(
+          `[ActionRecorder] Loaded ${this.history.snapshots.length} action snapshots`,
+        );
       }
     } catch (error) {
-      console.warn('[ActionRecorder] Failed to load action history:', error);
+      console.warn("[ActionRecorder] Failed to load action history:", error);
       this.history = {
         snapshots: [],
       };
@@ -116,7 +126,7 @@ export class ActionRecorder {
     try {
       localStorage.setItem(ACTION_HISTORY_KEY, JSON.stringify(this.history));
     } catch (error) {
-      console.warn('[ActionRecorder] Failed to save action history:', error);
+      console.warn("[ActionRecorder] Failed to save action history:", error);
     }
   }
 
@@ -129,11 +139,11 @@ export class ActionRecorder {
     return JSON.parse(
       JSON.stringify(payload, (_key, value) => {
         // Only handle BigInt automatically since it can't be JSON serialized
-        if (typeof value === 'bigint') {
-          return [value.toString(), 'BigInt'];
+        if (typeof value === "bigint") {
+          return [value.toString(), "BigInt"];
         }
         return value;
-      })
+      }),
     );
   }
 
@@ -145,16 +155,22 @@ export class ActionRecorder {
 
     return JSON.parse(JSON.stringify(payload), (_key, value) => {
       // Check if value is in our serialized format [stringified_value, original_type]
-      if (Array.isArray(value) && value.length === 2 && typeof value[1] === 'string') {
+      if (
+        Array.isArray(value) &&
+        value.length === 2 &&
+        typeof value[1] === "string"
+      ) {
         const [stringifiedValue, originalType] = value;
 
         switch (originalType) {
-          case 'Address': {
-            const addrStr = stringifiedValue.startsWith('0x') ? stringifiedValue.slice(2) : stringifiedValue;
-            return new Address(Buffer.from(addrStr, 'hex'));
+          case "Address": {
+            const addrStr = stringifiedValue.startsWith("0x")
+              ? stringifiedValue.slice(2)
+              : stringifiedValue;
+            return new Address(Buffer.from(addrStr, "hex"));
           }
 
-          case 'BigInt':
+          case "BigInt":
             return BigInt(stringifiedValue);
 
           default:
@@ -169,31 +185,40 @@ export class ActionRecorder {
   /**
    * Get the appropriate executor function for an action type
    */
-  private getActionExecutor(type: ActionType): (payload: unknown, evmStore: EVMStore) => Promise<unknown> {
+  private getActionExecutor(
+    type: ActionType,
+  ): (payload: unknown, evmStore: EVMStore) => Promise<unknown> {
     switch (type) {
-      case 'DEPLOY_CONTRACT':
+      case "DEPLOY_CONTRACT":
         return async (payload: unknown, evmStore: EVMStore) => {
-          return evmStore.deployContractToEVM(payload as CreateNewEVMPayload, false);
+          return evmStore.deployContractToEVM(
+            payload as CreateNewEVMPayload,
+            false,
+          );
         };
 
-      case 'CREATE_ACCOUNT':
+      case "CREATE_ACCOUNT":
         return async (payload: unknown, evmStore: EVMStore) => {
           const typedPayload = payload as { address: string };
           return evmStore.createAccount(typedPayload.address, false);
         };
 
-      case 'FUND_ACCOUNT':
+      case "FUND_ACCOUNT":
         return async (payload: unknown, evmStore: EVMStore) => {
           const typedPayload = payload as { address: Address; balance: bigint };
-          return evmStore.fundAccount(typedPayload.address, typedPayload.balance, false);
+          return evmStore.fundAccount(
+            typedPayload.address,
+            typedPayload.balance,
+            false,
+          );
         };
 
-      case 'CALL_FUNCTION':
+      case "CALL_FUNCTION":
         return async (payload: unknown, evmStore: EVMStore) => {
           return evmStore.callFunction(payload as TxData, false);
         };
 
-      case 'REGISTER_ACCOUNT':
+      case "REGISTER_ACCOUNT":
         return async (payload: unknown, evmStore: EVMStore) => {
           const typedPayload = payload as { address: Address };
           return evmStore.registerAccount(typedPayload.address, false);

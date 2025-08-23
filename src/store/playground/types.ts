@@ -1,14 +1,18 @@
-import { AbiEvent, AbiFunction, AbiParameter, AbiType } from "@/service/evm-analyzer/abi/types";
+import {
+  AbiEvent,
+  AbiFunction,
+  AbiParameter,
+  AbiType,
+} from "@/service/evm-analyzer/abi/types";
 import { FlowData } from "@/service/evm-analyzer/utils/react-flow-parser";
 
-
 export type ActiveFunction = {
-    func: AbiFunction | AbiEvent;
-    type: AbiType;
-  }
+  func: AbiFunction | AbiEvent;
+  type: AbiType;
+};
 export type PlaygroundState = {
   playgroundName?: string;
-  activeFunction?: ActiveFunction
+  activeFunction?: ActiveFunction;
   history: ResultHistory[];
 };
 
@@ -21,11 +25,11 @@ export type PlaygroundAction = {
 };
 
 export type FunctionCallForm = {
-  inputs: FunctionCallFormInput[]
-}
+  inputs: FunctionCallFormInput[];
+};
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type FunctionCallFormInput = AbiParameter & { value: string  }
+export type FunctionCallFormInput = AbiParameter & { value: string };
 
 export type PlaygroundStore = PlaygroundState & PlaygroundAction;
 

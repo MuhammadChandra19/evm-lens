@@ -16,8 +16,8 @@ import FunctionList from "../function-list";
 import { ReactNode } from "react";
 import usePlayground from "../../use-playground";
 import Intro from "../intro";
-import BalanceForm from '../balance-form';
-import NewAccountForm from '../new-account-form';
+import BalanceForm from "../balance-form";
+import NewAccountForm from "../new-account-form";
 
 type Props = {
   children: ReactNode;
@@ -51,7 +51,7 @@ const Layout = ({ children }: Props) => {
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           <div className="flex justify-between gap-4">
-            <NewAccountForm />            
+            <NewAccountForm />
             <div className="w-full p-4 flex1 flex gap-2 justify-between rounded-xl border shadow-sm items-center bg-gradient-to-bl from-slate-50 to-blue-50">
               <span>
                 <div className="font-semibold">Owner Address</div>

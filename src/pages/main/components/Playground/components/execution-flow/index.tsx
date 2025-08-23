@@ -7,16 +7,17 @@ import {
   useEdgesState,
   useNodesState,
 } from "@xyflow/react";
-import usePlayground from "../../use-playground";
 import "@xyflow/react/dist/style.css";
 import { AnimatedSVGEdge } from "./animated-edges";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { NodeClickData } from "@/service/evm-analyzer/utils/react-flow-parser";
-
-const ExecutionFlow = () => {
-  const { lastExecutionResult } = usePlayground();
+import { ResultHistory } from "@/store/playground/types";
+type Props = {
+  lastExecutionResult: ResultHistory;
+};
+const ExecutionFlow = ({ lastExecutionResult }: Props) => {
   const [selectedNodeData, setSelectedNodeData] =
     useState<NodeClickData | null>(null);
 
@@ -155,19 +156,21 @@ const ExecutionFlow = () => {
       )}
 
       <div className="w-full h-[600px] border rounded-lg overflow-hidden">
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          edgeTypes={edgeTypes}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          fitView
-          onNodeClick={handleNodeClick}
-          attributionPosition="top-right"
-        >
-          <Background />
-          <Controls />
-        </ReactFlow>
+        {lastExecutionResult && (
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            edgeTypes={edgeTypes}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            fitView
+            onNodeClick={handleNodeClick}
+            attributionPosition="top-right"
+          >
+            <Background />
+            <Controls />
+          </ReactFlow>
+        )}
       </div>
     </div>
   );

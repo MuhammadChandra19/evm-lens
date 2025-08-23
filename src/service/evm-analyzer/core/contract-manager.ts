@@ -105,7 +105,6 @@ export class ContractManager {
         toAddr = txData.to;
       }
 
-
       const result = await evm.runCall({
         to: toAddr,
         caller: fromAddr,

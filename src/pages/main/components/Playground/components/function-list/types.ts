@@ -1,4 +1,4 @@
-import { AbiType } from '@/service/evm-analyzer/abi/types';
+import { AbiType } from "@/service/evm-analyzer/abi/types";
 import { LucideIcon } from "lucide-react";
 
 type MenuAction = {
@@ -18,7 +18,7 @@ type MenuItemChild = {
   id: string;
   title: string;
   onClick?: (action: MenuAction) => void;
-  type: AbiType
+  type: AbiType;
 };
 
 export type { MenuItem, MenuItemChild, MenuAction };

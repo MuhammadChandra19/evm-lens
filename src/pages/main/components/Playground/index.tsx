@@ -1,15 +1,19 @@
 import Layout from "./components/layout";
-import usePlayground from "./use-playground";
 import ExecutionFlow from "./components/execution-flow";
-import AbiHandler from './components/abi-handler';
+import AbiHandler from "./components/abi-handler";
+import usePlaygroundStore from "@/store/playground";
 
 const Playground = () => {
-  const { lastExecutionResult } = usePlayground();
-
+  const lastExecutionResult = usePlaygroundStore((store) => {
+    if (!store.activeFunction) return undefined;
+    return store.getFunctionLastResult(store.activeFunction.func.name!);
+  });
   return (
     <Layout>
       <AbiHandler />
-      {lastExecutionResult && <ExecutionFlow />}
+      {lastExecutionResult && (
+        <ExecutionFlow lastExecutionResult={lastExecutionResult} />
+      )}
     </Layout>
   );
 };

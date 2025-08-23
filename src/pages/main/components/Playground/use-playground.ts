@@ -16,7 +16,7 @@ const usePlayground = () => {
 
   const lastExecutionResult = usePlaygroundStore((store) => {
     if (!store.activeFunction) return undefined;
-    return store.getFunctionLastResult(store.activeFunction.name!);
+    return store.getFunctionLastResult(store.activeFunction.func.name!);
   });
 
   const ownerAccount = useMemo(
@@ -41,7 +41,7 @@ const usePlayground = () => {
         args: cleanupArgs(data),
         ethAmount: BigInt(data["ethAmount"] || "0") * BigInt(10 ** decimals),
         executorAddres: ownerAddress,
-        func: activeFunction!,
+        func: activeFunction!.func,
         gasLimit: 3000000,
       });
       if (!res) {

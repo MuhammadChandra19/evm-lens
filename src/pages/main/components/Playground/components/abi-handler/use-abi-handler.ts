@@ -1,40 +1,45 @@
-import { Address } from '@ethereumjs/util';
-import useEVMStore from '@/store/evm'
-import usePlaygroundStore from '@/store/playground'
-import { FunctionCallForm } from '@/store/playground/types'
-import { useState } from 'react'
-import { toast } from 'sonner'
-import { parseEVMStepsToFlow } from '@/service/evm-analyzer/utils/react-flow-parser';
+import { Address } from "@ethereumjs/util";
+import useEVMStore from "@/store/evm";
+import usePlaygroundStore from "@/store/playground";
+import { FunctionCallForm } from "@/store/playground/types";
+import { useState } from "react";
+import { toast } from "sonner";
+import { parseEVMStepsToFlow } from "@/service/evm-analyzer/utils/react-flow-parser";
 
 const useAbiHandler = () => {
-  const [executing, setExecuting] = useState(false)
-  const activeFunction = usePlaygroundStore(store => store.activeFunction)
+  const [executing, setExecuting] = useState(false);
+  const activeFunction = usePlaygroundStore((store) => store.activeFunction);
   const saveExecutionResult = usePlaygroundStore((store) => store.saveResult);
 
-  const getAccounts = useEVMStore(store => store.getAccounts)
-  const callFunction = useEVMStore(store => store.callFunction)
+  const getAccounts = useEVMStore((store) => store.getAccounts);
+  const callFunction = useEVMStore((store) => store.callFunction);
   const decimals = useEVMStore((store) => store.decimals);
 
   const cleanupArgs = (data: FunctionCallForm) => {
     const args: string[] = [];
     data.inputs.forEach((k) => {
-      args.push(`${k.value}`)
+      args.push(`${k.value}`);
     });
 
     return args;
   };
 
-  const handleExecute = async (data: FunctionCallForm, executor: Address, ethAmount: string) => {
+  const handleExecute = async (
+    data: FunctionCallForm,
+    executor: Address,
+    ethAmount: string,
+  ) => {
     try {
-      setExecuting(true)
+      setExecuting(true);
 
       const res = await callFunction({
         args: cleanupArgs(data),
         ethAmount: BigInt(ethAmount) * BigInt(10 ** decimals),
         executorAddres: executor,
         func: activeFunction!.func,
-        gasLimit: 3000000
-      })
+        gasLimit: 3000000,
+        type: activeFunction!.type,
+      });
 
       if (!res) {
         toast.error("Failed to execute function");
@@ -47,6 +52,8 @@ const useAbiHandler = () => {
         });
       }
 
+      console.log(res.steps);
+
       const flowData = parseEVMStepsToFlow(res?.steps);
       saveExecutionResult({
         executedAt: Date.now().toString(),
@@ -55,23 +62,20 @@ const useAbiHandler = () => {
         functionName: activeFunction?.func.name || "",
         id: Date.now().toString(),
       });
-
-    } catch(e) {
+    } catch (e) {
       toast.error("Failed to execute function");
       console.error(e);
     } finally {
-      setExecuting(false)
+      setExecuting(false);
     }
-  }
-  
-  
+  };
 
   return {
     activeFunction,
     handleExecute,
     executing,
-    getAccounts
-  }
-}
+    getAccounts,
+  };
+};
 
 export default useAbiHandler;
