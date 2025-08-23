@@ -38,6 +38,9 @@ export type TxData = {
 };
 
 export type EVMAction = {
+
+  getUserAccounts: () => AccountInfo[]
+
   deployContractToEVM: (payload: CreateNewEVMPayload, shouldRecord?: boolean) => Promise<ContractDeploymentResult | null>;
 
   // Basic EVM functions

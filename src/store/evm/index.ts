@@ -20,6 +20,12 @@ const actionRecorder = ActionRecorder.getInstance();
 const useEVMStore = create<EVMStore>()((set, get) => ({
   ...initialState,
 
+  getUserAccounts: () => {
+    const accounts = get().accounts || {}
+    return Object.values(accounts).filter((v) => !v.isContract && v.address.toString())
+
+  },
+
   // Basic EVM functions
   createAccount: async (address: string, shouldRecord: boolean = true) => {
     const fixAddress = address.startsWith('0x') ? address.slice(2) : address;
