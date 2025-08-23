@@ -15,7 +15,6 @@ const useFunctionList = () => {
 
   const handleClickFunction = useCallback(
     (action: MenuAction, abiFunction: AbiFunction) => {
-      console.log(action, abiFunction);
       setActiveFunction(abiFunction);
     },
     [setActiveFunction],

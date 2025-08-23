@@ -36,17 +36,6 @@ const usePlayground = () => {
   };
 
   const handleExecute = async (data: FunctionCallForm) => {
-    const ethAmountWei =
-      BigInt(data["ethAmount"] || "0") * BigInt(10 ** decimals);
-
-    console.log("🔍 Debug execution:");
-    console.log("ETH Amount input:", data["ethAmount"]);
-    console.log("ETH Amount in wei:", ethAmountWei.toString());
-    console.log("Owner balance:", ownerAccount?.balance.toString());
-    console.log(
-      "Owner balance in ETH:",
-      Number(ownerAccount?.balance || 0n) / 1e18,
-    );
     try {
       const res = await callFunction({
         args: cleanupArgs(data),
@@ -55,7 +44,6 @@ const usePlayground = () => {
         func: activeFunction!,
         gasLimit: 3000000,
       });
-      console.log(res);
       if (!res) {
         toast.error("Failed to execute function");
         return;
@@ -67,9 +55,7 @@ const usePlayground = () => {
         });
       }
 
-      const flowData = parseEVMStepsToFlow(res?.steps, (data) =>
-        console.log(data),
-      );
+      const flowData = parseEVMStepsToFlow(res?.steps);
       saveExecutionResult({
         executedAt: Date.now().toString(),
         executionFlow: flowData,

@@ -44,7 +44,7 @@ const BalanceForm = () => {
       }
       setOpen(false);
     } catch (e) {
-      console.log(e);
+      console.error(e);
       setError("An error occurred while funding account");
     } finally {
       setIsLoading(false);

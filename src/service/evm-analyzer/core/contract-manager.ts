@@ -105,7 +105,6 @@ export class ContractManager {
         toAddr = txData.to;
       }
 
-      // console.log("parsers", parsers.hexStringToUint8Array(txData.data))
 
       const result = await evm.runCall({
         to: toAddr,

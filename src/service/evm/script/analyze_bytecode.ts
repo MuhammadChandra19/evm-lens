@@ -19,7 +19,6 @@ for (let i = 0; i < bytecode.length; i++) {
   }
 }
 
-console.log("Opcodes used in contract:");
 Array.from(opcodeSet)
   .sort((a, b) => a - b)
   .forEach((opcode) => {

@@ -61,7 +61,7 @@ const useDeployContract = () => {
       }
 
       if (res.success) {
-        console.log(res);
+        toast.success("Contract Deployed")
         return;
       }
     } catch (e) {

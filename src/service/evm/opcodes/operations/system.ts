@@ -136,8 +136,6 @@ export async function DELEGATECALL(ms: MachineState, evm: EVM) {
 
   const callResult = await evm.run(callMachineState, true);
 
-  console.log(callResult);
-
   if (callResult.return) {
     const callReturnData = Buffer.from(callResult.return, "hex");
     const callReturnOffset = Number(retOffset);

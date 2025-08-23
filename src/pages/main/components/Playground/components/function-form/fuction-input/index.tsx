@@ -36,8 +36,6 @@ const FunctionInput = () => {
       result.push({ name: "ethAmount", type: "uint256" });
     }
 
-    console.log(result);
-
     return result;
   };
   const schema = FunctionCallSchemaFactory.create(createFactory());
@@ -48,7 +46,6 @@ const FunctionInput = () => {
   });
 
   const handleSubmit = (data: FunctionCallForm) => {
-    console.log(data);
     try {
       handleExecute(data);
     } catch (e) {

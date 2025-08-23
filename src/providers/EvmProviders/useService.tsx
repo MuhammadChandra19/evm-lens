@@ -11,7 +11,6 @@ const useService = () => {
   const replayActions = useCallback(async () => {
     try {
       const actionRecorder = ActionRecorder.getInstance();
-      console.log(actionRecorder.history);
       const replayableActions = actionRecorder.getReplayableActions();
 
       if (replayableActions.length === 0) {

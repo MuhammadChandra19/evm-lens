@@ -1,14 +1,14 @@
-import { create } from "zustand";
-import { EVMState, CreateNewEVMPayload, EVMStore, TxData } from "./types";
-import * as actions from "./action";
-import EVMAnalyzer, { AccountInfo } from "@/service/evm-analyzer";
-import { Address } from "@ethereumjs/util";
-import { Abi } from "@/service/evm-analyzer/abi/types";
-import { ETH_DECIMAL } from "@/lib/constants";
-import ActionRecorder from "./action-recorder";
+import { create } from 'zustand';
+import { EVMState, CreateNewEVMPayload, EVMStore, TxData } from './types';
+import * as actions from './action';
+import EVMAnalyzer, { AccountInfo } from '@/service/evm-analyzer';
+import { Address } from '@ethereumjs/util';
+import { Abi } from '@/service/evm-analyzer/abi/types';
+import { ETH_DECIMAL } from '@/lib/constants';
+import ActionRecorder from './action-recorder';
 
 const initialState: EVMState = {
-  constructorBytecode: "",
+  constructorBytecode: '',
   abi: {} as Abi,
   totalSupply: BigInt(0),
   decimals: 18,
@@ -21,15 +21,11 @@ const useEVMStore = create<EVMStore>()((set, get) => ({
   ...initialState,
 
   // Basic EVM functions
-  createAccount: async (address: string) => {
-    // Record the action
-    const actionPayload = { address };
-
-    const fixAddress = address.startsWith("0x") ? address.slice(2) : address;
-    const addressType = new Address(Buffer.from(fixAddress, "hex"));
-    const result = await actions.createAccount(addressType, get);
+  createAccount: async (address: string, shouldRecord: boolean = true) => {
+    const fixAddress = address.startsWith('0x') ? address.slice(2) : address;
+    const addressType = new Address(Buffer.from(fixAddress, 'hex'));
+    const result = await actions.createAccount(addressType, get, actionRecorder, shouldRecord);
     if (!result) {
-      actionRecorder.recordAction("CREATE_ACCOUNT", actionPayload);
       return null;
     }
     const accounts: Record<string, AccountInfo> = get().accounts || {};
@@ -46,19 +42,14 @@ const useEVMStore = create<EVMStore>()((set, get) => ({
       },
     });
 
-    // Record successful action
-    actionRecorder.recordAction("CREATE_ACCOUNT", actionPayload);
     return result;
   },
-  fundAccount: async (address: Address, balance: bigint) => {
-    // Record the action (manually format Address as array)
-    const actionPayload = { address: [address.toString(), "Address"], balance };
-
+  fundAccount: async (address: Address, balance: bigint, shouldRecord: boolean = true) => {
     const parsedBalance = balance * BigInt(10 ** ETH_DECIMAL);
     const accounts = get().accounts!;
     const currentAccount = accounts[address.toString()];
     const newBalance = currentAccount.balance + parsedBalance;
-    const result = await actions.fundAccount(address, newBalance, get);
+    const result = await actions.fundAccount(address, newBalance, get, actionRecorder, shouldRecord);
 
     if (result.success) {
       set((state) => ({
@@ -72,43 +63,25 @@ const useEVMStore = create<EVMStore>()((set, get) => ({
       }));
     }
 
-    // Record the action
-    actionRecorder.recordAction("FUND_ACCOUNT", actionPayload);
     return result;
   },
 
-  deployContractToEVM: async (payload: CreateNewEVMPayload) => {
-    const result = await actions.deployContractToEVM(payload, set, get);
-
-    // Record the action
-    actionRecorder.recordAction("DEPLOY_CONTRACT", payload);
+  deployContractToEVM: async (payload: CreateNewEVMPayload, shouldRecord: boolean = true) => {
+    const result = await actions.deployContractToEVM(payload, set, get, actionRecorder, shouldRecord);
     return result;
   },
 
-  callFunction: async (txData: TxData) => {
+  callFunction: async (txData: TxData, shouldRecord: boolean = true) => {
     try {
-      const result = await actions.callFunction(txData, get);
-
-      // Record the action (manually format Address as array)
-      if (txData.func.stateMutability !== "view") {
-        const actionPayload = {
-          ...txData,
-          executorAddres: [txData.executorAddres.toString(), "Address"],
-        };
-        actionRecorder.recordAction("CALL_FUNCTION", actionPayload);
-      }
-
+      const result = await actions.callFunction(txData, get, actionRecorder, shouldRecord);
       return result;
     } catch (e) {
       console.error(e);
     }
   },
 
-  registerAccount: async (address: Address) => {
-    // Record the action (manually format Address as array)
-    const actionPayload = { address: [address.toString(), "Address"] };
-
-    const result = await actions.createAccount(address, get);
+  registerAccount: async (address: Address, shouldRecord: boolean = true) => {
+    const result = await actions.registerAccount(address, get, actionRecorder, shouldRecord);
     if (result) {
       const accounts = get().accounts || {};
 
@@ -123,9 +96,6 @@ const useEVMStore = create<EVMStore>()((set, get) => ({
         },
       });
     }
-
-    // Record the action
-    actionRecorder.recordAction("REGISTER_ACCOUNT", actionPayload);
   },
   initializeEVM: async () => {
     const currentState = get();
