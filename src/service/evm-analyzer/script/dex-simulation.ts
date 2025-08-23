@@ -10,9 +10,6 @@ import {
   generateSelector,
 } from "../abi/util";
 import { extractUint256 } from "../../../lib/utils";
-import path from 'path';
-import fs from "fs"
-import { parseEVMStepsToFlow } from '../utils/react-flow-parser';
 
 // Helper functions
 // function encodeUint256(value: bigint): string {
@@ -84,29 +81,6 @@ async function main() {
     );
     console.log(`Deployment success: ${deploymentResult.success}\n`);
 
-    const outputFile = path.join(__dirname, `execution-result-${Date.now()}.json`);
-    const seen = new WeakSet();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cyclicReplacer = (key: string, value: any) => {
-      // Handle BigInt
-      if (typeof value === 'bigint') {
-        return value.toString();
-      }
-      
-      // Handle cyclic references
-      if (typeof value === 'object' && value !== null) {
-        if (seen.has(value)) {
-          return '[Circular Reference]';
-        }
-        seen.add(value);
-      }
-      
-      return value;
-    };
-
-    fs.writeFileSync(outputFile, JSON.stringify(deploymentResult.executionResult, cyclicReplacer, 2));
-
-    console.log(`✅ Execution result saved to: ${outputFile}`);
     console.log(`Execution result: ${deploymentResult.executionResult}`)
 
     // === DEBUG: CHECK STORAGE ===
@@ -158,17 +132,6 @@ async function main() {
         gasLimit: BigInt(500000),
       });
 
-      const outputFile = path.join(__dirname, `totalSupply-${Date.now()}.json`);
-
-      fs.writeFileSync(outputFile, JSON.stringify(totalSupyResult.steps, cyclicReplacer, 2));
-
-      const flowData = parseEVMStepsToFlow(deploymentResult.steps);
-
-      fs.writeFileSync(
-        path.join(__dirname, `flow-data-${Date.now()}.json`), 
-        JSON.stringify(flowData, null, 2)
-      );
-
       console.log("totalSupply", extractUint256(totalSupyResult.returnValue));
     } else {
       console.error("❌ Error:", "No function available");
@@ -180,6 +143,7 @@ async function main() {
       const tokenAmount = BigInt(500000) * BigInt(10 ** 18);
       const ethAmount = BigInt(100) * BigInt(10 ** 18); // 100 ETH
       data += generateInputHash(addLiquidityFunc, [tokenAmount.toString()]);
+      console.log("INPUT HASH", data)
 
       console.log("🏦 Calling addLiquidity...");
       console.log(`Token amount: ${tokenAmount.toString()}`);

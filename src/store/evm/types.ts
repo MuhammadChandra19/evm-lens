@@ -18,9 +18,8 @@ export type EVMState = {
   projectID?: string;
 };
 
-
 export type CreateNewEVMPayload = {
-  projectName: string; // ✅ Added projectName
+  projectName: string;
   contractAddress: string;
   constructorBytecode: string;
   abi: Abi;
@@ -28,6 +27,14 @@ export type CreateNewEVMPayload = {
   decimal: number;
   totalSupply: number;
   initialOwnerBalance: bigint;
+};
+
+export type TxData = {
+  executorAddres: Address;
+  func: AbiFunction;
+  args: string[];
+  gasLimit: number;
+  ethAmount: bigint;
 };
 
 export type EVMAction = {
@@ -42,14 +49,15 @@ export type EVMAction = {
     success: boolean;
     error: unknown;
   }>;
-  callFunction: (executorAddres: Address, func: AbiFunction, args: string[], gasLimit: number) => Promise<ExecutionResult>;
+  callFunction: (tx: TxData) => Promise<ExecutionResult | undefined>;
 
   registerAccount: (address: Address) => Promise<void>;
 
-  // Persistence helpers
   initializeEVM: () => Promise<void>;
-  saveEVMState: () => Promise<void>;
-  clearPersistedState: () => void;
+
+  // Action history methods
+  getActionHistory: () => ActionSnapshot[];
+  clearActionHistory: () => void;
 };
 
 export type EVMStore = EVMState & EVMAction;
@@ -61,3 +69,25 @@ export type ExecutionResult =
   | null;
 
 export type ContractDeploymentResult = DeploymentResult;
+
+// Action Snapshot System Types
+export type ActionType = 'DEPLOY_CONTRACT' | 'CREATE_ACCOUNT' | 'FUND_ACCOUNT' | 'CALL_FUNCTION' | 'REGISTER_ACCOUNT';
+
+export type ActionSnapshot = {
+  id: string;
+  type: ActionType;
+  timestamp: number;
+  payload: unknown;
+  result?: unknown;
+};
+
+export type ActionHistory = {
+  snapshots: ActionSnapshot[];
+  lastReplayedIndex: number;
+};
+
+export type ReplayableAction = {
+  type: ActionType;
+  payload: unknown;
+  execute: (payload: unknown, evmStore: EVMStore) => Promise<unknown>;
+};

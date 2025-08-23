@@ -6,6 +6,7 @@ import {
   ConstructorSchema,
   EventSchema,
   FunctionSchema,
+  StateMutabilitySchema,
 } from "./schema";
 export type AbiParameter = {
   name?: string;
@@ -22,3 +23,5 @@ export type AbiFunction = z.infer<typeof FunctionSchema>;
 export type AbiType = z.infer<typeof AbiType>;
 export type AbiEvent = z.infer<typeof EventSchema>;
 export type AbiConstructor = z.infer<typeof ConstructorSchema>;
+export type AbiStateMutability = z.infer<typeof StateMutabilitySchema>;
+

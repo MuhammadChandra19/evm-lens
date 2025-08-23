@@ -105,6 +105,8 @@ export class ContractManager {
         toAddr = txData.to;
       }
 
+      // console.log("parsers", parsers.hexStringToUint8Array(txData.data))
+
       const result = await evm.runCall({
         to: toAddr,
         caller: fromAddr,
@@ -125,6 +127,7 @@ export class ContractManager {
         steps: tracer.getSteps(),
       };
     } catch (error) {
+      console.error(error)
       evm.events.off("step", stepHandler);
       throw error;
     }

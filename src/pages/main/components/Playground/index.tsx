@@ -17,7 +17,7 @@ const Playground = () => {
         <div className="flex flex-col gap-2">
           <div className="flex gap-2 items-center">
             <div className="font-semibold">Balance: </div>
-            <div className="font-light text-blue-500 text-sm">{ownerAccount.balance} ETH</div>
+            <div className="font-light text-blue-500 text-sm">{Number(ownerAccount?.balance || 0n) / 1e18} ETH</div>
           </div>
           <BalanceForm />
         </div>

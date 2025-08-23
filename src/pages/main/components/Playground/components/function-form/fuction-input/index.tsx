@@ -4,6 +4,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -12,10 +13,25 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import usePlayground from '../../../use-playground';
+import { AbiParameter } from '@/service/evm-analyzer/abi/types';
 
 const FunctionInput = () => {
   const { activeFunction: abiFunction, handleExecute} = usePlayground()
-  const schema = FunctionCallSchemaFactory.create(abiFunction!.inputs);
+  const createFactory = () => {
+    const result: AbiParameter[] = []
+    if(abiFunction!.inputs.length > 0) {
+      result.push(...abiFunction!.inputs)
+    }
+
+    if(abiFunction!.stateMutability === "payable") {
+      result.push({name: "ethAmount", type: "uint256"})
+    }
+
+    console.log(result)
+
+    return result
+  }
+  const schema = FunctionCallSchemaFactory.create(createFactory());
   const method = useForm<FunctionCallForm>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(schema as any),
@@ -23,7 +39,13 @@ const FunctionInput = () => {
   });
 
   const handleSubmit = (data: FunctionCallForm) => {
-    handleExecute(data)
+    console.log(data)
+    try {
+      handleExecute(data)
+    } catch(e) {
+      console.error(e)
+    }
+    
   }
 
   useEffect(() => {
@@ -43,7 +65,7 @@ const FunctionInput = () => {
         </CardHeader>
         <CardContent className="px-2 pt-2 sm:px-6 sm:pt-2">
           <FormProvider { ...method}>
-            <form onSubmit={method.handleSubmit(handleSubmit)}>
+            <form onSubmit={method.handleSubmit(handleSubmit)} className="flex flex-col gap-4">
               {abiFunction!.inputs.map((input, idx) => {
                 const fieldName = input.name || `param_${idx}`;
                 return (
@@ -70,10 +92,33 @@ const FunctionInput = () => {
                   </div>
                 );
               })}
+              {
+                abiFunction!.stateMutability === "payable" && (
+                  <div className="w-full">
+                    <FormField
+                      control={method.control}
+                      name="ethAmount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Eth Amount</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Enter eth amount (e.g., 1000)"
+                              {...field}
+                              className="font-mono text-sm"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )
+              }
               <Button
                 type="submit"
                 size="lg"
-                className="w-full cursor-pointer mt-3"
+                className="w-full cursor-pointer"
                 variant="outline"
               >
                 {" "}

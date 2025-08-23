@@ -1,9 +1,9 @@
-import { CreateNewEVMPayload, ExecutionResult, EVMState, ContractDeploymentResult } from './types';
+import { CreateNewEVMPayload, ExecutionResult, EVMState, ContractDeploymentResult, TxData } from './types';
 import { ERRORS } from './errors';
-import { AbiFunction } from '@/service/evm-analyzer/abi/types';
 import { generateFunctionHash, generateInputHash } from '@/service/evm-analyzer/abi/util';
 import { Address } from '@/service/evm-analyzer/utils/address';
 import { AccountInfo } from '@/service/evm-analyzer';
+import { ETH_DECIMAL } from '@/lib/constants';
 
 
 export const deployContractToEVM = async (payload: CreateNewEVMPayload, set: (partial: Partial<EVMState>) => void, get: () => EVMState): Promise<ContractDeploymentResult | null> => {
@@ -22,7 +22,8 @@ export const deployContractToEVM = async (payload: CreateNewEVMPayload, set: (pa
   if (!res.success) return null;
 
   // Fund the owner account
-  await fundAccount(ownerAddress, payload.initialOwnerBalance, get);
+  const parsedBalance = payload.initialOwnerBalance * BigInt(10 ** ETH_DECIMAL)
+  await fundAccount(ownerAddress, parsedBalance, get);
 
   const ownerAccountInfo = await evm.getAccountInfo(ownerAddress);
   const contractAccountInfo = await evm.getAccountInfo(contractAddress);
@@ -47,23 +48,28 @@ export const deployContractToEVM = async (payload: CreateNewEVMPayload, set: (pa
   return res;
 };
 
-export const callFunction = async (executorAddres: Address, func: AbiFunction, args: string[], gasLimit: number, get: () => EVMState): Promise<ExecutionResult> => {
-  const evm = get().evm;
+export const callFunction = async (tx: TxData, get: () => EVMState): Promise<ExecutionResult> => {
+  try {
+      const evm = get().evm;
   if (!evm) return null;
 
   const contractAddress = get().contractAddress;
   if (!contractAddress) return null;
 
-  let data = generateFunctionHash(func);
-  data += generateInputHash(func, args);
+  let data = generateFunctionHash(tx.func);
+  data += generateInputHash(tx.func, tx.args, get().decimals);
 
+  let ethAmount = 0n
+  if(tx.func.stateMutability === 'payable') {
+    ethAmount = tx.ethAmount
+  }
   const result = await evm.callContract(
     {
       data,
-      from: executorAddres,
+      from: tx.executorAddres,
       to: contractAddress,
-      gasLimit: BigInt(gasLimit),
-      value: 0n,
+      gasLimit: BigInt(tx.gasLimit),
+      value: ethAmount,
     },
     {
       includeMemory: true,
@@ -72,6 +78,10 @@ export const callFunction = async (executorAddres: Address, func: AbiFunction, a
     }
   );
   return result;
+  } catch(e) {
+    console.error(e)
+    throw new Error("failed to call function", e as ErrorOptions)
+  }
 };
 
 export const createAccount = async (address: Address, get: () => EVMState) => {
@@ -84,7 +94,6 @@ export const createAccount = async (address: Address, get: () => EVMState) => {
 export const fundAccount = async (address: Address, balance: bigint, get: () => EVMState) => {
   const evm = get().evm;
   if (!evm) return { success: false, error: ERRORS.EVM_NOT_INITIALIZED };
-
   try {
     await evm.fundAccount(address, balance);
     return { success: true, error: null };
@@ -93,3 +102,14 @@ export const fundAccount = async (address: Address, balance: bigint, get: () => 
     return { success: false, error: e };
   }
 };
+
+export const getAccount =  async (address: Address, get: () => EVMState) => {
+  const evm = get().evm;
+  if (!evm) return { success: false, error: ERRORS.EVM_NOT_INITIALIZED };
+    try {
+    const res = await evm.getAccountInfo(address)
+    return res
+  } catch (e) {
+    console.error('Failed to get account:', e);
+  }
+}
