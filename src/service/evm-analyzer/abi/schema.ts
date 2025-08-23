@@ -12,7 +12,12 @@ const AbiParameterSchema: z.ZodType<AbiParameter> = z.lazy(() =>
 );
 
 // State mutability enum
-export const StateMutabilitySchema = z.enum(["pure", "view", "nonpayable", "payable"]);
+export const StateMutabilitySchema = z.enum([
+  "pure",
+  "view",
+  "nonpayable",
+  "payable",
+]);
 
 // ABI entry type enum
 const AbiTypeSchema = z.enum([

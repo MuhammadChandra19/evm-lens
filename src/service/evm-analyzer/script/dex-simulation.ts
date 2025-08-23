@@ -81,7 +81,7 @@ async function main() {
     );
     console.log(`Deployment success: ${deploymentResult.success}\n`);
 
-    console.log(`Execution result: ${deploymentResult.executionResult}`)
+    console.log(`Execution result: ${deploymentResult.executionResult}`);
 
     // === DEBUG: CHECK STORAGE ===
     console.log("🔍 Checking storage slots...");
@@ -143,7 +143,7 @@ async function main() {
       const tokenAmount = BigInt(500000) * BigInt(10 ** 18);
       const ethAmount = BigInt(100) * BigInt(10 ** 18); // 100 ETH
       data += generateInputHash(addLiquidityFunc, [tokenAmount.toString()]);
-      console.log("INPUT HASH", data)
+      console.log("INPUT HASH", data);
 
       console.log("🏦 Calling addLiquidity...");
       console.log(`Token amount: ${tokenAmount.toString()}`);

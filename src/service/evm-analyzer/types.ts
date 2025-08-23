@@ -67,7 +67,7 @@ export interface DeploymentResult {
   success: boolean;
   returnValue: Uint8Array;
   steps: ExecutionStep[];
-  executionResult: ExecResult
+  executionResult: ExecResult;
 }
 
 export interface CallResult {

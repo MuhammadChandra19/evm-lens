@@ -1,8 +1,8 @@
-import React from 'react';
-import useEVMStore from '@/store/evm';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import React from "react";
+import useEVMStore from "@/store/evm";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 /**
  * ActionHistoryViewer - Component to view and manage action history
@@ -17,7 +17,7 @@ const ActionHistoryViewer: React.FC = () => {
   };
 
   const formatPayload = (payload: unknown) => {
-    if (!payload) return 'N/A';
+    if (!payload) return "N/A";
 
     try {
       return JSON.stringify(payload, null, 2);
@@ -28,18 +28,18 @@ const ActionHistoryViewer: React.FC = () => {
 
   const getActionTypeColor = (type: string) => {
     switch (type) {
-      case 'DEPLOY_CONTRACT':
-        return 'bg-blue-500';
-      case 'CREATE_ACCOUNT':
-        return 'bg-green-500';
-      case 'FUND_ACCOUNT':
-        return 'bg-yellow-500';
-      case 'CALL_FUNCTION':
-        return 'bg-purple-500';
-      case 'REGISTER_ACCOUNT':
-        return 'bg-orange-500';
+      case "DEPLOY_CONTRACT":
+        return "bg-blue-500";
+      case "CREATE_ACCOUNT":
+        return "bg-green-500";
+      case "FUND_ACCOUNT":
+        return "bg-yellow-500";
+      case "CALL_FUNCTION":
+        return "bg-purple-500";
+      case "REGISTER_ACCOUNT":
+        return "bg-orange-500";
       default:
-        return 'bg-gray-500';
+        return "bg-gray-500";
     }
   };
 
@@ -61,7 +61,8 @@ const ActionHistoryViewer: React.FC = () => {
       <CardContent>
         {actionHistory.length === 0 ? (
           <p className="text-gray-500 text-center py-8">
-            No actions recorded yet. Perform some EVM operations to see them here.
+            No actions recorded yet. Perform some EVM operations to see them
+            here.
           </p>
         ) : (
           <div className="space-y-4 max-h-96 overflow-y-auto">
@@ -93,7 +94,9 @@ const ActionHistoryViewer: React.FC = () => {
                     <div>
                       <h4 className="text-sm font-semibold mb-1">Result:</h4>
                       <pre className="text-xs bg-gray-100 p-2 rounded overflow-x-auto">
-                        {typeof action.result === "string" || typeof action.result === "number" || typeof action.result === "boolean"
+                        {typeof action.result === "string" ||
+                        typeof action.result === "number" ||
+                        typeof action.result === "boolean"
                           ? String(action.result)
                           : formatPayload(action.result)}
                       </pre>

@@ -1,19 +1,28 @@
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Wallet } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import useEVMStore from '@/store/evm';
-import { useState } from 'react';
-import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Wallet } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import useEVMStore from "@/store/evm";
+import { useState } from "react";
+import { toast } from "sonner";
 
 const BalanceForm = () => {
   const [balance, setBalance] = useState("1");
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const fundAccount = useEVMStore(store => store.fundAccount);
-  const ownerAddress = useEVMStore(store => store.ownerAddress!);
+  const fundAccount = useEVMStore((store) => store.fundAccount);
+  const ownerAddress = useEVMStore((store) => store.ownerAddress!);
 
   const handleSubmit = async () => {
     setError(null);
@@ -30,10 +39,10 @@ const BalanceForm = () => {
       const res = await fundAccount(ownerAddress, BigInt(balance));
 
       if (!res.success) {
-        toast.error("failed to fund account")
-        console.error(res.error)
+        toast.error("failed to fund account");
+        console.error(res.error);
       }
-      setOpen(false)
+      setOpen(false);
     } catch (e) {
       console.log(e);
       setError("An error occurred while funding account");
@@ -64,9 +73,7 @@ const BalanceForm = () => {
             placeholder="Enter Eth amount..."
             type="number"
           />
-          {error && (
-            <p className="text-sm text-red-500">{error}</p>
-          )}
+          {error && <p className="text-sm text-red-500">{error}</p>}
         </div>
         <DialogFooter>
           <DialogClose asChild>

@@ -1,6 +1,6 @@
 // src/service/evm-analyzer/utils/react-flow-parser.ts
 
-import { ExecutionStep } from '../types';
+import { ExecutionStep } from "../types";
 
 export interface NodeClickData {
   pc: number;
@@ -16,7 +16,7 @@ export interface NodeClickData {
 
 export interface FlowNode {
   id: string;
-  nodeType: 'instruction' | 'jump' | 'jumpdest' | 'end';
+  nodeType: "instruction" | "jump" | "jumpdest" | "end";
   position: { x: number; y: number };
   data: {
     label: string;
@@ -50,7 +50,7 @@ export interface FlowEdge {
   id: string;
   source: string;
   target: string;
-  edgeType?: 'default' | 'step' | 'jump' | 'revisit';
+  edgeType?: "default" | "step" | "jump" | "revisit";
   animated?: boolean;
   style?: {
     stroke?: string;
@@ -103,7 +103,7 @@ export class EVMFlowParser {
 
       // Track metadata
       maxStackDepth = Math.max(maxStackDepth, step.stack.length);
-      if (step.opcode.name === 'SSTORE' || step.opcode.name === 'SLOAD') {
+      if (step.opcode.name === "SSTORE" || step.opcode.name === "SLOAD") {
         storageOperations++;
       }
 
@@ -116,15 +116,20 @@ export class EVMFlowParser {
         const edge = this.createEdge(step, nextStep, i);
         if (edge) {
           edges.push(edge);
-          if (step.opcode.name === 'JUMP' || step.opcode.name === 'JUMPI') {
+          if (step.opcode.name === "JUMP" || step.opcode.name === "JUMPI") {
             jumpCount++;
           }
         }
       }
     }
 
-    const revisitedNodes = Array.from(this.visitCounts.values()).filter((count) => count > 1).length;
-    const totalGasUsed = steps.length > 0 ? (steps[0].gasLeft - steps[steps.length - 1].gasLeft).toString() : '0';
+    const revisitedNodes = Array.from(this.visitCounts.values()).filter(
+      (count) => count > 1,
+    ).length;
+    const totalGasUsed =
+      steps.length > 0
+        ? (steps[0].gasLeft - steps[steps.length - 1].gasLeft).toString()
+        : "0";
 
     return {
       nodes,
@@ -174,7 +179,10 @@ export class EVMFlowParser {
         opcode: step.opcode.name,
         pc: step.pc,
         gasLeft: step.gasLeft.toString(),
-        stackTop: step.stack.length > 0 ? step.stack[step.stack.length - 1].toString() : undefined,
+        stackTop:
+          step.stack.length > 0
+            ? step.stack[step.stack.length - 1].toString()
+            : undefined,
         visitCount,
         isRevisited,
         memorySize: step.memory.length,
@@ -186,7 +194,11 @@ export class EVMFlowParser {
     };
   }
 
-  private createEdge(currentStep: ExecutionStep, nextStep: ExecutionStep, stepIndex: number): FlowEdge | null {
+  private createEdge(
+    currentStep: ExecutionStep,
+    nextStep: ExecutionStep,
+    stepIndex: number,
+  ): FlowEdge | null {
     const edgeId = `edge-${stepIndex}`;
     const sourceId = `step-${stepIndex}`;
     const targetId = `step-${stepIndex + 1}`;
@@ -200,13 +212,18 @@ export class EVMFlowParser {
       target: targetId,
       edgeType: edgeType,
       style,
-      animated: currentStep.opcode.name === 'JUMP' || currentStep.opcode.name === 'JUMPI',
+      animated:
+        currentStep.opcode.name === "JUMP" ||
+        currentStep.opcode.name === "JUMPI",
       label: this.getEdgeLabel(currentStep, nextStep),
       labelStyle: this.getEdgeLabelStyle(currentStep),
     };
   }
 
-  private getNodePosition(pc: number, stepIndex: number): { x: number; y: number } {
+  private getNodePosition(
+    pc: number,
+    stepIndex: number,
+  ): { x: number; y: number } {
     const nodesPerRow = 8;
     const nodeWidth = 200;
     const nodeHeight = 140;
@@ -217,25 +234,28 @@ export class EVMFlowParser {
     return { x, y };
   }
 
-  private getNodeType(opcode: string): FlowNode['nodeType'] {
+  private getNodeType(opcode: string): FlowNode["nodeType"] {
     switch (opcode) {
-      case 'JUMP':
-      case 'JUMPI':
-        return 'jump';
-      case 'JUMPDEST':
-        return 'jumpdest';
-      case 'STOP':
-      case 'RETURN':
-      case 'REVERT':
-        return 'end';
+      case "JUMP":
+      case "JUMPI":
+        return "jump";
+      case "JUMPDEST":
+        return "jumpdest";
+      case "STOP":
+      case "RETURN":
+      case "REVERT":
+        return "end";
       default:
-        return 'instruction';
+        return "instruction";
     }
   }
 
   private getNodeLabel(step: ExecutionStep, visitCount: number): string {
-    const visitIndicator = visitCount > 1 ? ` ×${visitCount}` : '';
-    const stackTop = step.stack.length > 0 ? `\n${this.formatStackValue(step.stack[step.stack.length - 1])}` : '';
+    const visitIndicator = visitCount > 1 ? ` ×${visitCount}` : "";
+    const stackTop =
+      step.stack.length > 0
+        ? `\n${this.formatStackValue(step.stack[step.stack.length - 1])}`
+        : "";
 
     return `${step.opcode.name}${visitIndicator}\nPC:${step.pc}${stackTop}`;
   }
@@ -248,58 +268,62 @@ export class EVMFlowParser {
     return `0x${hex.slice(0, 6)}...`;
   }
 
-  private getNodeStyle(opcode: string, isRevisited: boolean, visitCount: number) {
-    let backgroundColor = '#ffffff';
-    let borderColor = '#e1e5e9';
-    let textColor = '#2d3436';
+  private getNodeStyle(
+    opcode: string,
+    isRevisited: boolean,
+    visitCount: number,
+  ) {
+    let backgroundColor = "#ffffff";
+    let borderColor = "#e1e5e9";
+    let textColor = "#2d3436";
     let borderWidth = 1;
-    let boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+    let boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
 
     // Color styling (same as before)
     switch (opcode) {
-      case 'JUMP':
-        backgroundColor = '#ff7675';
-        borderColor = '#d63031';
-        textColor = '#ffffff';
-        boxShadow = '0 4px 8px rgba(214, 48, 49, 0.3)';
+      case "JUMP":
+        backgroundColor = "#ff7675";
+        borderColor = "#d63031";
+        textColor = "#ffffff";
+        boxShadow = "0 4px 8px rgba(214, 48, 49, 0.3)";
         break;
-      case 'JUMPI':
-        backgroundColor = '#fdcb6e';
-        borderColor = '#e17055';
-        textColor = '#2d3436';
-        boxShadow = '0 4px 8px rgba(225, 112, 85, 0.3)';
+      case "JUMPI":
+        backgroundColor = "#fdcb6e";
+        borderColor = "#e17055";
+        textColor = "#2d3436";
+        boxShadow = "0 4px 8px rgba(225, 112, 85, 0.3)";
         break;
-      case 'JUMPDEST':
-        backgroundColor = '#00b894';
-        borderColor = '#00a085';
-        textColor = '#ffffff';
-        boxShadow = '0 4px 8px rgba(0, 184, 148, 0.3)';
+      case "JUMPDEST":
+        backgroundColor = "#00b894";
+        borderColor = "#00a085";
+        textColor = "#ffffff";
+        boxShadow = "0 4px 8px rgba(0, 184, 148, 0.3)";
         break;
-      case 'SSTORE':
-        backgroundColor = '#ffeaa7';
-        borderColor = '#fdcb6e';
-        textColor = '#2d3436';
-        boxShadow = '0 3px 6px rgba(253, 203, 110, 0.3)';
+      case "SSTORE":
+        backgroundColor = "#ffeaa7";
+        borderColor = "#fdcb6e";
+        textColor = "#2d3436";
+        boxShadow = "0 3px 6px rgba(253, 203, 110, 0.3)";
         break;
-      case 'SLOAD':
-        backgroundColor = '#fd79a8';
-        borderColor = '#e84393';
-        textColor = '#ffffff';
-        boxShadow = '0 3px 6px rgba(232, 67, 147, 0.3)';
+      case "SLOAD":
+        backgroundColor = "#fd79a8";
+        borderColor = "#e84393";
+        textColor = "#ffffff";
+        boxShadow = "0 3px 6px rgba(232, 67, 147, 0.3)";
         break;
-      case 'RETURN':
-      case 'STOP':
-      case 'REVERT':
-        backgroundColor = '#e17055';
-        borderColor = '#d63031';
-        textColor = '#ffffff';
-        boxShadow = '0 4px 12px rgba(214, 48, 49, 0.4)';
+      case "RETURN":
+      case "STOP":
+      case "REVERT":
+        backgroundColor = "#e17055";
+        borderColor = "#d63031";
+        textColor = "#ffffff";
+        boxShadow = "0 4px 12px rgba(214, 48, 49, 0.4)";
         break;
       default:
-        backgroundColor = '#f8f9fa';
-        borderColor = '#dee2e6';
-        textColor = '#495057';
-        boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
+        backgroundColor = "#f8f9fa";
+        borderColor = "#dee2e6";
+        textColor = "#495057";
+        boxShadow = "0 2px 4px rgba(0,0,0,0.05)";
     }
 
     // Enhanced styling for revisited nodes
@@ -312,53 +336,60 @@ export class EVMFlowParser {
       backgroundColor,
       border: `${borderWidth}px solid ${borderColor}`,
       borderWidth,
-      borderRadius: '8px',
+      borderRadius: "8px",
       color: textColor,
-      fontSize: '12px',
-      fontWeight: isRevisited ? 'bold' : 'normal',
-      padding: '8px 12px',
+      fontSize: "12px",
+      fontWeight: isRevisited ? "bold" : "normal",
+      padding: "8px 12px",
       boxShadow,
-      minWidth: '120px',
-      textAlign: 'center' as const,
-      cursor: 'pointer', // ✅ Show it's clickable
+      minWidth: "120px",
+      textAlign: "center" as const,
+      cursor: "pointer", // ✅ Show it's clickable
     };
   }
 
-  private getEdgeType(currentStep: ExecutionStep, nextStep: ExecutionStep): FlowEdge['edgeType'] {
-    if (currentStep.opcode.name === 'JUMP' || currentStep.opcode.name === 'JUMPI') {
-      return 'jump';
+  private getEdgeType(
+    currentStep: ExecutionStep,
+    nextStep: ExecutionStep,
+  ): FlowEdge["edgeType"] {
+    if (
+      currentStep.opcode.name === "JUMP" ||
+      currentStep.opcode.name === "JUMPI"
+    ) {
+      return "jump";
     }
 
     const targetVisitCount = this.visitCounts.get(nextStep.pc) || 1;
     if (targetVisitCount > 1) {
-      return 'revisit';
+      return "revisit";
     }
 
-    return 'step';
+    return "step";
   }
 
   private getEdgeStyle(currentStep: ExecutionStep, nextStep: ExecutionStep) {
-    let stroke = '#a8e6cf';
+    let stroke = "#a8e6cf";
     let strokeWidth = 2;
-    let strokeDasharray = '';
+    let strokeDasharray = "";
 
     switch (currentStep.opcode.name) {
-      case 'JUMP':
-        stroke = '#ff6b6b';
+      case "JUMP":
+        stroke = "#ff6b6b";
         strokeWidth = 3;
         break;
-      case 'JUMPI':
-        stroke = '#fdcb6e';
+      case "JUMPI":
+        stroke = "#fdcb6e";
         strokeWidth = 3;
-        strokeDasharray = '8,4';
+        strokeDasharray = "8,4";
         break;
-      default:
-        { const targetVisitCount = this.visitCounts.get(nextStep.pc) || 1;
+      default: {
+        const targetVisitCount = this.visitCounts.get(nextStep.pc) || 1;
         if (targetVisitCount > 1) {
-          stroke = '#ff4757';
+          stroke = "#ff4757";
           strokeWidth = Math.min(targetVisitCount, 4);
-          strokeDasharray = '6,3';
-        } }
+          strokeDasharray = "6,3";
+        }
+      }
     }
 
     return {
@@ -368,13 +399,19 @@ export class EVMFlowParser {
     };
   }
 
-  private getEdgeLabel(currentStep: ExecutionStep, nextStep: ExecutionStep): string {
-    if (currentStep.opcode.name === 'JUMP') {
+  private getEdgeLabel(
+    currentStep: ExecutionStep,
+    nextStep: ExecutionStep,
+  ): string {
+    if (currentStep.opcode.name === "JUMP") {
       return `→ ${nextStep.pc}`;
     }
 
-    if (currentStep.opcode.name === 'JUMPI') {
-      const condition = currentStep.stack.length > 0 ? currentStep.stack[currentStep.stack.length - 1] : 0n;
+    if (currentStep.opcode.name === "JUMPI") {
+      const condition =
+        currentStep.stack.length > 0
+          ? currentStep.stack[currentStep.stack.length - 1]
+          : 0n;
       return condition !== 0n ? `✓ ${nextStep.pc}` : `✗ ${nextStep.pc}`;
     }
 
@@ -383,25 +420,25 @@ export class EVMFlowParser {
       return `#${targetVisitCount}`;
     }
 
-    return '';
+    return "";
   }
 
   private getEdgeLabelStyle(currentStep: ExecutionStep) {
-    let color = '#636e72';
-    const fontSize = '10px';
-    let fontWeight = 'normal';
+    let color = "#636e72";
+    const fontSize = "10px";
+    let fontWeight = "normal";
 
     switch (currentStep.opcode.name) {
-      case 'JUMP':
-        color = '#d63031';
-        fontWeight = 'bold';
+      case "JUMP":
+        color = "#d63031";
+        fontWeight = "bold";
         break;
-      case 'JUMPI':
-        color = '#e17055';
-        fontWeight = 'bold';
+      case "JUMPI":
+        color = "#e17055";
+        fontWeight = "bold";
         break;
       default:
-        color = '#636e72';
+        color = "#636e72";
     }
 
     return {
@@ -413,7 +450,10 @@ export class EVMFlowParser {
 }
 
 // ✅ Updated factory function with click handler
-export const parseEVMStepsToFlow = (steps: ExecutionStep[], onNodeClick?: (data: NodeClickData) => void): FlowData => {
+export const parseEVMStepsToFlow = (
+  steps: ExecutionStep[],
+  onNodeClick?: (data: NodeClickData) => void,
+): FlowData => {
   const parser = new EVMFlowParser(onNodeClick);
   return parser.parseSteps(steps);
 };

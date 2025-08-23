@@ -1,8 +1,14 @@
-import EVMAnalyzer from '@/service/evm-analyzer';
-import { AbiValidator } from '@/service/evm-analyzer/abi';
-import { Abi, AbiFunction } from '@/service/evm-analyzer/abi/types';
-import { CallResult, ExecutionStep, FunctionInfo, DeploymentResult, AccountInfo } from '@/service/evm-analyzer/types';
-import { Address } from '@ethereumjs/util';
+import EVMAnalyzer from "@/service/evm-analyzer";
+import { AbiValidator } from "@/service/evm-analyzer/abi";
+import { Abi, AbiFunction } from "@/service/evm-analyzer/abi/types";
+import {
+  CallResult,
+  ExecutionStep,
+  FunctionInfo,
+  DeploymentResult,
+  AccountInfo,
+} from "@/service/evm-analyzer/types";
+import { Address } from "@ethereumjs/util";
 
 export type EVMState = {
   contractAddress?: Address;
@@ -38,13 +44,15 @@ export type TxData = {
 };
 
 export type EVMAction = {
-  deployContractToEVM: (payload: CreateNewEVMPayload) => Promise<ContractDeploymentResult | null>;
+  deployContractToEVM: (
+    payload: CreateNewEVMPayload,
+  ) => Promise<ContractDeploymentResult | null>;
 
   // Basic EVM functions
   createAccount: (address: string) => Promise<Address | null>;
   fundAccount: (
     address: Address,
-    balance: bigint
+    balance: bigint,
   ) => Promise<{
     success: boolean;
     error: unknown;
@@ -71,7 +79,12 @@ export type ExecutionResult =
 export type ContractDeploymentResult = DeploymentResult;
 
 // Action Snapshot System Types
-export type ActionType = 'DEPLOY_CONTRACT' | 'CREATE_ACCOUNT' | 'FUND_ACCOUNT' | 'CALL_FUNCTION' | 'REGISTER_ACCOUNT';
+export type ActionType =
+  | "DEPLOY_CONTRACT"
+  | "CREATE_ACCOUNT"
+  | "FUND_ACCOUNT"
+  | "CALL_FUNCTION"
+  | "REGISTER_ACCOUNT";
 
 export type ActionSnapshot = {
   id: string;

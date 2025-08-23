@@ -1,14 +1,14 @@
-import { create } from 'zustand';
-import { EVMState, CreateNewEVMPayload, EVMStore, TxData } from './types';
-import * as actions from './action';
-import EVMAnalyzer, { AccountInfo } from '@/service/evm-analyzer';
-import { Address } from '@ethereumjs/util';
-import { Abi } from '@/service/evm-analyzer/abi/types';
-import { ETH_DECIMAL } from '@/lib/constants';
-import ActionRecorder from './action-recorder';
+import { create } from "zustand";
+import { EVMState, CreateNewEVMPayload, EVMStore, TxData } from "./types";
+import * as actions from "./action";
+import EVMAnalyzer, { AccountInfo } from "@/service/evm-analyzer";
+import { Address } from "@ethereumjs/util";
+import { Abi } from "@/service/evm-analyzer/abi/types";
+import { ETH_DECIMAL } from "@/lib/constants";
+import ActionRecorder from "./action-recorder";
 
 const initialState: EVMState = {
-  constructorBytecode: '',
+  constructorBytecode: "",
   abi: {} as Abi,
   totalSupply: BigInt(0),
   decimals: 18,
@@ -25,11 +25,11 @@ const useEVMStore = create<EVMStore>()((set, get) => ({
     // Record the action
     const actionPayload = { address };
 
-    const fixAddress = address.startsWith('0x') ? address.slice(2) : address;
-    const addressType = new Address(Buffer.from(fixAddress, 'hex'));
+    const fixAddress = address.startsWith("0x") ? address.slice(2) : address;
+    const addressType = new Address(Buffer.from(fixAddress, "hex"));
     const result = await actions.createAccount(addressType, get);
     if (!result) {
-      actionRecorder.recordAction('CREATE_ACCOUNT', actionPayload, null);
+      actionRecorder.recordAction("CREATE_ACCOUNT", actionPayload, null);
       return null;
     }
     const accounts: Record<string, AccountInfo> = get().accounts || {};
@@ -47,7 +47,7 @@ const useEVMStore = create<EVMStore>()((set, get) => ({
     });
 
     // Record successful action
-    actionRecorder.recordAction('CREATE_ACCOUNT', actionPayload, result);
+    actionRecorder.recordAction("CREATE_ACCOUNT", actionPayload, result);
     return result;
   },
   fundAccount: async (address: Address, balance: bigint) => {
@@ -73,7 +73,7 @@ const useEVMStore = create<EVMStore>()((set, get) => ({
     }
 
     // Record the action
-    actionRecorder.recordAction('FUND_ACCOUNT', actionPayload, result);
+    actionRecorder.recordAction("FUND_ACCOUNT", actionPayload, result);
     return result;
   },
 
@@ -81,7 +81,7 @@ const useEVMStore = create<EVMStore>()((set, get) => ({
     const result = await actions.deployContractToEVM(payload, set, get);
 
     // Record the action
-    actionRecorder.recordAction('DEPLOY_CONTRACT', payload, result);
+    actionRecorder.recordAction("DEPLOY_CONTRACT", payload, result);
     return result;
   },
 
@@ -90,12 +90,12 @@ const useEVMStore = create<EVMStore>()((set, get) => ({
       const result = await actions.callFunction(txData, get);
 
       // Record the action
-      actionRecorder.recordAction('CALL_FUNCTION', txData, result);
+      actionRecorder.recordAction("CALL_FUNCTION", txData, result);
       return result;
     } catch (e) {
       console.error(e);
       // Record failed action
-      actionRecorder.recordAction('CALL_FUNCTION', txData, { error: e });
+      actionRecorder.recordAction("CALL_FUNCTION", txData, { error: e });
     }
   },
 
@@ -120,7 +120,7 @@ const useEVMStore = create<EVMStore>()((set, get) => ({
     }
 
     // Record the action
-    actionRecorder.recordAction('REGISTER_ACCOUNT', actionPayload, result);
+    actionRecorder.recordAction("REGISTER_ACCOUNT", actionPayload, result);
   },
   initializeEVM: async () => {
     const currentState = get();

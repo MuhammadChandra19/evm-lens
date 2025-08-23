@@ -45,7 +45,9 @@ const useDeployContract = () => {
         constructorBytecode: payload.bytecodeAndAbi.constructorBytecode,
         ownerAddress: payload.contractConfiguration.ownerAddress,
         decimal: parseInt(payload.contractConfiguration.decimals),
-        initialOwnerBalance: BigInt(payload.contractConfiguration.initialOwnerBalance),
+        initialOwnerBalance: BigInt(
+          payload.contractConfiguration.initialOwnerBalance,
+        ),
         totalSupply: parseInt(payload.contractConfiguration.totalSupply),
         projectName: payload.contractConfiguration.projectName,
       });

@@ -32,7 +32,8 @@ const ContractEVMSetup = () => {
                 Smart Contract EVM Setup
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                Configure contract parameters and deploy to your local blockchain
+                Configure contract parameters and deploy to your local
+                blockchain
               </p>
             </CardHeader>
           </Card>
@@ -52,7 +53,7 @@ const ContractEVMSetup = () => {
                 type="submit"
                 size="sm"
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 shadow-sm hover:shadow-md transition-all duration-200"
-                onClick={() => submitActionRef.current = "publish"}
+                onClick={() => (submitActionRef.current = "publish")}
               >
                 <Play className="w-4 h-4 mr-2" />
                 Deploy & Explore

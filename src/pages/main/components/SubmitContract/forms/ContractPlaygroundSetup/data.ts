@@ -7,7 +7,7 @@ const DEFAULT_DATA: ContractEVMSchema = {
     decimals: "18",
     projectName: "",
     totalSupply: "1000000",
-    initialOwnerBalance: "10"
+    initialOwnerBalance: "10",
   },
   bytecodeAndAbi: {
     constructorBytecode:
