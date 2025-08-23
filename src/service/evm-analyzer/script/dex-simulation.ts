@@ -86,6 +86,7 @@ async function main() {
 
     const outputFile = path.join(__dirname, `execution-result-${Date.now()}.json`);
     const seen = new WeakSet();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cyclicReplacer = (key: string, value: any) => {
       // Handle BigInt
       if (typeof value === 'bigint') {

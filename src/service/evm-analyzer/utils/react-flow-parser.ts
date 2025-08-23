@@ -16,7 +16,7 @@ export interface NodeClickData {
 
 export interface FlowNode {
   id: string;
-  type: 'instruction' | 'jump' | 'jumpdest' | 'end';
+  nodeType: 'instruction' | 'jump' | 'jumpdest' | 'end';
   position: { x: number; y: number };
   data: {
     label: string;
@@ -50,7 +50,7 @@ export interface FlowEdge {
   id: string;
   source: string;
   target: string;
-  type?: 'default' | 'step' | 'jump' | 'revisit';
+  edgeType?: 'default' | 'step' | 'jump' | 'revisit';
   animated?: boolean;
   style?: {
     stroke?: string;
@@ -167,7 +167,7 @@ export class EVMFlowParser {
 
     return {
       id: `step-${stepIndex}`,
-      type: this.getNodeType(step.opcode.name),
+      nodeType: this.getNodeType(step.opcode.name),
       position,
       data: {
         label: this.getNodeLabel(step, visitCount),
@@ -198,7 +198,7 @@ export class EVMFlowParser {
       id: edgeId,
       source: sourceId,
       target: targetId,
-      type: edgeType,
+      edgeType: edgeType,
       style,
       animated: currentStep.opcode.name === 'JUMP' || currentStep.opcode.name === 'JUMPI',
       label: this.getEdgeLabel(currentStep, nextStep),
@@ -217,7 +217,7 @@ export class EVMFlowParser {
     return { x, y };
   }
 
-  private getNodeType(opcode: string): FlowNode['type'] {
+  private getNodeType(opcode: string): FlowNode['nodeType'] {
     switch (opcode) {
       case 'JUMP':
       case 'JUMPI':
@@ -324,7 +324,7 @@ export class EVMFlowParser {
     };
   }
 
-  private getEdgeType(currentStep: ExecutionStep, nextStep: ExecutionStep): FlowEdge['type'] {
+  private getEdgeType(currentStep: ExecutionStep, nextStep: ExecutionStep): FlowEdge['edgeType'] {
     if (currentStep.opcode.name === 'JUMP' || currentStep.opcode.name === 'JUMPI') {
       return 'jump';
     }

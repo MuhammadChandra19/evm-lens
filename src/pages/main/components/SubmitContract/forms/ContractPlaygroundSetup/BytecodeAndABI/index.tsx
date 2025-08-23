@@ -36,7 +36,7 @@ const BytecodeAndABI = () => {
                     <Textarea
                       {...field}
                       rows={4}
-                      className="font-mono text-xs mt-2"
+                      className="font-mono text-xs mt-2 max-h-72"
                     />
                   </FormControl>
                   <FormMessage />
@@ -59,7 +59,7 @@ const BytecodeAndABI = () => {
                     <Textarea
                       {...field}
                       rows={4}
-                      className="font-mono text-xs mt-2"
+                      className="font-mono text-xs mt-2 max-h-96"
                     />
                   </FormControl>
                   <FormMessage />

@@ -7,7 +7,7 @@ import EvmProviders from "./providers/EvmProviders";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <div className="bg-gradient-to-br from-slate-50 to-blue-50 h-screen">
+    <div className="bg-gradient-to-br from-slate-50 to-blue-50 h-full">
       <EvmProviders>
         <MainPage />
       </EvmProviders>

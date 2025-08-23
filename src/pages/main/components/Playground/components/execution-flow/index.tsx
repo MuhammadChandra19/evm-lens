@@ -43,23 +43,20 @@ const ExecutionFlow = () => {
 
   return (
     <div className="w-full space-y-4">
-      {/* ✅ Fixed Node Details Element Above React Flow */}
       {selectedNodeData ? (
         <div className="bg-white border rounded-lg p-4 shadow-sm">
           <div className="space-y-3">
-            {/* Header */}
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">{selectedNodeData.opcode}</h3>
-              <div className="flex gap-2">
-                <Badge variant="outline">PC: {selectedNodeData.pc}</Badge>
-                <Badge variant="secondary">Step: {selectedNodeData.stepIndex + 1}</Badge>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-semibold">{selectedNodeData.opcode}</h3>
+                <Badge variant="outline" className="text-xs">PC:{selectedNodeData.pc}</Badge>
+                <Badge variant="secondary" className="text-xs">#{selectedNodeData.stepIndex + 1}</Badge>
               </div>
-            </div>
-
-            <div className="text-sm text-muted-foreground">
-              Gas Left: {selectedNodeData.gasLeft.toString()} •
-              Gas Refund: {selectedNodeData.gasRefund.toString()} •
-              Depth: {selectedNodeData.depth}
+              <div className="text-xs text-muted-foreground">
+                Gas: {selectedNodeData.gasLeft.toString()} | 
+                Refund: {selectedNodeData.gasRefund.toString()} | 
+                Depth: {selectedNodeData.depth}
+              </div>
             </div>
 
             <Separator />
@@ -126,7 +123,6 @@ const ExecutionFlow = () => {
         </div>
       )}
 
-      {/* ✅ React Flow Container */}
       <div className="w-full h-[600px] border rounded-lg overflow-hidden">
         <ReactFlow
           nodes={nodes}
