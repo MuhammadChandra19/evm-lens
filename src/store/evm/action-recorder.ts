@@ -16,9 +16,8 @@ const ACTION_HISTORY_KEY = "evm-action-history";
  */
 export class ActionRecorder {
   private static instance: ActionRecorder;
-  private history: ActionHistory = {
+  history: ActionHistory = {
     snapshots: [],
-    lastReplayedIndex: -1,
   };
   private isReplaying = false;
 
@@ -36,7 +35,7 @@ export class ActionRecorder {
   /**
    * Record an action snapshot
    */
-  recordAction(type: ActionType, payload: unknown, result?: unknown): string {
+  recordAction(type: ActionType, payload: unknown): string {
     // Don't record actions during replay
     if (this.isReplaying) {
       return "";
@@ -47,7 +46,7 @@ export class ActionRecorder {
       type,
       timestamp: Date.now(),
       payload: this.serializePayload(payload),
-      result: result ? this.serializePayload(result) : undefined,
+      // result: result ? this.serializePayload(result) : undefined,
     };
 
     this.history.snapshots.push(snapshot);
@@ -65,30 +64,11 @@ export class ActionRecorder {
   }
 
   /**
-   * Get snapshots that haven't been replayed yet
-   */
-  getUnreplayedSnapshots(): ActionSnapshot[] {
-    return this.history.snapshots.slice(this.history.lastReplayedIndex + 1);
-  }
-
-  /**
-   * Mark snapshots as replayed up to a certain index
-   */
-  markReplayed(index: number): void {
-    this.history.lastReplayedIndex = Math.max(
-      this.history.lastReplayedIndex,
-      index,
-    );
-    this.saveHistory();
-  }
-
-  /**
    * Clear all action history
    */
   clearHistory(): void {
     this.history = {
       snapshots: [],
-      lastReplayedIndex: -1,
     };
     this.saveHistory();
     console.log("[ActionRecorder] Cleared action history");
@@ -112,7 +92,7 @@ export class ActionRecorder {
    * Get replayable actions for execution
    */
   getReplayableActions(): ReplayableAction[] {
-    return this.getUnreplayedSnapshots().map((snapshot) => ({
+    return this.getSnapshots().map((snapshot) => ({
       type: snapshot.type,
       payload: this.deserializePayload(snapshot.payload),
       execute: this.getActionExecutor(snapshot.type),
@@ -135,7 +115,6 @@ export class ActionRecorder {
       console.warn("[ActionRecorder] Failed to load action history:", error);
       this.history = {
         snapshots: [],
-        lastReplayedIndex: -1,
       };
     }
   }
@@ -152,30 +131,16 @@ export class ActionRecorder {
   }
 
   /**
-   * Serialize payload for storage (handle Address and BigInt types)
+   * Serialize payload for storage (only handle BigInt automatically, Address should be manually formatted)
    */
   private serializePayload(payload: unknown): unknown {
     if (!payload) return payload;
 
     return JSON.parse(
       JSON.stringify(payload, (_key, value) => {
-        // Handle Address objects
-        if (
-          value &&
-          typeof value === "object" &&
-          value.constructor?.name === "Address"
-        ) {
-          return {
-            __type: "Address",
-            value: value.toString(),
-          };
-        }
-        // Handle BigInt
+        // Only handle BigInt automatically since it can't be JSON serialized
         if (typeof value === "bigint") {
-          return {
-            __type: "BigInt",
-            value: value.toString(),
-          };
+          return [value.toString(), "BigInt"];
         }
         return value;
       }),
@@ -183,23 +148,34 @@ export class ActionRecorder {
   }
 
   /**
-   * Deserialize payload from storage (restore Address and BigInt types)
+   * Deserialize payload from storage (restore types from [stringified_value, original_type] format)
    */
   private deserializePayload(payload: unknown): unknown {
     if (!payload) return payload;
 
     return JSON.parse(JSON.stringify(payload), (_key, value) => {
-      if (value && typeof value === "object") {
-        // Restore Address objects
-        if (value.__type === "Address") {
-          const addrStr = value.value.startsWith("0x")
-            ? value.value.slice(2)
-            : value.value;
-          return new Address(Buffer.from(addrStr, "hex"));
-        }
-        // Restore BigInt
-        if (value.__type === "BigInt") {
-          return BigInt(value.value);
+      // Check if value is in our serialized format [stringified_value, original_type]
+      if (
+        Array.isArray(value) &&
+        value.length === 2 &&
+        typeof value[1] === "string"
+      ) {
+        const [stringifiedValue, originalType] = value;
+
+        switch (originalType) {
+          case "Address": {
+            const addrStr = stringifiedValue.startsWith("0x")
+              ? stringifiedValue.slice(2)
+              : stringifiedValue;
+            return new Address(Buffer.from(addrStr, "hex"));
+          }
+
+          case "BigInt":
+            return BigInt(stringifiedValue);
+
+          default:
+            // For other types, return the stringified value as-is
+            return stringifiedValue;
         }
       }
       return value;

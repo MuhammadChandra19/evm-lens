@@ -29,7 +29,7 @@ const useEVMStore = create<EVMStore>()((set, get) => ({
     const addressType = new Address(Buffer.from(fixAddress, "hex"));
     const result = await actions.createAccount(addressType, get);
     if (!result) {
-      actionRecorder.recordAction("CREATE_ACCOUNT", actionPayload, null);
+      actionRecorder.recordAction("CREATE_ACCOUNT", actionPayload);
       return null;
     }
     const accounts: Record<string, AccountInfo> = get().accounts || {};
@@ -47,12 +47,12 @@ const useEVMStore = create<EVMStore>()((set, get) => ({
     });
 
     // Record successful action
-    actionRecorder.recordAction("CREATE_ACCOUNT", actionPayload, result);
+    actionRecorder.recordAction("CREATE_ACCOUNT", actionPayload);
     return result;
   },
   fundAccount: async (address: Address, balance: bigint) => {
-    // Record the action
-    const actionPayload = { address, balance };
+    // Record the action (manually format Address as array)
+    const actionPayload = { address: [address.toString(), "Address"], balance };
 
     const parsedBalance = balance * BigInt(10 ** ETH_DECIMAL);
     const accounts = get().accounts!;
@@ -73,7 +73,7 @@ const useEVMStore = create<EVMStore>()((set, get) => ({
     }
 
     // Record the action
-    actionRecorder.recordAction("FUND_ACCOUNT", actionPayload, result);
+    actionRecorder.recordAction("FUND_ACCOUNT", actionPayload);
     return result;
   },
 
@@ -81,7 +81,7 @@ const useEVMStore = create<EVMStore>()((set, get) => ({
     const result = await actions.deployContractToEVM(payload, set, get);
 
     // Record the action
-    actionRecorder.recordAction("DEPLOY_CONTRACT", payload, result);
+    actionRecorder.recordAction("DEPLOY_CONTRACT", payload);
     return result;
   },
 
@@ -89,19 +89,24 @@ const useEVMStore = create<EVMStore>()((set, get) => ({
     try {
       const result = await actions.callFunction(txData, get);
 
-      // Record the action
-      actionRecorder.recordAction("CALL_FUNCTION", txData, result);
+      // Record the action (manually format Address as array)
+      if (txData.func.stateMutability !== "view") {
+        const actionPayload = {
+          ...txData,
+          executorAddres: [txData.executorAddres.toString(), "Address"],
+        };
+        actionRecorder.recordAction("CALL_FUNCTION", actionPayload);
+      }
+
       return result;
     } catch (e) {
       console.error(e);
-      // Record failed action
-      actionRecorder.recordAction("CALL_FUNCTION", txData, { error: e });
     }
   },
 
   registerAccount: async (address: Address) => {
-    // Record the action
-    const actionPayload = { address };
+    // Record the action (manually format Address as array)
+    const actionPayload = { address: [address.toString(), "Address"] };
 
     const result = await actions.createAccount(address, get);
     if (result) {
@@ -120,7 +125,7 @@ const useEVMStore = create<EVMStore>()((set, get) => ({
     }
 
     // Record the action
-    actionRecorder.recordAction("REGISTER_ACCOUNT", actionPayload, result);
+    actionRecorder.recordAction("REGISTER_ACCOUNT", actionPayload);
   },
   initializeEVM: async () => {
     const currentState = get();
@@ -137,6 +142,6 @@ const useEVMStore = create<EVMStore>()((set, get) => ({
   },
 }));
 
-// EVM restoration is now handled by deserializeEVM in serializers.ts
+// EVM state is now managed through action replay system
 
 export default useEVMStore;

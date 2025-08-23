@@ -11,6 +11,7 @@ const useService = () => {
   const replayActions = useCallback(async () => {
     try {
       const actionRecorder = ActionRecorder.getInstance();
+      console.log(actionRecorder.history);
       const replayableActions = actionRecorder.getReplayableActions();
 
       if (replayableActions.length === 0) {
@@ -41,13 +42,6 @@ const useService = () => {
               `[EvmProviders] Successfully replayed action: ${action.type}`,
               result,
             );
-
-            // Mark this action as replayed
-            actionRecorder.markReplayed(
-              actionRecorder.getSnapshots().length -
-                replayableActions.length +
-                i,
-            );
           } catch (error) {
             console.error(
               `[EvmProviders] Failed to replay action: ${action.type}`,
@@ -65,7 +59,8 @@ const useService = () => {
     } catch (error) {
       console.error("[EvmProviders] Failed to replay actions:", error);
     }
-  }, [evmStore]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -79,7 +74,8 @@ const useService = () => {
       await replayActions();
       setIsReplayComplete(true);
     })();
-  }, [evmStore, replayActions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return {
     // EVM basics

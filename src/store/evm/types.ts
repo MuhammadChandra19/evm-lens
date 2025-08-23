@@ -91,12 +91,11 @@ export type ActionSnapshot = {
   type: ActionType;
   timestamp: number;
   payload: unknown;
-  result?: unknown;
+  // result?: unknown;
 };
 
 export type ActionHistory = {
   snapshots: ActionSnapshot[];
-  lastReplayedIndex: number;
 };
 
 export type ReplayableAction = {
