@@ -49,7 +49,7 @@ const useEVMStore = create<EVMStore>()((set, get) => ({
     const accounts = get().accounts!;
     const currentAccount = accounts[address.toString()];
     const newBalance = currentAccount.balance + parsedBalance;
-    const result = await actions.fundAccount(address, newBalance, get, actionRecorder, shouldRecord);
+    const result = await actions.fundAccount(address, newBalance, get, actionRecorder, shouldRecord, balance);
 
     if (result.success) {
       set((state) => ({
@@ -74,14 +74,28 @@ const useEVMStore = create<EVMStore>()((set, get) => ({
   callFunction: async (txData: TxData, shouldRecord: boolean = true) => {
     try {
       const result = await actions.callFunction(txData, get, actionRecorder, shouldRecord);
+
+      if(result && !result.success) {
+        return result
+      }
+      const account = await actions.getAccount(txData.executorAddres, get)
+      console.log(account)
+      if(account) {
+        set((state) => ({
+          accounts: {
+            ...state.accounts,
+            [txData.executorAddres.toString()]: account
+          }
+        }))
+      }
       return result;
     } catch (e) {
       console.error(e);
     }
   },
 
-  registerAccount: async (address: Address, shouldRecord: boolean = true) => {
-    const result = await actions.registerAccount(address, get, actionRecorder, shouldRecord);
+  registerAccount: async (address: Address) => {
+    const result = await actions.registerAccount(address, get, actionRecorder);
     if (result) {
       const accounts = get().accounts || {};
 

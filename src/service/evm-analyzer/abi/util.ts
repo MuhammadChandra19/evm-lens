@@ -98,7 +98,7 @@ export const generateFunctionHash = (func: AbiFunction | ABIEvent): string => {
 export const generateInputHash = (
   func: AbiFunction | ABIEvent,
   args: string[],
-  decimals?: number,
+  decimals: number = 0,
 ): string => {
   let result = "";
 
@@ -124,12 +124,9 @@ export const generateInputHash = (
       // Check if it's a parseable number
       try {
         const num = BigInt(value);
-        // Only apply decimals if the number seems "small" (not already scaled)
-        if (value.length <= 10) {
-          // Rough heuristic: if less than 10 digits, probably not scaled
-          const scaledValue = num * BigInt(10 ** decimals);
-          value = scaledValue.toString();
-        }
+        const scaledValue = num * BigInt(10 ** decimals);
+        value = scaledValue.toString();
+        
       } catch {
         // If not parseable as BigInt, use as-is
       }

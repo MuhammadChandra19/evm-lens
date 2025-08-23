@@ -17,11 +17,11 @@ export const deployContractToEVM = async (
   if (!evm) return null;
 
   const owner = new Address(Buffer.from(payload.ownerAddress.slice(2), 'hex'));
-  const ownerAddress = await createAccount(owner, get);
+  const ownerAddress = await createAccount(owner, get, actionRecorder);
   if (!ownerAddress) return null;
 
   const contract = new Address(Buffer.from(payload.contractAddress.slice(2), 'hex'));
-  const contractAddress = await createAccount(contract, get);
+  const contractAddress = await createAccount(contract, get, actionRecorder);
   if (!contractAddress) return null;
 
   const res = await evm.deployContract(ownerAddress, payload.constructorBytecode, contractAddress);
@@ -29,7 +29,7 @@ export const deployContractToEVM = async (
 
   // Fund the owner account
   const parsedBalance = payload.initialOwnerBalance * BigInt(10 ** ETH_DECIMAL);
-  await fundAccount(ownerAddress, parsedBalance, get);
+  await fundAccount(ownerAddress, parsedBalance, get, actionRecorder);
 
   const ownerAccountInfo = await evm.getAccountInfo(ownerAddress);
   const contractAccountInfo = await evm.getAccountInfo(contractAddress);
@@ -89,6 +89,10 @@ export const callFunction = async (tx: TxData, get: () => EVMState, actionRecord
       }
     );
 
+    if(!result.success) {
+      return result
+    }
+
     // Record the action only for state-changing functions (not view functions)
     if (shouldRecord && tx.func.stateMutability !== 'view') {
       const actionPayload = {
@@ -105,13 +109,13 @@ export const callFunction = async (tx: TxData, get: () => EVMState, actionRecord
   }
 };
 
-export const createAccount = async (address: Address, get: () => EVMState, actionRecorder?: ActionRecorder, shouldRecord: boolean = true) => {
+export const createAccount = async (address: Address, get: () => EVMState, actionRecorder: ActionRecorder, shouldRecord: boolean = true) => {
   const evm = get().evm;
   if (!evm) return null;
   const account = await evm.createAccount(address);
 
   // Record the action if actionRecorder is provided (for direct calls, not internal calls)
-  if (actionRecorder && account && shouldRecord) {
+  if (account && shouldRecord) {
     const actionPayload = { address: address.toString() };
     actionRecorder.recordAction('CREATE_ACCOUNT', actionPayload);
   }
@@ -119,7 +123,7 @@ export const createAccount = async (address: Address, get: () => EVMState, actio
   return account;
 };
 
-export const fundAccount = async (address: Address, balance: bigint, get: () => EVMState, actionRecorder?: ActionRecorder, shouldRecord: boolean = true) => {
+export const fundAccount = async (address: Address, balance: bigint, get: () => EVMState, actionRecorder: ActionRecorder, shouldRecord: boolean = true, recordAmount?: bigint) => {
   const evm = get().evm;
   if (!evm) return { success: false, error: ERRORS.EVM_NOT_INITIALIZED };
   try {
@@ -127,10 +131,10 @@ export const fundAccount = async (address: Address, balance: bigint, get: () => 
     const result = { success: true, error: null };
 
     // Record the action if actionRecorder is provided (for direct calls, not internal calls)
-    if (actionRecorder && shouldRecord) {
+    if (shouldRecord) {
       const actionPayload = {
         address: [address.toString(), 'Address'],
-        balance,
+        balance: recordAmount !== undefined ? recordAmount : balance,
       };
       actionRecorder.recordAction('FUND_ACCOUNT', actionPayload);
     }
@@ -143,7 +147,7 @@ export const fundAccount = async (address: Address, balance: bigint, get: () => 
 };
 
 export const registerAccount = async (address: Address, get: () => EVMState, actionRecorder: ActionRecorder, shouldRecord: boolean = true) => {
-  const result = await createAccount(address, get);
+  const result = await createAccount(address, get, actionRecorder);
 
   // Record the action with detailed context
   if (result && shouldRecord) {
@@ -156,7 +160,7 @@ export const registerAccount = async (address: Address, get: () => EVMState, act
 
 export const getAccount = async (address: Address, get: () => EVMState) => {
   const evm = get().evm;
-  if (!evm) return { success: false, error: ERRORS.EVM_NOT_INITIALIZED };
+  if (!evm) return null;
   try {
     const res = await evm.getAccountInfo(address);
     return res;
