@@ -39,4 +39,6 @@ export type ResultHistory = {
   functionDefinitions: ActiveFunction;
   executedAt: string;
   executionFlow: FlowData;
+  hasOutput: boolean
+  result: string
 };

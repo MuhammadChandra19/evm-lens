@@ -9,7 +9,7 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { AnimatedSVGEdge } from "./animated-edges";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { NodeClickData } from "@/service/evm-analyzer/utils/react-flow-parser";
@@ -53,27 +53,36 @@ const ExecutionFlow = ({ lastExecutionResult }: Props) => {
     }));
   };
 
+  const activeNodeData = useMemo(() => selectedNodeData ? selectedNodeData : nodes[nodes.length - 1].data.clickData, [nodes, selectedNodeData])
+
   return (
     <div className="w-full space-y-4">
-      {selectedNodeData ? (
+      {activeNodeData ? (
         <div className="bg-white border rounded-lg p-4 shadow-sm">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-semibold">
-                  {selectedNodeData.opcode}
+                  {activeNodeData.opcode}
                 </h3>
                 <Badge variant="outline" className="text-xs">
-                  PC:{selectedNodeData.pc}
+                  PC:{activeNodeData.pc}
                 </Badge>
                 <Badge variant="secondary" className="text-xs">
-                  #{selectedNodeData.stepIndex + 1}
+                  #{activeNodeData.stepIndex + 1}
                 </Badge>
               </div>
+              {
+                lastExecutionResult.hasOutput && (
+                  <Badge variant="outline">
+                    Return result: {lastExecutionResult.result}
+                  </Badge>
+                )
+              }
               <div className="text-xs text-muted-foreground">
-                Gas: {selectedNodeData.gasLeft.toString()} | Refund:{" "}
-                {selectedNodeData.gasRefund.toString()} | Depth:{" "}
-                {selectedNodeData.depth}
+                Gas: {activeNodeData.gasLeft.toString()} | Refund:{" "}
+                {activeNodeData.gasRefund.toString()} | Depth:{" "}
+                {activeNodeData.depth}
               </div>
             </div>
 
@@ -85,12 +94,12 @@ const ExecutionFlow = ({ lastExecutionResult }: Props) => {
                 <div className="flex items-center gap-2 mb-2">
                   <h4 className="font-medium">Stack</h4>
                   <Badge variant="secondary">
-                    {selectedNodeData.stack.length}
+                    {activeNodeData.stack.length}
                   </Badge>
                 </div>
-                {selectedNodeData.stack.length > 0 ? (
+                {activeNodeData.stack.length > 0 ? (
                   <div className="bg-slate-50 rounded p-3 font-mono text-xs space-y-1 max-h-40 overflow-auto">
-                    {formatStack(selectedNodeData.stack).map(
+                    {formatStack(activeNodeData.stack).map(
                       ({ value, index }) => (
                         <div key={index} className="flex justify-between">
                           <span className="text-slate-500">[{index}]:</span>
@@ -109,12 +118,12 @@ const ExecutionFlow = ({ lastExecutionResult }: Props) => {
                 <div className="flex items-center gap-2 mb-2">
                   <h4 className="font-medium">Memory</h4>
                   <Badge variant="secondary">
-                    {selectedNodeData.memory.length}b
+                    {activeNodeData.memory.length}b
                   </Badge>
                 </div>
                 <div className="bg-slate-50 rounded p-3 font-mono text-xs max-h-40 overflow-auto">
                   <pre className="whitespace-pre-wrap text-green-600">
-                    {formatMemory(selectedNodeData.memory)}
+                    {formatMemory(activeNodeData.memory)}
                   </pre>
                 </div>
               </div>
@@ -124,12 +133,12 @@ const ExecutionFlow = ({ lastExecutionResult }: Props) => {
                 <div className="flex items-center gap-2 mb-2">
                   <h4 className="font-medium">Storage</h4>
                   <Badge variant="secondary">
-                    {selectedNodeData.storage.length}
+                    {activeNodeData.storage.length}
                   </Badge>
                 </div>
-                {selectedNodeData.storage.length > 0 ? (
+                {activeNodeData.storage.length > 0 ? (
                   <div className="bg-slate-50 rounded p-3 space-y-2 max-h-40 overflow-auto">
-                    {selectedNodeData.storage.map(([key, value], index) => (
+                    {activeNodeData.storage.map(([key, value], index) => (
                       <div key={index} className="font-mono text-xs">
                         <div className="text-slate-500">
                           Key: <span className="text-purple-600">{key}</span>
