@@ -221,6 +221,7 @@ async function main() {
     const swapEthFunc = abi.getFunction("swapEthForTokens");
     if (swapEthFunc) {
       const data = generateFunctionHash(swapEthFunc);
+      console.log(data, user1Addr.toString())
       const result = await analyzer.callContract({
         from: user1Addr,
         to: contractAddr,

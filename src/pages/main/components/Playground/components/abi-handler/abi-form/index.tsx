@@ -24,8 +24,12 @@ const AbiForm = () => {
     handleChange,
     errors,
     handleSubmit,
-    accounts,
+    accountList,
     handleSelectAccount,
+    ethError,
+    ethAmount,
+    setEthAmount,
+    isPayable
   } = useAbiForm();
 
   return (
@@ -43,7 +47,7 @@ const AbiForm = () => {
               <SelectValue placeholder="Theme" />
             </SelectTrigger>
             <SelectContent>
-              {accounts.map((v) => (
+              {accountList.map((v) => (
                 <SelectItem
                   key={v.address.toString()}
                   value={v.address.toString()}
@@ -69,6 +73,18 @@ const AbiForm = () => {
               </div>
             );
           })}
+          {isPayable && (
+            <div className="w-full space-y-2">
+              <Label>Eth Amount</Label>
+              <Input
+                placeholder={getPlaceholderForType("uint", "ETH")}
+                name="ethAmount"
+                value={ethAmount}
+                onChange={(e) => setEthAmount(e.target.value)}
+              />
+              {ethError &&  <p className="text-sm text-red-500">{ethError}</p>}
+            </div>
+          )}
           <Button
             size="lg"
             className="w-full cursor-pointer"

@@ -96,7 +96,7 @@ export const callFunction = async (
       tx.type === "function" &&
       (tx.func as AbiFunction).stateMutability === "payable"
     ) {
-      ethAmount = tx.ethAmount;
+      ethAmount = tx.ethAmount * BigInt(10 ** get().decimals);
     }
     const result = await evm.callContract(
       {

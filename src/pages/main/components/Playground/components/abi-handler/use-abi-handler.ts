@@ -2,7 +2,7 @@ import { Address } from "@ethereumjs/util";
 import useEVMStore from "@/store/evm";
 import usePlaygroundStore from "@/store/playground";
 import { FunctionCallForm } from "@/store/playground/types";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { parseEVMStepsToFlow } from "@/service/evm-analyzer/utils/react-flow-parser";
 
@@ -11,9 +11,8 @@ const useAbiHandler = () => {
   const activeFunction = usePlaygroundStore((store) => store.activeFunction);
   const saveExecutionResult = usePlaygroundStore((store) => store.saveResult);
 
-  const getAccounts = useEVMStore((store) => store.getAccounts);
+  const accounts = useEVMStore((store) => store.accounts);
   const callFunction = useEVMStore((store) => store.callFunction);
-  const decimals = useEVMStore((store) => store.decimals);
 
   const cleanupArgs = (data: FunctionCallForm) => {
     const args: string[] = [];
@@ -31,10 +30,9 @@ const useAbiHandler = () => {
   ) => {
     try {
       setExecuting(true);
-
       const res = await callFunction({
         args: cleanupArgs(data),
-        ethAmount: BigInt(ethAmount) * BigInt(10 ** decimals),
+        ethAmount: BigInt(ethAmount),
         executorAddres: executor,
         func: activeFunction!.func,
         gasLimit: 3000000,
@@ -52,8 +50,6 @@ const useAbiHandler = () => {
         });
       }
 
-      console.log(res.steps);
-
       const flowData = parseEVMStepsToFlow(res?.steps);
       saveExecutionResult({
         executedAt: Date.now().toString(),
@@ -70,11 +66,13 @@ const useAbiHandler = () => {
     }
   };
 
+  const accountList = useMemo(() => Object.values(accounts!).map(v => v), [accounts])
+
   return {
     activeFunction,
     handleExecute,
     executing,
-    getAccounts,
+    accountList,
   };
 };
 
