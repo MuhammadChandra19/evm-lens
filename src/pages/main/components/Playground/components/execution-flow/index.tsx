@@ -53,7 +53,17 @@ const ExecutionFlow = ({ lastExecutionResult }: Props) => {
     }));
   };
 
-  const activeNodeData = useMemo(() => selectedNodeData ? selectedNodeData : nodes[nodes.length - 1].data.clickData, [nodes, selectedNodeData])
+  const activeNodeData = useMemo(() => {
+    if(selectedNodeData) {
+      return selectedNodeData
+    }
+
+    if(nodes[nodes.length - 1].data) {
+      return nodes[nodes.length - 1].data.clickData
+    }
+
+    return undefined
+  }, [nodes, selectedNodeData])
 
   return (
     <div className="w-full space-y-4">

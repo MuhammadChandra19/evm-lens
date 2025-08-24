@@ -27,7 +27,7 @@ const usePlaygroundStore = create<PlaygroundStore>()(
     saveResult: (history: ResultHistory) => {
       const currentHistory = get().history;
       set({
-        history: [...currentHistory, history],
+        history: [history, ...currentHistory],
       });
     },
     getFunctionLastResult: (functionName: string) => {
