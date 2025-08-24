@@ -2,6 +2,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -33,18 +34,18 @@ const AbiForm = () => {
   } = useAbiForm();
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="flex flex-col h-96">
+      <CardHeader className="flex-shrink-0">
         <CardTitle>Function</CardTitle>
         <CardDescription>
           <span>Function: {activeFunction!.func.name}</span>
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-grow overflow-auto">
         <div className="flex flex-col gap-4">
           <Select onValueChange={handleSelectAccount}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Theme" />
+              <SelectValue placeholder="Select Account" />
             </SelectTrigger>
             <SelectContent>
               {accountList.map((v) => (
@@ -82,19 +83,21 @@ const AbiForm = () => {
                 value={ethAmount}
                 onChange={(e) => setEthAmount(e.target.value)}
               />
-              {ethError &&  <p className="text-sm text-red-500">{ethError}</p>}
+              {ethError && <p className="text-sm text-red-500">{ethError}</p>}
             </div>
           )}
-          <Button
-            size="lg"
-            className="w-full cursor-pointer"
-            variant="outline"
-            onClick={handleSubmit}
-          >
-            ⚡️ Execute
-          </Button>
         </div>
       </CardContent>
+      <CardFooter className="flex-shrink-0 mt-auto">
+        <Button
+          size="lg"
+          className="w-full cursor-pointer"
+          variant="outline"
+          onClick={handleSubmit}
+        >
+          ⚡️ Execute
+        </Button>
+      </CardFooter>
     </Card>
   );
 };
