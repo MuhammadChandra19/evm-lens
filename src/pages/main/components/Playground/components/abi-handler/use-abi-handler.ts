@@ -50,7 +50,7 @@ const useAbiHandler = () => {
         });
       }
 
-      const flowData = parseEVMStepsToFlow(res?.steps);
+      const flowData = parseEVMStepsToFlow(res?.steps, (v) => console.log(v));
       saveExecutionResult({
         executedAt: Date.now().toString(),
         executionFlow: flowData,
