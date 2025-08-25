@@ -7,8 +7,10 @@ import { toast } from "sonner";
 import { ERRORS } from "@/store/evm/errors";
 import { AbiValidator } from "@/service/evm-analyzer/abi";
 import { Abi } from "@/service/evm-analyzer/abi/types";
+import useService from '@/providers/EvmProviders/useService';
 
 const useDeployContract = () => {
+  const { createNewProject } = useService();
   const deployContract = useEVMStore((store) => store.deployContractToEVM);
   const method = useForm<ContractEVMSchema>({
     resolver: zodResolver(contractEVMSchema),
@@ -61,6 +63,7 @@ const useDeployContract = () => {
       }
 
       if (res.success) {
+        createNewProject(payload.contractConfiguration.projectName)
         toast.success("Contract Deployed");
         return;
       }

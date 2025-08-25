@@ -8,18 +8,22 @@ import { ETH_DECIMAL } from '@/lib/constants';
 import ActionRecorder from './action-recorder';
 
 const initialState: EVMState = {
+  actionRecorder: ActionRecorder.getInstance(""),
   constructorBytecode: '',
   abi: {} as Abi,
   totalSupply: BigInt(0),
   decimals: 18,
 };
 
-// Get the action recorder instance
-const actionRecorder = ActionRecorder.getInstance();
 
 const useEVMStore = create<EVMStore>()((set, get) => ({
   ...initialState,
 
+  setActionRecorder: (actionRecorder: ActionRecorder) => {
+    set({
+      actionRecorder
+    })
+  },
   getAccounts: () => {
     const accounts = get().accounts || {};
     return Object.values(accounts).filter((v) => !v.isContract && v.address.toString());
@@ -29,7 +33,7 @@ const useEVMStore = create<EVMStore>()((set, get) => ({
   createAccount: async (address: string, shouldRecord: boolean = true) => {
     const fixAddress = address.startsWith('0x') ? address.slice(2) : address;
     const addressType = new Address(Buffer.from(fixAddress, 'hex'));
-    const result = await actions.createAccount(addressType, get, actionRecorder, shouldRecord);
+    const result = await actions.createAccount(addressType, get, shouldRecord);
     if (!result) {
       return null;
     }
@@ -54,7 +58,7 @@ const useEVMStore = create<EVMStore>()((set, get) => ({
     const accounts = get().accounts!;
     const currentAccount = accounts[address.toString()];
     const newBalance = currentAccount.balance + parsedBalance;
-    const result = await actions.fundAccount(address, newBalance, get, actionRecorder, shouldRecord, balance);
+    const result = await actions.fundAccount(address, newBalance, get, shouldRecord, balance);
 
     if (result.success) {
       set((state) => ({
@@ -72,13 +76,13 @@ const useEVMStore = create<EVMStore>()((set, get) => ({
   },
 
   deployContractToEVM: async (payload: CreateNewEVMPayload, shouldRecord: boolean = true) => {
-    const result = await actions.deployContractToEVM(payload, set, get, actionRecorder, shouldRecord);
+    const result = await actions.deployContractToEVM(payload, set, get, shouldRecord);
     return result;
   },
 
   callFunction: async (txData: TxData, shouldRecord: boolean = true) => {
     try {
-      const result = await actions.callFunction(txData, get, actionRecorder, shouldRecord);
+      const result = await actions.callFunction(txData, get, shouldRecord);
 
       if (result && !result.success) {
         return result;
@@ -99,7 +103,7 @@ const useEVMStore = create<EVMStore>()((set, get) => ({
   },
 
   registerAccount: async (address: Address) => {
-    const result = await actions.registerAccount(address, get, actionRecorder);
+    const result = await actions.registerAccount(address, get);
     if (result) {
       const accounts = get().accounts || {};
 
@@ -123,10 +127,10 @@ const useEVMStore = create<EVMStore>()((set, get) => ({
     }
   },
   getActionHistory: () => {
-    return actionRecorder.getSnapshots();
+    return get().actionRecorder.getSnapshots();
   },
   clearActionHistory: () => {
-    actionRecorder.clearHistory();
+    get().actionRecorder.clearHistory();
   },
 }));
 
