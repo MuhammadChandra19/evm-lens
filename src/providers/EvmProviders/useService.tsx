@@ -2,15 +2,23 @@ import EVMAnalyzer from "@/service/evm-analyzer";
 import { useEffect, useRef, useState, useCallback } from "react";
 import ActionRecorder from "@/store/evm/action-recorder";
 import useEVMStore from "@/store/evm";
+import { PlaygroundStorage, Project } from './types';
+import { toast } from 'sonner';
+
+const PLAYGROUNDS = "evm-lens-playground"
 
 const useService = () => {
   const evmRef = useRef<EVMAnalyzer | null>(null);
   const [isReplayComplete, setIsReplayComplete] = useState(false);
+  const [projects, setProjects] = useState<Project[]>([])
+  const [activeProject, setActiveProject] = useState<Project>(projects[0])
+
   const evmStore = useEVMStore();
 
-  const replayActions = useCallback(async () => {
+  const replayActions = useCallback(async (project: string) => {
     try {
-      const actionRecorder = ActionRecorder.getInstance();
+      const actionRecorder = ActionRecorder.getInstance(project);
+      evmStore.setActionRecorder(actionRecorder)
       const replayableActions = actionRecorder.getReplayableActions();
 
       if (replayableActions.length === 0) {
@@ -61,6 +69,56 @@ const useService = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+
+  const loadActiveProjects = () => {
+    const stored = localStorage.getItem(PLAYGROUNDS);
+    if(stored) {
+      const playgroundStorage = JSON.parse(stored) as PlaygroundStorage
+      setProjects(playgroundStorage.projects)
+      setActiveProject(playgroundStorage.lastActive)
+
+      return playgroundStorage.lastActive.id
+    }
+    return ""
+  }
+
+  const switchProject = (project: string) => {
+    const selectedProject = projects.find(p => p.id === project)
+    if(selectedProject) {
+      const lastActive = selectedProject
+      const playground: PlaygroundStorage = {
+        lastActive,
+        projects
+      }
+
+      localStorage.setItem(PLAYGROUNDS, JSON.stringify(playground))
+      window.location.href = "/"
+    } else {
+      toast.error("no project found")
+    }
+  }
+
+  /**
+   * Will create new project
+   * @param projectName string
+   */
+  const createNewProject = (projectName: string) => {
+    const project: Project = {
+      createdAt: new Date().toISOString(),
+      id: crypto.randomUUID(),
+      name: projectName
+    }
+
+    const newProjects = [...projects, project]
+    const playground: PlaygroundStorage = {
+      lastActive: activeProject,
+      projects: newProjects
+    }
+    setProjects(newProjects)
+    localStorage.setItem(PLAYGROUNDS, JSON.stringify(playground))
+
+  }
+
   useEffect(() => {
     (async () => {
       const evm = await EVMAnalyzer.create();
@@ -69,8 +127,9 @@ const useService = () => {
       // Initialize EVM in store
       await evmStore.initializeEVM();
 
+      const activeProject = loadActiveProjects()
       // Replay actions if any exist
-      await replayActions();
+      await replayActions(activeProject);
       setIsReplayComplete(true);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -81,6 +140,9 @@ const useService = () => {
     evm: evmRef.current,
     isReplayComplete,
     replayActions,
+    projects,
+    switchProject,
+    createNewProject
   };
 };
 

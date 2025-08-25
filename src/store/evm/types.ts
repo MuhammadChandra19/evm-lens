@@ -14,8 +14,10 @@ import {
   AccountInfo,
 } from "@/service/evm-analyzer/types";
 import { Address } from "@ethereumjs/util";
+import ActionRecorder from './action-recorder';
 
 export type EVMState = {
+  actionRecorder: ActionRecorder;
   contractAddress?: Address;
   constructorBytecode: string;
   abi: Abi;
@@ -50,6 +52,7 @@ export type TxData = {
 };
 
 export type EVMAction = {
+  setActionRecorder: (actionRecorder: ActionRecorder) => void;
   getAccounts: () => AccountInfo[];
 
   deployContractToEVM: (

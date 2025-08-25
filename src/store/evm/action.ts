@@ -13,27 +13,26 @@ import {
 import { Address } from "@/service/evm-analyzer/utils/address";
 import { AccountInfo } from "@/service/evm-analyzer";
 import { ETH_DECIMAL } from "@/lib/constants";
-import ActionRecorder from "./action-recorder";
 import { AbiFunction } from "@/service/evm-analyzer/abi/types";
 
 export const deployContractToEVM = async (
   payload: CreateNewEVMPayload,
   set: (partial: Partial<EVMState>) => void,
   get: () => EVMState,
-  actionRecorder: ActionRecorder,
   shouldRecord: boolean = true,
 ): Promise<ContractDeploymentResult | null> => {
+  const actionRecorder = get().actionRecorder
   const evm = get().evm;
   if (!evm) return null;
 
   const owner = new Address(Buffer.from(payload.ownerAddress.slice(2), "hex"));
-  const ownerAddress = await createAccount(owner, get, actionRecorder);
+  const ownerAddress = await createAccount(owner, get);
   if (!ownerAddress) return null;
 
   const contract = new Address(
     Buffer.from(payload.contractAddress.slice(2), "hex"),
   );
-  const contractAddress = await createAccount(contract, get, actionRecorder);
+  const contractAddress = await createAccount(contract, get);
   if (!contractAddress) return null;
 
   const res = await evm.deployContract(
@@ -45,7 +44,7 @@ export const deployContractToEVM = async (
 
   // Fund the owner account
   const parsedBalance = payload.initialOwnerBalance * BigInt(10 ** ETH_DECIMAL);
-  await fundAccount(ownerAddress, parsedBalance, get, actionRecorder);
+  await fundAccount(ownerAddress, parsedBalance, get);
 
   const ownerAccountInfo = await evm.getAccountInfo(ownerAddress);
   const contractAccountInfo = await evm.getAccountInfo(contractAddress);
@@ -78,10 +77,10 @@ export const deployContractToEVM = async (
 export const callFunction = async (
   tx: TxData,
   get: () => EVMState,
-  actionRecorder: ActionRecorder,
   shouldRecord: boolean = true,
 ): Promise<ExecutionResult> => {
   try {
+    const actionRecorder = get().actionRecorder
     const evm = get().evm;
     if (!evm) return null;
 
@@ -140,9 +139,9 @@ export const callFunction = async (
 export const createAccount = async (
   address: Address,
   get: () => EVMState,
-  actionRecorder: ActionRecorder,
   shouldRecord: boolean = true,
 ) => {
+  const actionRecorder = get().actionRecorder
   const evm = get().evm;
   if (!evm) return null;
   const account = await evm.createAccount(address);
@@ -160,10 +159,10 @@ export const fundAccount = async (
   address: Address,
   balance: bigint,
   get: () => EVMState,
-  actionRecorder: ActionRecorder,
   shouldRecord: boolean = true,
   recordAmount?: bigint,
 ) => {
+  const actionRecorder = get().actionRecorder
   const evm = get().evm;
   if (!evm) return { success: false, error: ERRORS.EVM_NOT_INITIALIZED };
   try {
@@ -189,10 +188,10 @@ export const fundAccount = async (
 export const registerAccount = async (
   address: Address,
   get: () => EVMState,
-  actionRecorder: ActionRecorder,
   shouldRecord: boolean = true,
 ) => {
-  const result = await createAccount(address, get, actionRecorder);
+  const actionRecorder = get().actionRecorder
+  const result = await createAccount(address, get);
 
   // Record the action with detailed context
   if (result && shouldRecord) {

@@ -20,14 +20,16 @@ export class ActionRecorder {
     snapshots: [],
   };
   private isReplaying = false;
+  private projectName = "";
 
-  private constructor() {
+  private constructor(projectName: string) {
+    this.projectName = `${ACTION_HISTORY_KEY}_${projectName}`
     this.loadHistory();
   }
 
-  static getInstance(): ActionRecorder {
+  static getInstance(projectName: string): ActionRecorder {
     if (!ActionRecorder.instance) {
-      ActionRecorder.instance = new ActionRecorder();
+      ActionRecorder.instance = new ActionRecorder(projectName);
     }
     return ActionRecorder.instance;
   }
@@ -104,7 +106,7 @@ export class ActionRecorder {
    */
   private loadHistory(): void {
     try {
-      const stored = localStorage.getItem(ACTION_HISTORY_KEY);
+      const stored = localStorage.getItem(this.projectName);
       if (stored) {
         this.history = JSON.parse(stored);
         console.log(
@@ -124,7 +126,7 @@ export class ActionRecorder {
    */
   private saveHistory(): void {
     try {
-      localStorage.setItem(ACTION_HISTORY_KEY, JSON.stringify(this.history));
+      localStorage.setItem(this.projectName, JSON.stringify(this.history));
     } catch (error) {
       console.warn("[ActionRecorder] Failed to save action history:", error);
     }
