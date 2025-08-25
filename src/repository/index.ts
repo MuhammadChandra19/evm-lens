@@ -5,7 +5,7 @@ import type { PlaygroundRepository } from './playground/query';
 import type { SnapshotRepository } from './snapshot/query'
 import snapshotRepository from './snapshot/query';
 
-type Repository = {
+export type Repository = {
   playground: PlaygroundRepository
   snapshot: SnapshotRepository
 }
