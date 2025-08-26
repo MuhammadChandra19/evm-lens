@@ -1,11 +1,11 @@
-import usePlaygroundStore from '@/store/playground';
+import usePlaygroundStore from "@/store/playground";
 
 const useAbiViewer = () => {
   const activeFunction = usePlaygroundStore((store) => store.activeFunction);
 
   return {
-    activeFunction
-  }
-}
+    activeFunction,
+  };
+};
 
 export default useAbiViewer;

@@ -54,16 +54,16 @@ const ExecutionFlow = ({ lastExecutionResult }: Props) => {
   };
 
   const activeNodeData = useMemo(() => {
-    if(selectedNodeData) {
-      return selectedNodeData
+    if (selectedNodeData) {
+      return selectedNodeData;
     }
 
-    if(nodes[nodes.length - 1].data) {
-      return nodes[nodes.length - 1].data.clickData
+    if (nodes[nodes.length - 1].data) {
+      return nodes[nodes.length - 1].data.clickData;
     }
 
-    return undefined
-  }, [nodes, selectedNodeData])
+    return undefined;
+  }, [nodes, selectedNodeData]);
 
   return (
     <div className="w-full space-y-4">
@@ -82,13 +82,11 @@ const ExecutionFlow = ({ lastExecutionResult }: Props) => {
                   #{activeNodeData.stepIndex + 1}
                 </Badge>
               </div>
-              {
-                lastExecutionResult.hasOutput && (
-                  <Badge variant="outline">
-                    Return result: {lastExecutionResult.result}
-                  </Badge>
-                )
-              }
+              {lastExecutionResult.hasOutput && (
+                <Badge variant="outline">
+                  Return result: {lastExecutionResult.result}
+                </Badge>
+              )}
               <div className="text-xs text-muted-foreground">
                 Gas: {activeNodeData.gasLeft.toString()} | Refund:{" "}
                 {activeNodeData.gasRefund.toString()} | Depth:{" "}

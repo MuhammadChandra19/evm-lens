@@ -30,7 +30,7 @@ const AbiForm = () => {
     ethError,
     ethAmount,
     setEthAmount,
-    isPayable
+    isPayable,
   } = useAbiForm();
 
   return (
