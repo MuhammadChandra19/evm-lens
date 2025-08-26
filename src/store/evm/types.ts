@@ -1,3 +1,4 @@
+import { Snapshot } from "@/repository/snapshot/entity";
 import EVMAnalyzer from "@/service/evm-analyzer";
 import { AbiValidator } from "@/service/evm-analyzer/abi";
 import {
@@ -80,7 +81,7 @@ export type EVMAction = {
   initializeEVM: () => Promise<void>;
 
   // Action history methods
-  getActionHistory: () => ActionSnapshot[];
+  getActionHistory: () => Snapshot[];
   clearActionHistory: () => void;
 };
 
@@ -93,29 +94,3 @@ export type ExecutionResult =
   | null;
 
 export type ContractDeploymentResult = DeploymentResult;
-
-// Action Snapshot System Types
-export type ActionType =
-  | "DEPLOY_CONTRACT"
-  | "CREATE_ACCOUNT"
-  | "FUND_ACCOUNT"
-  | "CALL_FUNCTION"
-  | "REGISTER_ACCOUNT";
-
-export type ActionSnapshot = {
-  id: string;
-  type: ActionType;
-  timestamp: number;
-  payload: unknown;
-  // result?: unknown;
-};
-
-export type ActionHistory = {
-  snapshots: ActionSnapshot[];
-};
-
-export type ReplayableAction = {
-  type: ActionType;
-  payload: unknown;
-  execute: (payload: unknown, evmStore: EVMStore) => Promise<unknown>;
-};

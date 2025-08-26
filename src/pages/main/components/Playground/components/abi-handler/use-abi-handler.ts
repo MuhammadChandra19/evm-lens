@@ -5,8 +5,8 @@ import { FunctionCallForm } from "@/store/playground/types";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { parseEVMStepsToFlow } from "@/service/evm-analyzer/utils/react-flow-parser";
-import { AbiFunction } from '@/service/evm-analyzer/abi/types';
-import { extractUint256 } from '@/lib/utils';
+import { AbiFunction } from "@/service/evm-analyzer/abi/types";
+import { extractUint256 } from "@/lib/utils";
 
 const useAbiHandler = () => {
   const [executing, setExecuting] = useState(false);
@@ -60,7 +60,7 @@ const useAbiHandler = () => {
         functionName: activeFunction?.func.name || "",
         id: Date.now().toString(),
         hasOutput: hasOutput(),
-        result: extractUint256(res.returnValue).toString()
+        result: extractUint256(res.returnValue).toString(),
       });
     } catch (e) {
       toast.error("Failed to execute function");
@@ -70,10 +70,14 @@ const useAbiHandler = () => {
     }
   };
 
+  const hasOutput = () =>
+    activeFunction?.type === "function" &&
+    (activeFunction.func as AbiFunction).outputs.length > 0;
 
-  const hasOutput = () => activeFunction?.type === "function" && (activeFunction.func as AbiFunction).outputs.length > 0
-
-  const accountList = useMemo(() => Object.values(accounts!).map(v => v), [accounts])
+  const accountList = useMemo(
+    () => Object.values(accounts!).map((v) => v),
+    [accounts],
+  );
 
   return {
     activeFunction,

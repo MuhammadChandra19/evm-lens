@@ -1,5 +1,5 @@
 import AbiForm from "./abi-form";
-import AbiViewer from './abi-viewer';
+import AbiViewer from "./abi-viewer";
 
 const AbiHandler = () => {
   return (

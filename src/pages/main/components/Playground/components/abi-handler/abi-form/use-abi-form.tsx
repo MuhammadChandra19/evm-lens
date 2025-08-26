@@ -2,20 +2,20 @@ import { useMemo, useState, useEffect } from "react";
 import { Address } from "@ethereumjs/util";
 import useAbiHandler from "../use-abi-handler";
 import { FunctionCallFormInput } from "@/store/playground/types";
-import { AbiFunction } from '@/service/evm-analyzer/abi/types';
+import { AbiFunction } from "@/service/evm-analyzer/abi/types";
 
 const useAbiForm = () => {
   const { activeFunction, accountList, handleExecute } = useAbiHandler();
   const [selectedAccount, setSelectedAccount] = useState<Address | null>(null);
   const [ethAmount, setEthAmount] = useState("");
-  const [ethError, setEthError] = useState<string | null>(null)
+  const [ethError, setEthError] = useState<string | null>(null);
 
-
-  const isPayable = useMemo(() =>
-    activeFunction?.type === "function" &&
-    (activeFunction.func as AbiFunction).stateMutability === "payable",
-    [activeFunction?.type, activeFunction?.func]
-  )
+  const isPayable = useMemo(
+    () =>
+      activeFunction?.type === "function" &&
+      (activeFunction.func as AbiFunction).stateMutability === "payable",
+    [activeFunction?.type, activeFunction?.func],
+  );
 
   const submissionForm = useMemo(() => {
     if (activeFunction) {
@@ -35,7 +35,6 @@ const useAbiForm = () => {
     setForm(submissionForm);
     setErrors(Array(submissionForm.length).fill("") as string[]);
   }, [submissionForm]);
-
 
   const handleSelectAccount = (address: string) => {
     const selected = accountList.find((v) => v.address.toString() === address);
@@ -88,7 +87,7 @@ const useAbiForm = () => {
     if (isPayable) {
       const eth = Number(ethAmount);
       if (!isNaN(eth) && eth <= 0 && !Number.isInteger(eth)) {
-        setEthError("Must be a valid number (non-negative integer)")
+        setEthError("Must be a valid number (non-negative integer)");
       }
     }
 
@@ -110,8 +109,8 @@ const useAbiForm = () => {
       );
       if (!isValid || selectedAccount === null) return;
       resetErrors();
-      setEthError(null)
-      setEthAmount("0")
+      setEthError(null);
+      setEthAmount("0");
 
       await handleExecute(
         {
@@ -147,7 +146,7 @@ const useAbiForm = () => {
     handleSelectAccount,
     isPayable,
     ethError,
-    ethAmount
+    ethAmount,
   };
 };
 

@@ -13,8 +13,8 @@ import {
 import { Address } from "@/service/evm-analyzer/utils/address";
 import { AccountInfo } from "@/service/evm-analyzer";
 import { ETH_DECIMAL } from "@/lib/constants";
-import ActionRecorder from "./action-recorder";
 import { AbiFunction } from "@/service/evm-analyzer/abi/types";
+import { ActionRecorder } from "@/service/action-recorder";
 
 export const deployContractToEVM = async (
   payload: CreateNewEVMPayload,
