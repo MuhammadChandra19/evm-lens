@@ -193,6 +193,7 @@ export const useApp = () => {
 
   return {
     isLoading,
+    activePlayground,
     setActivePlayground,
     ...context,
   };
