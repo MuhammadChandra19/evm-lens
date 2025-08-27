@@ -1,20 +1,9 @@
-import { Snapshot } from "@/repository/snapshot/entity";
-import EVMAnalyzer from "@/service/evm-analyzer";
-import { AbiValidator } from "@/service/evm-analyzer/abi";
-import {
-  Abi,
-  AbiEvent,
-  AbiFunction,
-  AbiType,
-} from "@/service/evm-analyzer/abi/types";
-import {
-  CallResult,
-  ExecutionStep,
-  FunctionInfo,
-  DeploymentResult,
-  AccountInfo,
-} from "@/service/evm-analyzer/types";
-import { Address } from "@ethereumjs/util";
+import { ActionRecorder } from '@/service/action-recorder';
+import EVMAnalyzer from '@/service/evm-analyzer';
+import { AbiValidator } from '@/service/evm-analyzer/abi';
+import { Abi, AbiEvent, AbiFunction, AbiType } from '@/service/evm-analyzer/abi/types';
+import { CallResult, ExecutionStep, FunctionInfo, DeploymentResult, AccountInfo } from '@/service/evm-analyzer/types';
+import { Address } from '@ethereumjs/util';
 
 export type EVMState = {
   contractAddress?: Address;
@@ -31,6 +20,7 @@ export type EVMState = {
 };
 
 export type CreateNewEVMPayload = {
+  id: number;
   projectName: string;
   contractAddress: string;
   constructorBytecode: string;
@@ -53,36 +43,25 @@ export type TxData = {
 export type EVMAction = {
   getAccounts: () => AccountInfo[];
 
-  deployContractToEVM: (
-    payload: CreateNewEVMPayload,
-    shouldRecord?: boolean,
-  ) => Promise<ContractDeploymentResult | null>;
+  deployContractToEVM: (payload: CreateNewEVMPayload, actionRecorder: ActionRecorder, shouldRecord?: boolean) => Promise<ContractDeploymentResult | null>;
 
   // Basic EVM functions
-  createAccount: (
-    address: string,
-    shouldRecord?: boolean,
-  ) => Promise<Address | null>;
+  createAccount: (address: string, actionRecorder: ActionRecorder, shouldRecord?: boolean) => Promise<Address | null>;
   fundAccount: (
     address: Address,
     balance: bigint,
-    shouldRecord?: boolean,
+    actionRecorder: ActionRecorder,
+    shouldRecord?: boolean
   ) => Promise<{
     success: boolean;
     error: unknown;
   }>;
-  callFunction: (
-    tx: TxData,
-    shouldRecord?: boolean,
-  ) => Promise<ExecutionResult | undefined>;
+  callFunction: (tx: TxData, actionRecorder: ActionRecorder, shouldRecord?: boolean) => Promise<ExecutionResult | undefined>;
 
-  registerAccount: (address: Address, shouldRecord?: boolean) => Promise<void>;
+  registerAccount: (address: Address, actionRecorder: ActionRecorder, shouldRecord?: boolean) => Promise<void>;
 
   initializeEVM: () => Promise<void>;
-
-  // Action history methods
-  getActionHistory: () => Snapshot[];
-  clearActionHistory: () => void;
+  createFreshEVM: () => Promise<void>;
 };
 
 export type EVMStore = EVMState & EVMAction;

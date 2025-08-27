@@ -6,7 +6,12 @@ import { eq } from "drizzle-orm";
 const playgroundRepository = (db: SqliteRemoteDatabase) => {
   const create = async (payload: NewPlayground) => {
     try {
-      return db.insert(playgroundSchema).values(payload).returning();
+      const res = await db.insert(playgroundSchema).values(payload).returning();
+      if(res.length > 0) {
+        return res[0]
+      }
+
+      return null
     } catch (e) {
       throw new Error("failed to insert new playground", {
         cause: e,

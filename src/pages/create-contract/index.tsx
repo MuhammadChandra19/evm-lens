@@ -1,10 +1,7 @@
-// import DeployContractForm from './forms/DeployContract';
 import { SearchCode } from "lucide-react";
 import ContractEVMSetup from "./forms/ContractPlaygroundSetup";
-// import useSubmitContract from './use-submit-contract';
 
-const SubmitContract = () => {
-  // const { handleSubmit } = useSubmitContract();
+const CreateContract = () => {
   return (
     <div className="w-full min-h-screen flex justify-center items-center p-4">
       <div className="min-h-screen p-6 pb-32">
@@ -21,17 +18,6 @@ const SubmitContract = () => {
                 </p>
               </div>
             </div>
-            {/* <div className="flex items-center gap-4">
-              <Button variant="outline" size="sm">
-                <BookOpen className="w-4 h-4 mr-2" />
-                Tutorial
-              </Button>
-              <Button variant="outline" size="sm">Examples</Button>
-              <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                Local Node Ready
-              </Badge>
-            </div> */}
           </div>
         </div>
         <ContractEVMSetup />
@@ -40,4 +26,4 @@ const SubmitContract = () => {
   );
 };
 
-export default SubmitContract;
+export default CreateContract;

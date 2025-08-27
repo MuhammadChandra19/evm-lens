@@ -2,7 +2,7 @@ import { sql } from "drizzle-orm";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 const playgroundSchema = sqliteTable("playground", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+  id: integer("id").primaryKey(),
   name: text("name").notNull(),
   isActive: integer({ mode: "boolean" }),
   createdAt: text("created_at")

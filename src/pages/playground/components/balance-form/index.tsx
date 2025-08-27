@@ -14,8 +14,10 @@ import { Input } from "@/components/ui/input";
 import useEVMStore from "@/store/evm";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useApp } from "@/hooks/use-app";
 
 const BalanceForm = () => {
+  const { actionRecorder } = useApp();
   const [balance, setBalance] = useState("1");
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +38,7 @@ const BalanceForm = () => {
         return;
       }
 
-      const res = await fundAccount(ownerAddress, BigInt(balance));
+      const res = await fundAccount(ownerAddress, BigInt(balance), actionRecorder);
 
       if (!res.success) {
         toast.error("failed to fund account");

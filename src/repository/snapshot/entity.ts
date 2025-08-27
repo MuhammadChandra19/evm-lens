@@ -3,7 +3,7 @@ import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import playgroundSchema from "../playground/entity";
 
 const snapshotSchema = sqliteTable("snapshot", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+  id: integer("id").primaryKey(),
   type: text({
     enum: [
       "DEPLOY_CONTRACT",
