@@ -14,10 +14,10 @@ import {
 } from "@/components/ui/breadcrumb";
 import FunctionList from "../function-list";
 import { ReactNode } from "react";
-import usePlayground from "../../use-playground";
 import Intro from "../intro";
 import BalanceForm from "../balance-form";
 import NewAccountForm from "../new-account-form";
+import usePlayground from '../../use-playground';
 
 type Props = {
   children: ReactNode;

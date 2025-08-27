@@ -1,8 +1,8 @@
-import { Address } from "@ethereumjs/util";
-import type { SnapshotType } from "@/repository/snapshot/entity";
-import { SnapshotRepository } from "@/repository/snapshot/query";
-import { ReplayableAction, SnapshotResult } from "./types";
-import { CreateNewEVMPayload, EVMStore, TxData } from "@/store/evm/types";
+import { Address } from '@ethereumjs/util';
+import type { SnapshotType } from '@/repository/snapshot/entity';
+import { SnapshotRepository } from '@/repository/snapshot/query';
+import { ReplayableAction, SnapshotResult } from './types';
+import { CreateNewEVMPayload, EVMStore, TxData } from '@/store/evm/types';
 
 export class ActionRecorder {
   private snapshotRepo: SnapshotRepository;
@@ -17,14 +17,14 @@ export class ActionRecorder {
   }
   async loadSnapshot(): Promise<SnapshotResult<ReplayableAction[]>> {
     try {
-      const res = await this.snapshotRepo.loadPlaygroundSnapshot(
-        this.playgroundId,
-      );
+      const res = await this.snapshotRepo.loadPlaygroundSnapshot(this.playgroundId);
+
       const replayableAction: ReplayableAction[] = res.map((snapshot) => ({
         type: snapshot.type,
-        payload: snapshot.payload,
+        payload: this.deserializePayload(snapshot.payload),
         execute: this.getActionExecutor(snapshot.type),
       }));
+
       return {
         data: replayableAction,
         error: null,
@@ -32,23 +32,23 @@ export class ActionRecorder {
     } catch (e) {
       return {
         data: [],
-        error: new Error("failed to load snapshot", {
+        error: new Error('failed to load snapshot', {
           cause: e,
         }),
       };
     }
   }
 
-  async recordAction(
-    type: SnapshotType,
-    payload: unknown,
-  ): Promise<SnapshotResult<number>> {
+  async recordAction(type: SnapshotType, payload: unknown): Promise<SnapshotResult<number>> {
     try {
-      const res = await this.snapshotRepo.create({
+      // Serialize BigInt and Address values for database storage
+      const serializedPayload = this.serializePayload(payload);
+      const data = {
         playgroundId: this.playgroundId,
         type,
-        payload,
-      });
+        payload: serializedPayload,
+      };
+      const res = await this.snapshotRepo.create(data);
 
       if (res.length > 0) {
         return {
@@ -59,58 +59,89 @@ export class ActionRecorder {
 
       return {
         data: 0,
-        error: new Error("no snapshot recorded"),
+        error: new Error('no snapshot recorded'),
       };
     } catch (e) {
       return {
         data: 0,
-        error: new Error("failed to record snapshot", {
+        error: new Error('failed to record snapshot', {
           cause: e,
         }),
       };
     }
   }
 
+  private serializePayload(payload: unknown): unknown {
+    if (!payload) return payload;
+
+    return JSON.parse(
+      JSON.stringify(payload, (_key, value) => {
+        // Only handle BigInt automatically since it can't be JSON serialized
+        if (typeof value === 'bigint') {
+          return [value.toString(), 'BigInt'];
+        }
+        return value;
+      })
+    );
+  }
+
+  private deserializePayload(payload: unknown): unknown {
+    if (!payload) return payload;
+
+    return JSON.parse(JSON.stringify(payload), (_key, value) => {
+      // Check if value is in our serialized format [stringified_value, original_type]
+      if (Array.isArray(value) && value.length === 2 && typeof value[1] === 'string') {
+        const [stringifiedValue, originalType] = value;
+
+        switch (originalType) {
+          case 'Address': {
+            const addrStr = stringifiedValue.startsWith('0x') ? stringifiedValue.slice(2) : stringifiedValue;
+            return new Address(Buffer.from(addrStr, 'hex'));
+          }
+
+          case 'BigInt':
+            return BigInt(stringifiedValue);
+
+          default:
+            // For other types, return the stringified value as-is
+            return stringifiedValue;
+        }
+      }
+      return value;
+    });
+  }
+
   /**
    * Get the appropriate executor function for an action type
    */
-  private getActionExecutor(
-    type: SnapshotType,
-  ): (payload: unknown, evmStore: EVMStore) => Promise<unknown> {
+  private getActionExecutor(type: SnapshotType): (payload: unknown, evmStore: EVMStore) => Promise<unknown> {
     switch (type) {
-      case "DEPLOY_CONTRACT":
+      case 'DEPLOY_CONTRACT':
         return async (payload: unknown, evmStore: EVMStore) => {
-          return evmStore.deployContractToEVM(
-            payload as CreateNewEVMPayload,
-            false,
-          );
+          return evmStore.deployContractToEVM(payload as CreateNewEVMPayload, this, false);
         };
 
-      case "CREATE_ACCOUNT":
+      case 'CREATE_ACCOUNT':
         return async (payload: unknown, evmStore: EVMStore) => {
           const typedPayload = payload as { address: string };
-          return evmStore.createAccount(typedPayload.address, false);
+          return evmStore.createAccount(typedPayload.address, this, false);
         };
 
-      case "FUND_ACCOUNT":
+      case 'FUND_ACCOUNT':
         return async (payload: unknown, evmStore: EVMStore) => {
           const typedPayload = payload as { address: Address; balance: bigint };
-          return evmStore.fundAccount(
-            typedPayload.address,
-            typedPayload.balance,
-            false,
-          );
+          return evmStore.fundAccount(typedPayload.address, typedPayload.balance, this, false);
         };
 
-      case "CALL_FUNCTION":
+      case 'CALL_FUNCTION':
         return async (payload: unknown, evmStore: EVMStore) => {
-          return evmStore.callFunction(payload as TxData, false);
+          return evmStore.callFunction(payload as TxData, this, false);
         };
 
-      case "REGISTER_ACCOUNT":
+      case 'REGISTER_ACCOUNT':
         return async (payload: unknown, evmStore: EVMStore) => {
           const typedPayload = payload as { address: Address };
-          return evmStore.registerAccount(typedPayload.address, false);
+          return evmStore.registerAccount(typedPayload.address, this, false);
         };
 
       default:

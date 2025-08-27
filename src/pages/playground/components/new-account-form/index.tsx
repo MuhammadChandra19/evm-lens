@@ -15,8 +15,10 @@ import useEVMStore from "@/store/evm";
 import { CircleUser, Dice6 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useApp } from "@/hooks/use-app";
 
 const NewAccountForm = () => {
+  const { actionRecorder } = useApp();
   const [open, setOpen] = useState(false);
   const [balance, setBalance] = useState("0");
   const [address, setAddress] = useState("");
@@ -43,7 +45,7 @@ const NewAccountForm = () => {
         setErrorAddress("Address must be filled");
       }
 
-      const account = await createAccount(address);
+      const account = await createAccount(address, actionRecorder);
       if (!account) {
         toast.error("failed to create accoung");
         return;
@@ -55,7 +57,7 @@ const NewAccountForm = () => {
 
       if (balanceNum === 0) return;
 
-      await fundAccount(account, BigInt(balance));
+      await fundAccount(account, BigInt(balance), actionRecorder);
       toast.success("account funded", {
         description: `Eth amount: ${balance}`,
       });

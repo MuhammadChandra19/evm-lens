@@ -8,6 +8,8 @@ const Playground = () => {
     if (!store.activeFunction) return undefined;
     return store.getFunctionLastResult(store.activeFunction.func.name!);
   });
+
+  
   return (
     <Layout>
       <AbiHandler />
