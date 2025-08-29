@@ -18,12 +18,14 @@ import Intro from "../intro";
 import BalanceForm from "../balance-form";
 import NewAccountForm from "../new-account-form";
 import usePlayground from '../../use-playground';
+import { useNavigate } from 'react-router';
 
 type Props = {
   children: ReactNode;
 };
 
 const Layout = ({ children }: Props) => {
+  const navigate = useNavigate()
   const { activeFunction, ownerAccount } = usePlayground();
   return (
     <SidebarProvider>
@@ -39,7 +41,7 @@ const Layout = ({ children }: Props) => {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">Contract creation</BreadcrumbLink>
+                  <BreadcrumbLink onClick={() => navigate("/create-contract")}>Contract creation</BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem>
@@ -50,27 +52,29 @@ const Layout = ({ children }: Props) => {
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          <div className="flex justify-between gap-4">
-            <NewAccountForm />
-            <div className="w-full p-4 flex1 flex gap-2 justify-between rounded-xl border shadow-sm items-center bg-gradient-to-bl from-slate-50 to-blue-50">
-              <span>
-                <div className="font-semibold">Owner Address</div>
-                <div className="text-red-400 font-light text-sm">
-                  {ownerAccount.address.toString()}
+          <div className="flex items-center justify-between gap-4 p-3 bg-white border rounded-lg shadow-sm">
+            <div className="flex items-center gap-4">
+              <NewAccountForm />
+              <div className="flex items-center gap-3 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-gray-700">Owner:</span>
+                  <code className="px-2 py-1 bg-gray-100 rounded text-xs font-mono text-gray-600">
+                    {ownerAccount.address.toString().slice(0, 6)}...{ownerAccount.address.toString().slice(-4)}
+                  </code>
                 </div>
-              </span>
-              <div className="flex flex-col gap-2">
-                <div className="flex gap-2 items-center">
-                  <div className="font-semibold">Balance: </div>
-                  <div className="font-light text-blue-500 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-gray-700">Balance:</span>
+                  <span className="text-blue-600 font-semibold">
                     {Number(ownerAccount?.balance || 0n) / 1e18} ETH
-                  </div>
+                  </span>
                 </div>
-                <BalanceForm />
               </div>
             </div>
+            <BalanceForm />
           </div>
-          {!activeFunction ? <Intro /> : children}
+          <div className="flex-1 flex flex-col">
+            {!activeFunction ? <Intro /> : children}
+          </div>
         </div>
       </SidebarInset>
     </SidebarProvider>

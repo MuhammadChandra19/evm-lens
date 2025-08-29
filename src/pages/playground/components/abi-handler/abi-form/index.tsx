@@ -34,7 +34,7 @@ const AbiForm = () => {
   } = useAbiForm();
 
   return (
-    <Card className="flex flex-col h-96">
+    <Card className="flex flex-col h-fit">
       <CardHeader className="flex-shrink-0">
         <CardTitle>Function</CardTitle>
         <CardDescription>

@@ -3,7 +3,7 @@ import AbiViewer from "./abi-viewer";
 
 const AbiHandler = () => {
   return (
-    <div className="w-full grid grid-cols-2 gap-4 h-96">
+    <div className="w-full col-span-3 flex flex-col gap-4">
       <AbiForm />
       <AbiViewer />
     </div>
