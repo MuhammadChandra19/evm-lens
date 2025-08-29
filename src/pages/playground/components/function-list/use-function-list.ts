@@ -62,19 +62,19 @@ const useFunctionList = () => {
       {
         icon: BookText,
         title: "Read Functions",
-        isActive: false,
+        isActive: true,
         items: readFunctionsMenu,
       },
       {
         icon: PencilLine,
         title: "Write Functions",
-        isActive: false,
+        isActive: true,
         items: writeFunctionsMenu,
       },
       {
         icon: Zap,
         title: "Events",
-        isActive: false,
+        isActive: true,
         items: eventsMenu,
       },
     ] as MenuItem[];

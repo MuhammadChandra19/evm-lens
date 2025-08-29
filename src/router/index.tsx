@@ -1,3 +1,4 @@
+import Landing from '@/pages/landing';
 import CreateContract from '@/pages/create-contract';
 import Playground from '@/pages/playground';
 import PlaygroundProvider from '@/providers/Playground';
@@ -7,6 +8,10 @@ const RouterWrapper = () => {
   const router = createBrowserRouter([
     {
       path: "/",
+      Component: Landing,
+    },
+    {
+      path: "/create-contract",
       Component: CreateContract,
     },
     {

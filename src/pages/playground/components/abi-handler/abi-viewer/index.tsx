@@ -6,7 +6,7 @@ import { AbiFunction } from "@/service/evm-analyzer/abi/types";
 const AbiViewer = () => {
   const { activeFunction } = useAbiViewer();
   return (
-    <Card className="flex flex-col h-96">
+    <Card className="flex flex-col h-full">
       <CardContent className="flex-grow overflow-auto">
         <ReactJsonView
           src={{
