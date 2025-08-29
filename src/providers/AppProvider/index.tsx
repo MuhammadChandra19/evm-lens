@@ -2,6 +2,7 @@ import type { Repository } from "@/repository";
 import initRepository from "@/repository";
 import { ActionRecorder } from "@/service/action-recorder";
 import useEVMStore from '@/store/evm';
+import LoadingScreen from "@/components/loading-screen";
 import { createContext, ReactNode, useEffect, useState } from "react";
 
 interface AppProviderProps {
@@ -39,12 +40,12 @@ const AppProvider = ({ children }: AppProviderProps) => {
         setIsInitializing(false);
       }
     };
-    
+
     init();
   }, []);
 
   if (isInitializing || !repository) {
-    return <div>Initializing database...</div>;
+    return <LoadingScreen />;
   }
 
   return (
