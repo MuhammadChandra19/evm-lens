@@ -30,7 +30,7 @@ const AppProvider = ({ children }: AppProviderProps) => {
     const init = async () => {
       try {
         const repo = await initRepository();
-        // await repo.clearTables(["playground", "snapshot"]);
+        await repo.clearTables(["playground", "snapshot"]);
         const recorder = new ActionRecorder(repo.snapshot);
         setRepository(repo);
         setActionRecorder(recorder);
