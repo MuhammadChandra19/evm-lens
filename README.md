@@ -2,12 +2,14 @@
 
 **An interactive Ethereum Virtual Machine simulator and smart contract explorer for learning and experimentation.**
 
-EVM Lens is a comprehensive educational tool that provides a safe, simulated environment for deploying, exploring, and understanding Ethereum smart contracts. Built with React 19 and TypeScript, it features both a custom EVM implementation and integration with the official EthereumJS libraries for detailed execution tracing and visualization.
+EVM Lens is a comprehensive educational tool that provides a safe, simulated environment for deploying, exploring, and understanding Ethereum smart contracts. Built with React 19 and TypeScript, it features a **unified EVM architecture** where all playgrounds share the same blockchain state, creating a realistic multi-project development environment with chronological transaction execution.
 
 ## ✨ Features
 
 ### 🚀 Core Functionality
+- **Unified EVM Architecture**: Single shared blockchain state across all playgrounds with chronological transaction execution
 - **Smart Contract Deployment**: Deploy contracts from bytecode with full ABI support
+- **Cross-Playground Interactions**: Contracts deployed in one playground can be accessed and used from any other playground
 - **Interactive Function Execution**: Execute contract functions with real-time parameter input and validation
 - **Dual EVM Implementation**: Custom educational EVM + EthereumJS integration for comprehensive analysis
 - **Step-by-Step Execution**: Detailed opcode-level execution with stack, memory, and storage visualization
@@ -23,9 +25,10 @@ EVM Lens is a comprehensive educational tool that provides a safe, simulated env
 ### 💾 Advanced Features
 - **Local SQLite Database**: Complete blockchain state persistence using Drizzle ORM and SQLocal
 - **Account Management**: Create and fund multiple test accounts with unlimited ETH
-- **Action History**: Record and replay all blockchain interactions with snapshot functionality
+- **Chronological Action History**: Record and replay all blockchain interactions across all playgrounds in time order
+- **Unified State Management**: All playground actions contribute to a single, shared blockchain state
 - **Contract Analysis**: Static analysis tools for security and optimization suggestions
-- **Multi-session Support**: Manage multiple playground environments simultaneously
+- **Multi-playground Support**: Multiple playground views of the same unified blockchain state
 
 ## 🏗️ Architecture
 
@@ -63,9 +66,55 @@ src/
 
 #### Database Layer (`src/repository/`)
 - **SQLite with Drizzle ORM**: Type-safe database operations
-- **Playground Management**: Multi-session support with isolated environments
-- **Snapshot System**: Complete state capture and restoration
+- **Playground Management**: Multi-playground support with unified state management
+- **Unified Snapshot System**: Chronological action recording across all playgrounds
 - **Migration System**: Automated database schema management
+- **Configurable Table Clearing**: Development tools for database reset and testing
+
+## 🌐 Unified EVM Architecture
+
+EVM Lens features a **revolutionary unified EVM architecture** that creates a realistic blockchain simulation environment:
+
+### 🔗 How It Works
+
+**Traditional Approach (Isolated Playgrounds):**
+```
+Playground A: [Deploy Contract] → Isolated EVM State A
+Playground B: [Fund Account]   → Isolated EVM State B
+❌ No interaction between playgrounds
+```
+
+**EVM Lens Unified Approach:**
+```
+Timeline: 10:00 AM - Deploy Contract (Playground A)
+         10:05 AM - Fund Account (Playground B)
+         10:10 AM - Call Function (Playground A)
+
+Unified EVM: [Deploy] → [Fund] → [Call] → Shared State
+✅ All playgrounds see the same blockchain state
+```
+
+### 🎯 Key Benefits
+
+- **Realistic Blockchain Simulation**: Actions execute chronologically like a real blockchain
+- **Cross-Playground Interactions**: Deploy a contract in one playground, use it in another
+- **True State Continuity**: Account balances and contract state persist across playground switches
+- **Educational Value**: Learn how real blockchain networks handle multiple concurrent transactions
+- **Performance**: Single EVM initialization instead of per-playground overhead
+
+### 📊 Example Scenarios
+
+**Scenario 1: Multi-Project Development**
+1. **Playground A**: Deploy an ERC-20 token contract
+2. **Playground B**: Deploy a DEX contract that uses the token
+3. **Playground C**: Create trading bots that interact with both contracts
+4. **Result**: All contracts can interact with each other naturally
+
+**Scenario 2: Team Collaboration Simulation**
+1. **Developer 1 (Playground A)**: Deploys core infrastructure contracts
+2. **Developer 2 (Playground B)**: Builds application contracts on top
+3. **Developer 3 (Playground C)**: Creates integration tests
+4. **Result**: Realistic collaborative development environment
 
 ## 🚀 Getting Started
 
@@ -201,7 +250,28 @@ The project includes tests for:
 EVM Lens uses SQLite with the following key tables:
 
 - **playground**: Stores playground configurations and metadata
-- **snapshot**: Records all blockchain actions for replay and analysis
+- **snapshot**: Records all blockchain actions from ALL playgrounds with timestamps for chronological replay
+
+### Unified State Management
+
+The snapshot table structure enables the unified EVM architecture:
+
+```sql
+CREATE TABLE snapshot (
+  id INTEGER PRIMARY KEY,
+  type TEXT NOT NULL,
+  playground_id INTEGER,  -- Tracks which playground created the action
+  timestamp TEXT DEFAULT (CURRENT_TIMESTAMP) NOT NULL,  -- Key for chronological ordering
+  payload TEXT NOT NULL,
+  FOREIGN KEY (playground_id) REFERENCES playground(id)
+);
+```
+
+**Key Features:**
+- All snapshots are loaded and executed chronologically by `timestamp`
+- `playground_id` provides context but doesn't isolate state
+- Actions from different playgrounds are interleaved based on creation time
+- Database can be reset during development using configuration options
 
 All database operations are type-safe using Drizzle ORM with automatic migrations.
 
@@ -260,6 +330,8 @@ The project uses Vite with:
 ## 📚 Documentation
 
 - **[EVM Store Documentation](src/store/evm/README.md)** - Detailed store API reference
+- **[Unified EVM Architecture](UNIFIED_EVM_ARCHITECTURE.md)** - Complete guide to the unified EVM system
+- **[Repository Configuration](src/repository/README.md)** - Database configuration and table clearing options
 - **[State Export Guide](src/service/evm-analyzer/STATE_EXPORT.md)** - State management documentation
 - **[Wire Frames](WIRE_FRAME.md)** - UI design specifications
 - **[Database Schema](drizzle/)** - Complete database documentation
@@ -288,12 +360,16 @@ We welcome contributions! Here's how to get started:
 
 ## 🎯 Roadmap
 
+- [x] **Unified EVM Architecture**: Single shared blockchain state across all playgrounds ✅
+- [x] **Chronological Transaction Execution**: Time-based action replay system ✅
+- [x] **Cross-Playground Interactions**: Contracts accessible from any playground ✅
 - [ ] **Enhanced Debugging**: Breakpoints and step-through debugging
 - [ ] **Contract Templates**: Pre-built contract examples (DeFi, NFT, etc.)
 - [ ] **Performance Profiler**: Advanced gas optimization tools
 - [ ] **Multi-chain Support**: Support for other EVM-compatible chains
 - [ ] **Export/Import**: Contract and state export functionality
-- [ ] **Collaborative Features**: Share playground sessions
+- [ ] **Playground Filtering**: View actions from specific playgrounds only
+- [ ] **State Branching**: Create playground-specific branches from unified state
 
 ## 📄 License
 
@@ -322,9 +398,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### Key Features at a Glance
 
+🌐 **Unified**: Single shared blockchain state across all playgrounds  
 🔍 **Explore**: Deploy and interact with smart contracts safely  
 ⚡ **Analyze**: Step-by-step opcode execution with full state inspection  
 📊 **Visualize**: Interactive execution flow diagrams with React Flow  
-💾 **Persist**: SQLite-based local storage with session management  
-🎓 **Learn**: Educational tools for understanding EVM internals  
-🛠️ **Develop**: Professional-grade development environment
+🔗 **Connect**: Cross-playground contract interactions and state continuity  
+💾 **Persist**: SQLite-based local storage with chronological action replay  
+🎓 **Learn**: Educational tools for understanding EVM internals and blockchain behavior  
+🛠️ **Develop**: Professional-grade multi-project development environment

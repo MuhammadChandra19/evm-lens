@@ -1,8 +1,16 @@
-import { useApp } from '@/hooks/use-app';
-import useEVMStore from '@/store/evm';
-import { createContext, ReactNode, useEffect, useMemo, useState, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router';
-import { toast } from 'sonner';
+import { useApp } from "@/hooks/use-app";
+import useEVMStore from "@/store/evm";
+import {
+  createContext,
+  ReactNode,
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+  useCallback,
+} from "react";
+import { useNavigate, useParams } from "react-router";
+import { toast } from "sonner";
 
 interface PlaygroundProviderProps {
   children: ReactNode;
@@ -10,20 +18,21 @@ interface PlaygroundProviderProps {
 
 type PlaygroundProviderValue = {
   isLoading: boolean;
-  setActivePlayground: (id: number) => Promise<void>
+  setActivePlayground: (id: number) => Promise<void>;
 };
 
 // eslint-disable-next-line react-refresh/only-export-components
-export const PlaygroundProviderContext = createContext<PlaygroundProviderValue | null>(null);
+export const PlaygroundProviderContext =
+  createContext<PlaygroundProviderValue | null>(null);
 
 const PlaygroundProvider = ({ children }: PlaygroundProviderProps) => {
-  const context = useApp()
+  const context = useApp();
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   // Get playground ID from URL params
-  const { id: playgroundId } = useParams<{ id: string }>()
-  const playgroundIdNumber = playgroundId ? parseInt(playgroundId, 10) : null
+  const { id: playgroundId } = useParams<{ id: string }>();
+  const playgroundIdNumber = playgroundId ? parseInt(playgroundId, 10) : null;
 
   // EVM Store access
   const evmStore = useEVMStore();
@@ -40,7 +49,6 @@ const PlaygroundProvider = ({ children }: PlaygroundProviderProps) => {
     }
   }, [playgroundIdNumber, context.actionRecorder]);
 
-
   /**
    * Switch Active Playground
    * - Navigates to new playground URL
@@ -48,112 +56,78 @@ const PlaygroundProvider = ({ children }: PlaygroundProviderProps) => {
    */
   const setActivePlayground = async (id: number) => {
     try {
-      navigate(`/playground/${id}`)
-
+      navigate(`/playground/${id}`);
     } catch (e) {
-      toast.error("Failed to switch playground")
-      console.error(e)
+      toast.error("Failed to switch playground");
+      console.error(e);
     }
-  }
+  };
 
   /**
- * STAGE 2: Snapshot Replay
- * - Runs once when component mounts
- * - Loads all recorded actions for the playground from URL params
- * - Replays actions sequentially to restore playground state
- */
-  useEffect(() => {
-    const replaySnapshot = async () => {
+   * STAGE 2: Unified EVM Initialization
+   * - Runs once when component mounts (regardless of playground)
+   * - Loads ALL snapshots from ALL playgrounds chronologically
+   * - Creates unified EVM state where all playground actions are applied in time order
+   */
+  const initializeUnifiedEVM = useCallback(async () => {
+    // Prevent double initialization due to React StrictMode
+    if (hasReplayedRef.current) {
+      return;
+    }
 
-      if (!playgroundIdNumber) {
-        setIsReplayingSnapshot(false);
-        return;
-      }
+    hasReplayedRef.current = true;
+    setReplayError(null);
 
-      // Prevent double replay due to React StrictMode
-      if (hasReplayedRef.current) {
-        return;
-      }
+    try {
+      // Initialize unified EVM state with all snapshots from all playgrounds
+      await evmStore.initializeUnifiedEVM(context.actionRecorder);
 
-      hasReplayedRef.current = true;
-      setReplayError(null);
-
-      try {
-        // Ensure we start with a completely fresh EVM instance for replay
-        await evmStore.createFreshEVM();
-
-        // Set playground context for action recorder
+      // Set current playground context for action recorder (for new actions)
+      if (playgroundIdNumber) {
         context.actionRecorder.setPlaygroundId(playgroundIdNumber);
-
-        // Load snapshot data
-        const { data, error } = await context.actionRecorder.loadSnapshot();
-
-        if (error) {
-          throw error;
-        }
-
-        // No actions to replay
-        if (data.length === 0) {
-          return;
-        }
-
-        // Replay each action sequentially
-        for (let i = 0; i < data.length; i++) {
-          const action = data[i];
-          try {
-
-            // Execute the action with current EVM store
-            await action.execute(action.payload, evmStore);
-
-          } catch (error) {
-            console.error(
-              `Failed to replay action: ${action.type}`,
-              error,
-            );
-            // Continue with next action even if one fails
-          }
-        }
-      } catch (error) {
-        console.error("Failed to replay snapshot:", error);
-        setReplayError(error as Error);
-      } finally {
-        setIsReplayingSnapshot(false);
       }
-    };
+    } catch (error) {
+      console.error("Failed to initialize unified EVM:", error);
+      setReplayError(error as Error);
+    } finally {
+      setIsReplayingSnapshot(false);
+    }
+  }, [context.actionRecorder, evmStore, playgroundIdNumber]);
 
-    replaySnapshot();
-  }, []); // Empty dependency array - runs only once on mount
+  useEffect(() => {
+    initializeUnifiedEVM();
+  }, [initializeUnifiedEVM]); // Only depends on the memoized callback
 
   // Handle snapshot replay errors
   useEffect(() => {
     if (replayError) {
       toast.error("Failed to run snapshot replay", {
-        description: replayError.message
-      })
+        description: replayError.message,
+      });
     }
-  }, [replayError])
+  }, [replayError]);
 
   /**
    * Combined loading state
    * - Shows loading while EVM initializes OR while replaying snapshot
    * - Ensures UI doesn't show "ready" until entire sequence completes
    */
-  const isLoading = useMemo(() => isReplayingSnapshot, [isReplayingSnapshot])
+  const isLoading = useMemo(() => isReplayingSnapshot, [isReplayingSnapshot]);
 
   if (isLoading) {
-    return <div>Initializing playground...</div>;
+    return <div>Initializing unified EVM state...</div>;
   }
 
   return (
     <PlaygroundProviderContext.Provider
       value={{
         isLoading,
-        setActivePlayground
+        setActivePlayground,
       }}
     >
       {children}
     </PlaygroundProviderContext.Provider>
   );
-}
+};
 
-export default PlaygroundProvider
+export default PlaygroundProvider;

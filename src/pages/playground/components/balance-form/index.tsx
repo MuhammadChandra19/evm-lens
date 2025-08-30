@@ -38,7 +38,11 @@ const BalanceForm = () => {
         return;
       }
 
-      const res = await fundAccount(ownerAddress, BigInt(balance), actionRecorder);
+      const res = await fundAccount(
+        ownerAddress,
+        BigInt(balance),
+        actionRecorder,
+      );
 
       if (!res.success) {
         toast.error("failed to fund account");

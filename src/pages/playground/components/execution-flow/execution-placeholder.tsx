@@ -7,7 +7,7 @@ import {
   Eye,
   ArrowRight,
   Layers,
-  Zap
+  Zap,
 } from "lucide-react";
 
 const ExecutionPlaceholder = () => {
@@ -15,23 +15,23 @@ const ExecutionPlaceholder = () => {
     {
       icon: Eye,
       title: "Visual Flow",
-      description: "See your contract execution as an interactive flowchart"
+      description: "See your contract execution as an interactive flowchart",
     },
     {
       icon: Cpu,
       title: "Opcode Tracing",
-      description: "Step-by-step EVM opcode execution with detailed analysis"
+      description: "Step-by-step EVM opcode execution with detailed analysis",
     },
     {
       icon: Layers,
       title: "State Inspection",
-      description: "Monitor stack, memory, and storage changes in real-time"
+      description: "Monitor stack, memory, and storage changes in real-time",
     },
     {
       icon: BarChart3,
       title: "Gas Analysis",
-      description: "Track gas consumption for each operation"
-    }
+      description: "Track gas consumption for each operation",
+    },
   ];
 
   return (
@@ -42,8 +42,12 @@ const ExecutionPlaceholder = () => {
           <Play className="w-5 h-5 text-blue-600" />
         </div>
         <div>
-          <h3 className="font-semibold text-blue-900">Execution Flow Visualization</h3>
-          <p className="text-sm text-blue-700">Execute a function to see the interactive EVM execution flow</p>
+          <h3 className="font-semibold text-blue-900">
+            Execution Flow Visualization
+          </h3>
+          <p className="text-sm text-blue-700">
+            Execute a function to see the interactive EVM execution flow
+          </p>
         </div>
         <Badge variant="secondary" className="ml-auto">
           <Zap className="w-3 h-3 mr-1" />
@@ -52,11 +56,18 @@ const ExecutionPlaceholder = () => {
       </div>
       <div className="grid grid-cols-2 gap-2">
         {features.slice(0, 4).map((feature, index) => (
-          <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+          <div
+            key={index}
+            className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg"
+          >
             <feature.icon className="w-4 h-4 text-gray-600 flex-shrink-0" />
             <div>
-              <div className="text-xs font-medium text-gray-900">{feature.title}</div>
-              <div className="text-xs text-gray-600">{feature.description.split(' ').slice(0, 4).join(' ')}...</div>
+              <div className="text-xs font-medium text-gray-900">
+                {feature.title}
+              </div>
+              <div className="text-xs text-gray-600">
+                {feature.description.split(" ").slice(0, 4).join(" ")}...
+              </div>
             </div>
           </div>
         ))}

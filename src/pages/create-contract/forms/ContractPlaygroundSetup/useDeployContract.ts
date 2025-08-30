@@ -1,14 +1,14 @@
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { ContractEVMSchema, contractEVMSchema } from './schema';
-import { DEFAULT_DATA } from './data';
-import useEVMStore from '@/store/evm';
-import { toast } from 'sonner';
-import { ERRORS } from '@/store/evm/errors';
-import { AbiValidator } from '@/service/evm-analyzer/abi';
-import { Abi } from '@/service/evm-analyzer/abi/types';
-import { useNavigate } from 'react-router';
-import { useApp } from '@/hooks/use-app';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ContractEVMSchema, contractEVMSchema } from "./schema";
+import { DEFAULT_DATA } from "./data";
+import useEVMStore from "@/store/evm";
+import { toast } from "sonner";
+import { ERRORS } from "@/store/evm/errors";
+import { AbiValidator } from "@/service/evm-analyzer/abi";
+import { Abi } from "@/service/evm-analyzer/abi/types";
+import { useNavigate } from "react-router";
+import { useApp } from "@/hooks/use-app";
 
 const useDeployContract = () => {
   const navigate = useNavigate();
@@ -26,8 +26,8 @@ const useDeployContract = () => {
 
       return abi.getAbi();
     } catch (e) {
-      method.setError('bytecodeAndAbi.contractAbi', {
-        message: 'invalid abi',
+      method.setError("bytecodeAndAbi.contractAbi", {
+        message: "invalid abi",
       });
       console.error(e);
     }
@@ -42,8 +42,8 @@ const useDeployContract = () => {
 
       const abi = validateAbi(payload.bytecodeAndAbi.contractAbi);
       if (!abi) {
-        toast.error('failed to create new EVM', {
-          description: 'Invalid Abi',
+        toast.error("failed to create new EVM", {
+          description: "Invalid Abi",
         });
         return;
       }
@@ -56,15 +56,17 @@ const useDeployContract = () => {
           constructorBytecode: payload.bytecodeAndAbi.constructorBytecode,
           ownerAddress: payload.contractConfiguration.ownerAddress,
           decimal: parseInt(payload.contractConfiguration.decimals),
-          initialOwnerBalance: BigInt(payload.contractConfiguration.initialOwnerBalance),
+          initialOwnerBalance: BigInt(
+            payload.contractConfiguration.initialOwnerBalance,
+          ),
           totalSupply: parseInt(payload.contractConfiguration.totalSupply),
           projectName: payload.contractConfiguration.projectName,
         },
-        actionRecorder
+        actionRecorder,
       );
 
       if (!res || !res.success) {
-        toast.error('failed to create new EVM', {
+        toast.error("failed to create new EVM", {
           description: ERRORS.EVM_NOT_INITIALIZED,
         });
 
@@ -77,15 +79,15 @@ const useDeployContract = () => {
       });
 
       if (playground) {
-        toast.success('Contract Deployed');
+        toast.success("Contract Deployed");
         navigate(`/playground/${id}`);
         return;
       }
 
-      toast.success('Failed to create playground');
+      toast.success("Failed to create playground");
     } catch (e) {
       console.error(e);
-      toast.error('failed to create new EVM');
+      toast.error("failed to create new EVM");
     }
   };
 
