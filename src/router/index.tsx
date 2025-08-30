@@ -1,8 +1,9 @@
-import Landing from '@/pages/landing';
-import CreateContract from '@/pages/create-contract';
-import Playground from '@/pages/playground/[id]';
+import Landing from "@/pages/landing";
+import CreateContract from "@/pages/create-contract";
+import Playground from "@/pages/playground/[id]";
+import { createBrowserRouter, RouterProvider } from "react-router";
+import Layout from '@/pages/explorer/components/layout';
 import PlaygroundProvider from '@/providers/Playground';
-import { createBrowserRouter, RouterProvider } from 'react-router';
 
 const RouterWrapper = () => {
   const router = createBrowserRouter([
@@ -21,6 +22,15 @@ const RouterWrapper = () => {
           <Playground />
         </PlaygroundProvider>
       ),
+    },
+    {
+      path: "/explorer",
+      element: (
+        <PlaygroundProvider>
+          <Layout />
+        </PlaygroundProvider>
+      ),
+      children: []
     },
   ]);
 

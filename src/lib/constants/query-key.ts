@@ -3,7 +3,7 @@ const QUERY_KEY = {
   INITIALIZE_EVM: "initializeEvm",
   EXECUTE_REPLAYABLE_ACTION: "executeReplayableAction",
 
-  LOAD_STORED_PLAYGROUNDS: "loadStoredPlayground"
+  LOAD_STORED_PLAYGROUNDS: "loadStoredPlayground",
 };
 
 export default QUERY_KEY;

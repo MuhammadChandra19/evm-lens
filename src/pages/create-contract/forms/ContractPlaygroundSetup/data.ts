@@ -1,6 +1,6 @@
-import tokenBytecode from '@/service/evm-analyzer/script/token';
+import tokenBytecode from "@/service/evm-analyzer/script/token";
 import { ContractEVMSchema } from "./schema";
-import abi from "@/service/evm-analyzer/script/test_abi.json"
+import abi from "@/service/evm-analyzer/script/test_abi.json";
 
 const DEFAULT_DATA: ContractEVMSchema = {
   contractConfiguration: {

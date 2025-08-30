@@ -1,0 +1,1 @@
+ALTER TABLE `playground` ADD `icon` text NOT NULL DEFAULT 'function';
