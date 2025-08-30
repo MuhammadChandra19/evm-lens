@@ -20,7 +20,7 @@ export async function migrateBrowser(
   db: any,
   apply: (queries: string[]) => Promise<void>,
   migrations: MigrationMeta[],
-  migrationsTable = "__drizzle_migrations"
+  migrationsTable = "__drizzle_migrations",
 ) {
   // Ensure migrations table exists
   const migrationTableCreate = sql`
@@ -35,17 +35,20 @@ export async function migrateBrowser(
 
   // Get the last applied migration
   const dbMigrations = await db.values(
-    sql`SELECT id, hash, created_at FROM ${sql.identifier(migrationsTable)} ORDER BY created_at DESC LIMIT 1`
+    sql`SELECT id, hash, created_at FROM ${sql.identifier(migrationsTable)} ORDER BY created_at DESC LIMIT 1`,
   );
   const lastDbMigration = dbMigrations[0] ?? void 0;
 
   // Figure out what needs to run
   const queriesToRun: string[] = [];
   for (const migration of migrations) {
-    if (!lastDbMigration || Number(lastDbMigration[2]) < migration.folderMillis) {
+    if (
+      !lastDbMigration ||
+      Number(lastDbMigration[2]) < migration.folderMillis
+    ) {
       queriesToRun.push(
         ...migration.sql,
-        `INSERT INTO ${migrationsTable} (hash, created_at) VALUES ('${migration.hash}', '${migration.folderMillis}')`
+        `INSERT INTO ${migrationsTable} (hash, created_at) VALUES ('${migration.hash}', '${migration.folderMillis}')`,
       );
     }
   }

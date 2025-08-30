@@ -7,11 +7,11 @@ const playgroundRepository = (db: SqliteRemoteDatabase) => {
   const create = async (payload: NewPlayground) => {
     try {
       const res = await db.insert(playgroundSchema).values(payload).returning();
-      if(res.length > 0) {
-        return res[0]
+      if (res.length > 0) {
+        return res[0];
       }
 
-      return null
+      return null;
     } catch (e) {
       throw new Error("failed to insert new playground", {
         cause: e,

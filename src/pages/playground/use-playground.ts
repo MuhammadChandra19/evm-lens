@@ -1,12 +1,12 @@
-import { useApp } from '@/hooks/use-app';
-import { extractUint256 } from '@/lib/utils';
-import { FunctionCallForm } from '@/service/evm-analyzer/abi/schema-validator';
-import { AbiFunction } from '@/service/evm-analyzer/abi/types';
-import { parseEVMStepsToFlow } from '@/service/evm-analyzer/utils/react-flow-parser';
-import useEVMStore from '@/store/evm';
-import usePlaygroundStore from '@/store/playground';
-import { useMemo } from 'react';
-import { toast } from 'sonner';
+import { useApp } from "@/hooks/use-app";
+import { extractUint256 } from "@/lib/utils";
+import { FunctionCallForm } from "@/service/evm-analyzer/abi/schema-validator";
+import { AbiFunction } from "@/service/evm-analyzer/abi/types";
+import { parseEVMStepsToFlow } from "@/service/evm-analyzer/utils/react-flow-parser";
+import useEVMStore from "@/store/evm";
+import usePlaygroundStore from "@/store/playground";
+import { useMemo } from "react";
+import { toast } from "sonner";
 
 const usePlayground = () => {
   const { actionRecorder } = useApp();
@@ -23,12 +23,15 @@ const usePlayground = () => {
     return store.getFunctionLastResult(store.activeFunction.func.name!);
   });
 
-  const ownerAccount = useMemo(() => accounts[ownerAddress.toString()], [ownerAddress, accounts]);
+  const ownerAccount = useMemo(
+    () => accounts[ownerAddress.toString()],
+    [ownerAddress, accounts],
+  );
 
   const cleanupArgs = (data: FunctionCallForm) => {
     const args: string[] = [];
     Object.keys(data).forEach((k) => {
-      if (k !== 'ethAmount') {
+      if (k !== "ethAmount") {
         args.push(data[k]);
       }
     });
@@ -37,7 +40,7 @@ const usePlayground = () => {
   };
 
   const functionHasOutput = () => {
-    if (activeFunction!.type !== 'function') {
+    if (activeFunction!.type !== "function") {
       return false;
     }
     if ((activeFunction?.func as AbiFunction).outputs.length > 0) {
@@ -51,21 +54,21 @@ const usePlayground = () => {
       const res = await callFunction(
         {
           args: cleanupArgs(data),
-          ethAmount: BigInt(data['ethAmount'] || '0') * BigInt(10 ** decimals),
+          ethAmount: BigInt(data["ethAmount"] || "0") * BigInt(10 ** decimals),
           executorAddres: ownerAddress,
           func: activeFunction!.func,
           gasLimit: 3000000,
           type: activeFunction!.type,
         },
-        actionRecorder
+        actionRecorder,
       );
       if (!res) {
-        toast.error('Failed to execute function');
+        toast.error("Failed to execute function");
         return;
       }
 
       if (res.error) {
-        toast.error('Failed to execute function', {
+        toast.error("Failed to execute function", {
           description: res.error,
         });
       }
@@ -75,13 +78,13 @@ const usePlayground = () => {
         executedAt: Date.now().toString(),
         executionFlow: flowData,
         functionDefinitions: activeFunction!,
-        functionName: activeFunction!.func.name || '',
+        functionName: activeFunction!.func.name || "",
         id: Date.now().toString(),
         hasOutput: functionHasOutput(),
         result: extractUint256(res.returnValue).toString(),
       });
     } catch (e) {
-      toast.error('Failed to execute function');
+      toast.error("Failed to execute function");
       console.error(e);
     }
   };

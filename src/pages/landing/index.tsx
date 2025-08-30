@@ -1,5 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Code2,
@@ -13,7 +19,7 @@ import {
   Cpu,
   BarChart3,
   Shield,
-  Layers
+  Layers,
 } from "lucide-react";
 import { useNavigate } from "react-router";
 
@@ -21,45 +27,51 @@ const Landing = () => {
   const navigate = useNavigate();
 
   const handleCreateContract = () => {
-    navigate('/create-contract');
+    navigate("/create-contract");
   };
 
   const handleChooseProject = () => {
     // TODO: Implement project selection logic
-    console.log('Choose existing project - to be implemented');
+    console.log("Choose existing project - to be implemented");
   };
 
   const features = [
     {
       icon: Cpu,
       title: "EVM Simulation",
-      description: "Full Ethereum Virtual Machine simulation with step-by-step execution tracing"
+      description:
+        "Full Ethereum Virtual Machine simulation with step-by-step execution tracing",
     },
     {
       icon: Code2,
       title: "Smart Contract Deployment",
-      description: "Deploy and interact with smart contracts in a safe, simulated environment"
+      description:
+        "Deploy and interact with smart contracts in a safe, simulated environment",
     },
     {
       icon: Eye,
       title: "Visual Execution Flow",
-      description: "See exactly how your contract executes with interactive visual diagrams"
+      description:
+        "See exactly how your contract executes with interactive visual diagrams",
     },
     {
       icon: BarChart3,
       title: "Gas Analysis",
-      description: "Understand gas consumption patterns and optimize your contract efficiency"
+      description:
+        "Understand gas consumption patterns and optimize your contract efficiency",
     },
     {
       icon: Shield,
       title: "Security Insights",
-      description: "Identify potential vulnerabilities and best practices in your smart contracts"
+      description:
+        "Identify potential vulnerabilities and best practices in your smart contracts",
     },
     {
       icon: Layers,
       title: "State Management",
-      description: "Track storage changes, memory usage, and stack operations in real-time"
-    }
+      description:
+        "Track storage changes, memory usage, and stack operations in real-time",
+    },
   ];
 
   const useCases = [
@@ -68,7 +80,7 @@ const Landing = () => {
     "Optimize gas usage and performance",
     "Understand EVM internals and opcodes",
     "Test contract behavior before mainnet deployment",
-    "Educational workshops and blockchain courses"
+    "Educational workshops and blockchain courses",
   ];
 
   return (
@@ -95,12 +107,16 @@ const Landing = () => {
           <div className="max-w-4xl mx-auto">
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
               Interactive Ethereum
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600"> Smart Contract </span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+                {" "}
+                Smart Contract{" "}
+              </span>
               Explorer
             </h1>
             <p className="text-xl text-gray-600 mb-8 leading-relaxed max-w-3xl mx-auto">
-              Learn, deploy, and analyze smart contracts with our comprehensive EVM simulator.
-              Perfect for developers, students, and anyone curious about blockchain technology.
+              Learn, deploy, and analyze smart contracts with our comprehensive
+              EVM simulator. Perfect for developers, students, and anyone
+              curious about blockchain technology.
             </p>
 
             {/* CTA Buttons */}
@@ -132,12 +148,18 @@ const Landing = () => {
                 <div className="text-sm text-gray-500">EVM Compatible</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-purple-600">Real-time</div>
+                <div className="text-3xl font-bold text-purple-600">
+                  Real-time
+                </div>
                 <div className="text-sm text-gray-500">Execution Tracing</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-green-600">Zero Cost</div>
-                <div className="text-sm text-gray-500">Simulation Environment</div>
+                <div className="text-3xl font-bold text-green-600">
+                  Zero Cost
+                </div>
+                <div className="text-sm text-gray-500">
+                  Simulation Environment
+                </div>
               </div>
             </div>
           </div>
@@ -146,15 +168,21 @@ const Landing = () => {
         {/* Features Grid */}
         <div className="mb-20">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Powerful Features</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Powerful Features
+            </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Everything you need to understand and master smart contract development
+              Everything you need to understand and master smart contract
+              development
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white/70 backdrop-blur-sm">
+              <Card
+                key={index}
+                className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white/70 backdrop-blur-sm"
+              >
                 <CardHeader>
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mb-4">
                     <feature.icon className="w-6 h-6 text-white" />
@@ -175,14 +203,18 @@ const Landing = () => {
         <div className="mb-20">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">Perfect For</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                Perfect For
+              </h2>
               <div className="space-y-4">
                 {useCases.map((useCase, index) => (
                   <div key={index} className="flex items-start gap-3">
                     <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                       <div className="w-2 h-2 bg-green-600 rounded-full"></div>
                     </div>
-                    <span className="text-gray-700 leading-relaxed">{useCase}</span>
+                    <span className="text-gray-700 leading-relaxed">
+                      {useCase}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -190,9 +222,12 @@ const Landing = () => {
 
             <Card className="border-0 shadow-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
               <CardHeader>
-                <CardTitle className="text-2xl text-white">Ready to Explore?</CardTitle>
+                <CardTitle className="text-2xl text-white">
+                  Ready to Explore?
+                </CardTitle>
                 <CardDescription className="text-blue-100">
-                  Start your smart contract journey today with our interactive tools
+                  Start your smart contract journey today with our interactive
+                  tools
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">

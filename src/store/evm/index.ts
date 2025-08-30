@@ -1,14 +1,14 @@
-import { create } from 'zustand';
-import { EVMState, CreateNewEVMPayload, EVMStore, TxData } from './types';
-import * as actions from './action';
-import EVMAnalyzer, { AccountInfo } from '@/service/evm-analyzer';
-import { Address } from '@ethereumjs/util';
-import { Abi } from '@/service/evm-analyzer/abi/types';
-import { ETH_DECIMAL } from '@/lib/constants';
-import { ActionRecorder } from '@/service/action-recorder';
+import { create } from "zustand";
+import { EVMState, CreateNewEVMPayload, EVMStore, TxData } from "./types";
+import * as actions from "./action";
+import EVMAnalyzer, { AccountInfo } from "@/service/evm-analyzer";
+import { Address } from "@ethereumjs/util";
+import { Abi } from "@/service/evm-analyzer/abi/types";
+import { ETH_DECIMAL } from "@/lib/constants";
+import { ActionRecorder } from "@/service/action-recorder";
 
 const initialState: EVMState = {
-  constructorBytecode: '',
+  constructorBytecode: "",
   abi: {} as Abi,
   totalSupply: BigInt(0),
   decimals: 18,
@@ -19,14 +19,25 @@ const useEVMStore = create<EVMStore>()((set, get) => ({
 
   getAccounts: () => {
     const accounts = get().accounts || {};
-    return Object.values(accounts).filter((v) => !v.isContract && v.address.toString());
+    return Object.values(accounts).filter(
+      (v) => !v.isContract && v.address.toString(),
+    );
   },
 
   // Basic EVM functions
-  createAccount: async (address: string, actionRecorder: ActionRecorder, shouldRecord: boolean = true) => {
-    const fixAddress = address.startsWith('0x') ? address.slice(2) : address;
-    const addressType = new Address(Buffer.from(fixAddress, 'hex'));
-    const result = await actions.createAccount(addressType, get, actionRecorder, shouldRecord);
+  createAccount: async (
+    address: string,
+    actionRecorder: ActionRecorder,
+    shouldRecord: boolean = true,
+  ) => {
+    const fixAddress = address.startsWith("0x") ? address.slice(2) : address;
+    const addressType = new Address(Buffer.from(fixAddress, "hex"));
+    const result = await actions.createAccount(
+      addressType,
+      get,
+      actionRecorder,
+      shouldRecord,
+    );
     if (!result) {
       return null;
     }
@@ -46,20 +57,34 @@ const useEVMStore = create<EVMStore>()((set, get) => ({
 
     return result;
   },
-  fundAccount: async (address: Address, balance: bigint, actionRecorder: ActionRecorder, shouldRecord: boolean = true) => {
+  fundAccount: async (
+    address: Address,
+    balance: bigint,
+    actionRecorder: ActionRecorder,
+    shouldRecord: boolean = true,
+  ) => {
     const parsedBalance = balance * BigInt(10 ** ETH_DECIMAL);
     const accounts = get().accounts || {};
     const currentAccount = accounts[address.toString()];
 
     if (!currentAccount) {
-      console.error(`Cannot fund account ${address.toString()}: account does not exist`);
+      console.error(
+        `Cannot fund account ${address.toString()}: account does not exist`,
+      );
       return {
         error: `Cannot fund account ${address.toString()}: account does not exist`,
         success: false,
       };
     }
     const newBalance = currentAccount.balance + parsedBalance;
-    const result = await actions.fundAccount(address, newBalance, get, actionRecorder, shouldRecord, balance);
+    const result = await actions.fundAccount(
+      address,
+      newBalance,
+      get,
+      actionRecorder,
+      shouldRecord,
+      balance,
+    );
 
     if (result.success) {
       set((state) => ({
@@ -76,14 +101,33 @@ const useEVMStore = create<EVMStore>()((set, get) => ({
     return result;
   },
 
-  deployContractToEVM: async (payload: CreateNewEVMPayload, actionRecorder: ActionRecorder, shouldRecord: boolean = true) => {
-    const result = await actions.deployContractToEVM(payload, set, get, actionRecorder, shouldRecord);
+  deployContractToEVM: async (
+    payload: CreateNewEVMPayload,
+    actionRecorder: ActionRecorder,
+    shouldRecord: boolean = true,
+  ) => {
+    const result = await actions.deployContractToEVM(
+      payload,
+      set,
+      get,
+      actionRecorder,
+      shouldRecord,
+    );
     return result;
   },
 
-  callFunction: async (txData: TxData, actionRecorder: ActionRecorder, shouldRecord: boolean = true) => {
+  callFunction: async (
+    txData: TxData,
+    actionRecorder: ActionRecorder,
+    shouldRecord: boolean = true,
+  ) => {
     try {
-      const result = await actions.callFunction(txData, get, actionRecorder, shouldRecord);
+      const result = await actions.callFunction(
+        txData,
+        get,
+        actionRecorder,
+        shouldRecord,
+      );
 
       if (result && !result.success) {
         return result;
@@ -132,6 +176,55 @@ const useEVMStore = create<EVMStore>()((set, get) => ({
     // Always create a completely fresh EVM instance
     const evm = await EVMAnalyzer.create();
     set({ evm });
+  },
+
+  /**
+   * Initialize unified EVM state by replaying ALL snapshots chronologically
+   * This creates a shared EVM state across all playgrounds
+   */
+  initializeUnifiedEVM: async (actionRecorder: ActionRecorder) => {
+    try {
+      // Create fresh EVM instance
+      const evm = await EVMAnalyzer.create();
+      set({ evm });
+
+      // Load all snapshots from all playgrounds, ordered by time
+      const { data: actions, error } =
+        await actionRecorder.loadUnifiedSnapshot();
+
+      if (error) {
+        console.error("Failed to load unified snapshots:", error);
+        return;
+      }
+
+      if (actions.length === 0) {
+        console.log("No snapshots to replay for unified EVM");
+        return;
+      }
+
+      console.log(
+        `🔄 Replaying ${actions.length} actions from all playgrounds to create unified EVM state`,
+      );
+
+      // Replay all actions chronologically
+      const evmStore = get();
+      for (let i = 0; i < actions.length; i++) {
+        const action = actions[i];
+        try {
+          await action.execute(action.payload, evmStore);
+        } catch (error) {
+          console.error(
+            `Failed to replay unified action: ${action.type}`,
+            error,
+          );
+          // Continue with next action even if one fails
+        }
+      }
+
+      console.log("✅ Unified EVM state initialized successfully");
+    } catch (error) {
+      console.error("❌ Failed to initialize unified EVM:", error);
+    }
   },
 }));
 

@@ -7,7 +7,7 @@ const LoadingScreen = () => {
     { icon: Database, label: "Initializing Database", delay: "0s" },
     { icon: Cpu, label: "Loading EVM Engine", delay: "0.5s" },
     { icon: Zap, label: "Setting up Services", delay: "1s" },
-    { icon: Eye, label: "Preparing Interface", delay: "1.5s" }
+    { icon: Eye, label: "Preparing Interface", delay: "1.5s" },
   ];
 
   return (
@@ -25,7 +25,9 @@ const LoadingScreen = () => {
 
             {/* Title */}
             <h1 className="text-2xl font-bold text-gray-900 mb-2">EVM Lens</h1>
-            <p className="text-gray-600 mb-6">Initializing your smart contract explorer...</p>
+            <p className="text-gray-600 mb-6">
+              Initializing your smart contract explorer...
+            </p>
 
             {/* Loading Progress */}
             <div className="space-y-3 mb-6">
@@ -41,7 +43,10 @@ const LoadingScreen = () => {
                   <span className="text-sm font-medium text-gray-700 flex-1 text-left">
                     {step.label}
                   </span>
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-ping" style={{ animationDelay: step.delay }}></div>
+                  <div
+                    className="w-2 h-2 bg-blue-500 rounded-full animate-ping"
+                    style={{ animationDelay: step.delay }}
+                  ></div>
                 </div>
               ))}
             </div>

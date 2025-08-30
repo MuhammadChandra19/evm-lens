@@ -1,13 +1,13 @@
-import { Address } from '@ethereumjs/util';
-import useEVMStore from '@/store/evm';
-import usePlaygroundStore from '@/store/playground';
-import { FunctionCallForm } from '@/store/playground/types';
-import { useMemo, useState } from 'react';
-import { toast } from 'sonner';
-import { parseEVMStepsToFlow } from '@/service/evm-analyzer/utils/react-flow-parser';
-import { AbiFunction } from '@/service/evm-analyzer/abi/types';
-import { extractUint256 } from '@/lib/utils';
-import { useApp } from '@/hooks/use-app';
+import { Address } from "@ethereumjs/util";
+import useEVMStore from "@/store/evm";
+import usePlaygroundStore from "@/store/playground";
+import { FunctionCallForm } from "@/store/playground/types";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import { parseEVMStepsToFlow } from "@/service/evm-analyzer/utils/react-flow-parser";
+import { AbiFunction } from "@/service/evm-analyzer/abi/types";
+import { extractUint256 } from "@/lib/utils";
+import { useApp } from "@/hooks/use-app";
 
 const useAbiHandler = () => {
   const { actionRecorder } = useApp();
@@ -27,7 +27,11 @@ const useAbiHandler = () => {
     return args;
   };
 
-  const handleExecute = async (data: FunctionCallForm, executor: Address, ethAmount: string) => {
+  const handleExecute = async (
+    data: FunctionCallForm,
+    executor: Address,
+    ethAmount: string,
+  ) => {
     try {
       setExecuting(true);
       const res = await callFunction(
@@ -39,16 +43,16 @@ const useAbiHandler = () => {
           gasLimit: 3000000,
           type: activeFunction!.type,
         },
-        actionRecorder
+        actionRecorder,
       );
 
       if (!res) {
-        toast.error('Failed to execute function');
+        toast.error("Failed to execute function");
         return;
       }
 
       if (res.error) {
-        toast.error('Failed to execute function', {
+        toast.error("Failed to execute function", {
           description: res.error,
         });
       }
@@ -58,22 +62,27 @@ const useAbiHandler = () => {
         executedAt: Date.now().toString(),
         executionFlow: flowData,
         functionDefinitions: activeFunction!,
-        functionName: activeFunction?.func.name || '',
+        functionName: activeFunction?.func.name || "",
         id: Date.now().toString(),
         hasOutput: hasOutput(),
         result: extractUint256(res.returnValue).toString(),
       });
     } catch (e) {
-      toast.error('Failed to execute function');
+      toast.error("Failed to execute function");
       console.error(e);
     } finally {
       setExecuting(false);
     }
   };
 
-  const hasOutput = () => activeFunction?.type === 'function' && (activeFunction.func as AbiFunction).outputs.length > 0;
+  const hasOutput = () =>
+    activeFunction?.type === "function" &&
+    (activeFunction.func as AbiFunction).outputs.length > 0;
 
-  const accountList = useMemo(() => Object.values(accounts!).map((v) => v), [accounts]);
+  const accountList = useMemo(
+    () => Object.values(accounts!).map((v) => v),
+    [accounts],
+  );
 
   return {
     activeFunction,

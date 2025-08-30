@@ -1,7 +1,7 @@
 import { SqliteRemoteDatabase } from "drizzle-orm/sqlite-proxy";
 import snapshotSchema from "./entity";
 import type { NewSnapshot } from "./entity";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 
 const snapshotRepository = (db: SqliteRemoteDatabase) => {
   const create = async (payload: NewSnapshot) => {
@@ -19,7 +19,8 @@ const snapshotRepository = (db: SqliteRemoteDatabase) => {
       const res = await db
         .select()
         .from(snapshotSchema)
-        .where(eq(snapshotSchema.playgroundId, playgroundId));
+        .where(eq(snapshotSchema.playgroundId, playgroundId))
+        .orderBy(asc(snapshotSchema.timestamp));
 
       return res;
     } catch (e) {
@@ -29,9 +30,29 @@ const snapshotRepository = (db: SqliteRemoteDatabase) => {
     }
   };
 
+  /**
+   * Load ALL snapshots from ALL playgrounds, ordered chronologically
+   * This enables unified EVM state across all playgrounds
+   */
+  const loadAllSnapshotsOrderedByTime = async () => {
+    try {
+      const res = await db
+        .select()
+        .from(snapshotSchema)
+        .orderBy(asc(snapshotSchema.timestamp));
+
+      return res;
+    } catch (e) {
+      throw new Error("failed to load all snapshots", {
+        cause: e,
+      });
+    }
+  };
+
   return {
     create,
     loadPlaygroundSnapshot,
+    loadAllSnapshotsOrderedByTime,
   };
 };
 

@@ -80,7 +80,9 @@ const ExecutionFlow = ({ lastExecutionResult }: Props) => {
           <Play className="w-5 h-5 text-green-600" />
         </div>
         <div>
-          <h3 className="font-semibold text-green-900">Execution Flow Complete</h3>
+          <h3 className="font-semibold text-green-900">
+            Execution Flow Complete
+          </h3>
           <p className="text-sm text-green-700">
             Function executed successfully - explore the execution graph below
           </p>
@@ -129,8 +131,10 @@ const ExecutionFlow = ({ lastExecutionResult }: Props) => {
                       </code>
                     </div>
                     <div className="text-xs text-gray-500">
-                      PC: {activeNodeData.pc} | Gas: {activeNodeData.gasLeft.toString()} |
-                      Refund: {activeNodeData.gasRefund.toString()} | Depth: {activeNodeData.depth}
+                      PC: {activeNodeData.pc} | Gas:{" "}
+                      {activeNodeData.gasLeft.toString()} | Refund:{" "}
+                      {activeNodeData.gasRefund.toString()} | Depth:{" "}
+                      {activeNodeData.depth}
                     </div>
                   </div>
 
@@ -150,14 +154,18 @@ const ExecutionFlow = ({ lastExecutionResult }: Props) => {
                           {formatStack(activeNodeData.stack).map(
                             ({ value, index }) => (
                               <div key={index} className="flex justify-between">
-                                <span className="text-slate-500">[{index}]:</span>
+                                <span className="text-slate-500">
+                                  [{index}]:
+                                </span>
                                 <span className="text-blue-600">0x{value}</span>
                               </div>
                             ),
                           )}
                         </div>
                       ) : (
-                        <div className="text-sm text-muted-foreground">Empty</div>
+                        <div className="text-sm text-muted-foreground">
+                          Empty
+                        </div>
                       )}
                     </div>
 
@@ -189,10 +197,12 @@ const ExecutionFlow = ({ lastExecutionResult }: Props) => {
                           {activeNodeData.storage.map(([key, value], index) => (
                             <div key={index} className="font-mono text-xs">
                               <div className="text-slate-500">
-                                Key: <span className="text-purple-600">{key}</span>
+                                Key:{" "}
+                                <span className="text-purple-600">{key}</span>
                               </div>
                               <div className="text-slate-500">
-                                Val: <span className="text-purple-600">{value}</span>
+                                Val:{" "}
+                                <span className="text-purple-600">{value}</span>
                               </div>
                             </div>
                           ))}
