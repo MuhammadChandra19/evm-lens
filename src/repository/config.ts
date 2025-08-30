@@ -34,7 +34,7 @@ export interface RepositoryConfig {
    *
    * @default []
    */
-  tablesToClear: ('playground' | 'snapshot')[];
+  tablesToClear: ("playground" | "snapshot")[];
 }
 
 /**
@@ -45,7 +45,7 @@ export interface RepositoryConfig {
 const defaultConfig: RepositoryConfig = {
   clearTablesOnInit: false, // Set to true to clear tables on init
   enableDebugLogging: false,
-  databaseName: 'evmdb.sqlite3',
+  databaseName: "evmdb.sqlite3",
   tablesToClear: [], // Empty means clear all tables
 };
 

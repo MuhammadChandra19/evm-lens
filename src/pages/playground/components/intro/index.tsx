@@ -1,4 +1,10 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Play,
@@ -8,7 +14,7 @@ import {
   Zap,
   BookOpen,
   Target,
-  MousePointer
+  MousePointer,
 } from "lucide-react";
 
 const Intro = () => {
@@ -16,18 +22,18 @@ const Intro = () => {
     {
       icon: MousePointer,
       title: "Select a Function",
-      description: "Choose a function from the sidebar to start exploring"
+      description: "Choose a function from the sidebar to start exploring",
     },
     {
       icon: Code2,
       title: "Configure Parameters",
-      description: "Set input parameters and values for your function call"
+      description: "Set input parameters and values for your function call",
     },
     {
       icon: Play,
       title: "Execute & Analyze",
-      description: "Run the function and see the detailed execution flow"
-    }
+      description: "Run the function and see the detailed execution flow",
+    },
   ];
 
   const features = [
@@ -35,7 +41,7 @@ const Intro = () => {
     "Interactive execution flow visualization",
     "Real-time stack, memory, and storage inspection",
     "Gas consumption analysis",
-    "Opcode-level debugging capabilities"
+    "Opcode-level debugging capabilities",
   ];
 
   return (
@@ -46,9 +52,12 @@ const Intro = () => {
           <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
             <Target className="w-8 h-8 text-blue-600" />
           </div>
-          <CardTitle className="text-2xl text-blue-900">Welcome to EVM Playground</CardTitle>
+          <CardTitle className="text-2xl text-blue-900">
+            Welcome to EVM Playground
+          </CardTitle>
           <CardDescription className="text-blue-700 text-base">
-            Explore smart contract functions with interactive execution tracing and visualization
+            Explore smart contract functions with interactive execution tracing
+            and visualization
           </CardDescription>
         </CardHeader>
       </Card>
@@ -69,7 +78,9 @@ const Intro = () => {
             {steps.map((step, index) => (
               <div key={index} className="flex items-start gap-3">
                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-sm font-semibold text-blue-600">{index + 1}</span>
+                  <span className="text-sm font-semibold text-blue-600">
+                    {index + 1}
+                  </span>
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
@@ -84,7 +95,9 @@ const Intro = () => {
             <div className="mt-6 p-3 bg-green-50 rounded-lg border border-green-200">
               <div className="flex items-center gap-2 text-green-700">
                 <ArrowRight className="w-4 h-4" />
-                <span className="font-medium text-sm">Start by selecting a function from the sidebar!</span>
+                <span className="font-medium text-sm">
+                  Start by selecting a function from the sidebar!
+                </span>
               </div>
             </div>
           </CardContent>
@@ -112,7 +125,10 @@ const Intro = () => {
             <div className="mt-6 p-3 bg-purple-50 rounded-lg border border-purple-200">
               <div className="flex items-center gap-2 text-purple-700">
                 <Eye className="w-4 h-4" />
-                <span className="font-medium text-sm">Interactive visualization makes complex EVM operations easy to understand</span>
+                <span className="font-medium text-sm">
+                  Interactive visualization makes complex EVM operations easy to
+                  understand
+                </span>
               </div>
             </div>
           </CardContent>
@@ -130,7 +146,8 @@ const Intro = () => {
               <div>
                 <h4 className="font-semibold text-gray-900">Pro Tip</h4>
                 <p className="text-sm text-gray-600">
-                  Click on any node in the execution flow to inspect its detailed state information
+                  Click on any node in the execution flow to inspect its
+                  detailed state information
                 </p>
               </div>
             </div>

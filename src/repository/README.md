@@ -26,7 +26,7 @@ const defaultConfig: RepositoryConfig = {
   clearTablesOnInit: true,
   enableDebugLogging: true,
   databaseName: "evmdb.sqlite3",
-  tablesToClear: ['playground'], // Only clear playground table
+  tablesToClear: ["playground"], // Only clear playground table
 };
 ```
 
@@ -37,7 +37,7 @@ const defaultConfig: RepositoryConfig = {
 After initializing the repository, you can clear tables using the built-in method:
 
 ```typescript
-import initRepository from '@/repository';
+import initRepository from "@/repository";
 
 const repo = await initRepository();
 
@@ -45,18 +45,18 @@ const repo = await initRepository();
 await repo.clearTables();
 
 // Clear specific tables
-await repo.clearTables(['playground']);
-await repo.clearTables(['snapshot']);
+await repo.clearTables(["playground"]);
+await repo.clearTables(["snapshot"]);
 ```
 
 ## Configuration Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `clearTablesOnInit` | boolean | `false` | Clear tables when repository initializes |
-| `enableDebugLogging` | boolean | `false` | Show detailed logging during operations |
-| `databaseName` | string | `"evmdb.sqlite3"` | SQLite database file name |
-| `tablesToClear` | array | `[]` | Specific tables to clear (empty = all tables) |
+| Option               | Type    | Default           | Description                                   |
+| -------------------- | ------- | ----------------- | --------------------------------------------- |
+| `clearTablesOnInit`  | boolean | `false`           | Clear tables when repository initializes      |
+| `enableDebugLogging` | boolean | `false`           | Show detailed logging during operations       |
+| `databaseName`       | string  | `"evmdb.sqlite3"` | SQLite database file name                     |
+| `tablesToClear`      | array   | `[]`              | Specific tables to clear (empty = all tables) |
 
 ## Database Schema
 
@@ -104,5 +104,5 @@ const defaultConfig: RepositoryConfig = {
 // Runtime clearing during development/testing
 const repo = await initRepository();
 await repo.clearTables(); // Clear all
-await repo.clearTables(['snapshot']); // Clear specific tables
+await repo.clearTables(["snapshot"]); // Clear specific tables
 ```

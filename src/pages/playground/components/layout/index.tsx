@@ -17,15 +17,15 @@ import { ReactNode } from "react";
 import Intro from "../intro";
 import BalanceForm from "../balance-form";
 import NewAccountForm from "../new-account-form";
-import usePlayground from '../../use-playground';
-import { useNavigate } from 'react-router';
+import usePlayground from "../../use-playground";
+import { useNavigate } from "react-router";
 
 type Props = {
   children: ReactNode;
 };
 
 const Layout = ({ children }: Props) => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const { activeFunction, ownerAccount } = usePlayground();
   return (
     <SidebarProvider>
@@ -41,7 +41,9 @@ const Layout = ({ children }: Props) => {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink onClick={() => navigate("/create-contract")}>Contract creation</BreadcrumbLink>
+                  <BreadcrumbLink onClick={() => navigate("/create-contract")}>
+                    Contract creation
+                  </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem>
@@ -59,7 +61,8 @@ const Layout = ({ children }: Props) => {
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-gray-700">Owner:</span>
                   <code className="px-2 py-1 bg-gray-100 rounded text-xs font-mono text-gray-600">
-                    {ownerAccount.address.toString().slice(0, 6)}...{ownerAccount.address.toString().slice(-4)}
+                    {ownerAccount.address.toString().slice(0, 6)}...
+                    {ownerAccount.address.toString().slice(-4)}
                   </code>
                 </div>
                 <div className="flex items-center gap-2">
