@@ -12,13 +12,18 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import FunctionList from "../function-list";
+import FunctionList from "./function-list";
 import { ReactNode } from "react";
-import Intro from "../intro";
+import Intro from "./intro";
 import BalanceForm from "../balance-form";
 import NewAccountForm from "../new-account-form";
+<<<<<<< HEAD
 import usePlayground from "../../use-playground";
 import { useNavigate } from "react-router";
+=======
+import { useNavigate } from 'react-router';
+import usePlayground from '../use-playground';
+>>>>>>> 8383954 (feat: init setup)
 
 type Props = {
   children: ReactNode;

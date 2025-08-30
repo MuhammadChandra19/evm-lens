@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useApp } from "@/hooks/use-app";
 import useEVMStore from "@/store/evm";
 import {
@@ -11,6 +12,17 @@ import {
 } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
+=======
+import LoadingScreen from '@/components/loading-screen';
+import { useApp } from '@/hooks/use-app';
+import QUERY_KEY from '@/lib/constants/query-key';
+import { Playground } from '@/repository/playground/entity';
+import useEVMStore from '@/store/evm';
+import { useQuery } from '@tanstack/react-query';
+import { createContext, ReactNode, useEffect, useMemo, useState, useRef } from 'react';
+import { useNavigate, useParams } from 'react-router';
+import { toast } from 'sonner';
+>>>>>>> 8383954 (feat: init setup)
 
 interface PlaygroundProviderProps {
   children: ReactNode;
@@ -18,7 +30,12 @@ interface PlaygroundProviderProps {
 
 type PlaygroundProviderValue = {
   isLoading: boolean;
+<<<<<<< HEAD
   setActivePlayground: (id: number) => Promise<void>;
+=======
+  setActivePlayground: (id: number) => Promise<void>
+  playgroundList: Playground[]
+>>>>>>> 8383954 (feat: init setup)
 };
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -107,15 +124,41 @@ const PlaygroundProvider = ({ children }: PlaygroundProviderProps) => {
     }
   }, [replayError]);
 
+  const { data, error: errorLoadingPlaygroundList, isLoading: isLoadingPlaygroundList} = useQuery({
+    queryKey: [QUERY_KEY.LOAD_STORED_PLAYGROUNDS, playgroundId],
+    queryFn: context.repository.playground.list,
+  })
+
+  useEffect(() => {
+    if(errorLoadingPlaygroundList) {
+      toast.error("Failed to load playground lits", {
+        description: errorLoadingPlaygroundList.message
+      })
+    }
+  }, [errorLoadingPlaygroundList])
+
+  const playgroundList = useMemo(() => {
+    if(!data) return []
+
+    return data as Playground[]
+  }, [data])
+
   /**
    * Combined loading state
    * - Shows loading while EVM initializes OR while replaying snapshot
    * - Ensures UI doesn't show "ready" until entire sequence completes
    */
+<<<<<<< HEAD
   const isLoading = useMemo(() => isReplayingSnapshot, [isReplayingSnapshot]);
 
   if (isLoading) {
     return <div>Initializing unified EVM state...</div>;
+=======
+  const isLoading = useMemo(() => isReplayingSnapshot || isLoadingPlaygroundList, [isReplayingSnapshot, isLoadingPlaygroundList])
+
+  if (isLoading) {
+    return <LoadingScreen />;
+>>>>>>> 8383954 (feat: init setup)
   }
 
   return (
@@ -123,6 +166,10 @@ const PlaygroundProvider = ({ children }: PlaygroundProviderProps) => {
       value={{
         isLoading,
         setActivePlayground,
+<<<<<<< HEAD
+=======
+        playgroundList
+>>>>>>> 8383954 (feat: init setup)
       }}
     >
       {children}
