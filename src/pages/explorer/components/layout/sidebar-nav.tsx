@@ -7,7 +7,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { NavItem } from "./types";
+import { ExplorerRoute } from "../../router/types";
 import {
   Collapsible,
   CollapsibleContent,
@@ -16,9 +16,10 @@ import {
 import { ChevronRight } from "lucide-react";
 import { Link } from "react-router";
 import { useMemo } from "react";
+import { ExplorerRouteKeyValues } from '../../router/route-item';
 
 type Props = {
-  items: NavItem[];
+  items: ExplorerRoute<string | ExplorerRouteKeyValues>[];
 };
 const SideBarNav = ({ items }: Props) => {
   const itemsWithChild = useMemo(() => items.filter((v) => v.child), [items]);
@@ -28,6 +29,24 @@ const SideBarNav = ({ items }: Props) => {
   );
   return (
     <SidebarContent>
+      <SidebarMenu className="p-2">
+        {itemWithoutChild.map((item) => (
+          <SidebarMenuItem key={item.title}>
+            <SidebarMenuButton asChild isActive={item.isActive}>
+              <Link to={item.path} className="flex gap-2">
+                {typeof item.icon === "string" ? (
+                  <div className="w-4 h-4 flex items-center justify-center text-xs font-medium">
+                    {item.icon}
+                  </div>
+                ) : (
+                  <item.icon className="w-4 h-4" />
+                )}
+                <span>{item.title}</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        ))}
+      </SidebarMenu>
       {itemsWithChild.map((item) => (
         <Collapsible
           key={item.title}
@@ -71,24 +90,6 @@ const SideBarNav = ({ items }: Props) => {
           </SidebarGroup>
         </Collapsible>
       ))}
-      <SidebarMenu>
-        {itemWithoutChild.map((item) => (
-          <SidebarMenuItem key={item.title}>
-            <SidebarMenuButton asChild isActive={item.isActive}>
-              <Link to={item.path} className="flex gap-2">
-                {typeof item.icon === "string" ? (
-                  <div className="w-4 h-4 flex items-center justify-center text-xs font-medium">
-                    {item.icon}
-                  </div>
-                ) : (
-                  <item.icon className="w-4 h-4" />
-                )}
-                <span>{item.title}</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        ))}
-      </SidebarMenu>
     </SidebarContent>
   );
 };
