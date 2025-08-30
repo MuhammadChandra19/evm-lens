@@ -1,28 +1,12 @@
-<<<<<<< HEAD
-import { useApp } from "@/hooks/use-app";
-import useEVMStore from "@/store/evm";
-import {
-  createContext,
-  ReactNode,
-  useEffect,
-  useMemo,
-  useState,
-  useRef,
-  useCallback,
-} from "react";
-import { useNavigate, useParams } from "react-router";
-import { toast } from "sonner";
-=======
 import LoadingScreen from '@/components/loading-screen';
 import { useApp } from '@/hooks/use-app';
 import QUERY_KEY from '@/lib/constants/query-key';
 import { Playground } from '@/repository/playground/entity';
 import useEVMStore from '@/store/evm';
 import { useQuery } from '@tanstack/react-query';
-import { createContext, ReactNode, useEffect, useMemo, useState, useRef } from 'react';
+import { createContext, ReactNode, useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { toast } from 'sonner';
->>>>>>> 8383954 (feat: init setup)
 
 interface PlaygroundProviderProps {
   children: ReactNode;
@@ -30,12 +14,8 @@ interface PlaygroundProviderProps {
 
 type PlaygroundProviderValue = {
   isLoading: boolean;
-<<<<<<< HEAD
-  setActivePlayground: (id: number) => Promise<void>;
-=======
   setActivePlayground: (id: number) => Promise<void>
   playgroundList: Playground[]
->>>>>>> 8383954 (feat: init setup)
 };
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -148,17 +128,10 @@ const PlaygroundProvider = ({ children }: PlaygroundProviderProps) => {
    * - Shows loading while EVM initializes OR while replaying snapshot
    * - Ensures UI doesn't show "ready" until entire sequence completes
    */
-<<<<<<< HEAD
-  const isLoading = useMemo(() => isReplayingSnapshot, [isReplayingSnapshot]);
-
-  if (isLoading) {
-    return <div>Initializing unified EVM state...</div>;
-=======
   const isLoading = useMemo(() => isReplayingSnapshot || isLoadingPlaygroundList, [isReplayingSnapshot, isLoadingPlaygroundList])
 
   if (isLoading) {
     return <LoadingScreen />;
->>>>>>> 8383954 (feat: init setup)
   }
 
   return (
@@ -166,10 +139,7 @@ const PlaygroundProvider = ({ children }: PlaygroundProviderProps) => {
       value={{
         isLoading,
         setActivePlayground,
-<<<<<<< HEAD
-=======
         playgroundList
->>>>>>> 8383954 (feat: init setup)
       }}
     >
       {children}
