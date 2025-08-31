@@ -76,7 +76,7 @@ const useDeployContract = () => {
       const playground = await repository.playground.create({
         name: payload.contractConfiguration.projectName,
         id,
-        icon: payload.contractConfiguration.projectName.charAt(0).toUpperCase()
+        icon: payload.contractConfiguration.projectName.charAt(0).toUpperCase(),
       });
 
       if (playground) {

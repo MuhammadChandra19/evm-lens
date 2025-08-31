@@ -1,4 +1,10 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Activity,
@@ -7,7 +13,7 @@ import {
   Users,
   TrendingUp,
   Clock,
-  ArrowUpRight
+  ArrowUpRight,
 } from "lucide-react";
 import { useExplorer } from "@/hooks/use-explorer";
 
@@ -29,7 +35,9 @@ const ExplorerDashboard = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">EVM Lens Explorer</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            EVM Lens Explorer
+          </h1>
           <p className="text-muted-foreground">
             Real-time blockchain analytics and transaction monitoring
           </p>
@@ -45,12 +53,16 @@ const ExplorerDashboard = () => {
         {/* Total Transactions */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Transactions</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Transactions
+            </CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {isLoading ? "..." : formatNumber(metrics?.totalTransactions || 0)}
+              {isLoading
+                ? "..."
+                : formatNumber(metrics?.totalTransactions || 0)}
             </div>
             <p className="text-xs text-muted-foreground">
               <span className="text-green-600 flex items-center gap-1">
@@ -83,7 +95,9 @@ const ExplorerDashboard = () => {
         {/* Total Gas Consumed */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Gas Consumed</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Gas Consumed
+            </CardTitle>
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -99,16 +113,14 @@ const ExplorerDashboard = () => {
         {/* Active Playgrounds */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Playgrounds</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Active Playgrounds
+            </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {totalPlaygrounds}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Total environments
-            </p>
+            <div className="text-2xl font-bold">{totalPlaygrounds}</div>
+            <p className="text-xs text-muted-foreground">Total environments</p>
           </CardContent>
         </Card>
       </div>
@@ -125,21 +137,30 @@ const ExplorerDashboard = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             {isLoading ? (
-              <div className="text-center text-muted-foreground">Loading...</div>
+              <div className="text-center text-muted-foreground">
+                Loading...
+              </div>
             ) : (
               metrics?.transactionsByType?.map((item) => (
-                <div key={item.type} className="flex items-center justify-between">
+                <div
+                  key={item.type}
+                  className="flex items-center justify-between"
+                >
                   <div className="flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded-full ${getTransactionTypeColor(item.type)}`} />
+                    <div
+                      className={`w-3 h-3 rounded-full ${getTransactionTypeColor(item.type)}`}
+                    />
                     <span className="text-sm font-medium">
                       {getTransactionTypeName(item.type)}
                     </span>
                   </div>
-                  <Badge variant="secondary">
-                    {formatNumber(item.count)}
-                  </Badge>
+                  <Badge variant="secondary">{formatNumber(item.count)}</Badge>
                 </div>
-              )) || <div className="text-center text-muted-foreground">No data available</div>
+              )) || (
+                <div className="text-center text-muted-foreground">
+                  No data available
+                </div>
+              )
             )}
           </CardContent>
         </Card>
@@ -148,19 +169,24 @@ const ExplorerDashboard = () => {
         <Card>
           <CardHeader>
             <CardTitle>Recent Transactions</CardTitle>
-            <CardDescription>
-              Latest blockchain activity
-            </CardDescription>
+            <CardDescription>Latest blockchain activity</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {isLoading ? (
-                <div className="text-center text-muted-foreground">Loading...</div>
+                <div className="text-center text-muted-foreground">
+                  Loading...
+                </div>
               ) : (
                 metrics?.recentTransactions?.slice(0, 5).map((tx) => (
-                  <div key={tx.id} className="flex items-center justify-between p-2 rounded-lg border">
+                  <div
+                    key={tx.id}
+                    className="flex items-center justify-between p-2 rounded-lg border"
+                  >
                     <div className="flex items-center gap-3">
-                      <div className={`w-2 h-2 rounded-full ${getTransactionTypeColor(tx.type)}`} />
+                      <div
+                        className={`w-2 h-2 rounded-full ${getTransactionTypeColor(tx.type)}`}
+                      />
                       <div>
                         <div className="text-sm font-medium">
                           {getTransactionTypeName(tx.type)}
@@ -172,13 +198,19 @@ const ExplorerDashboard = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-medium">{formatGas(Number(tx.gasUsed))} gas</div>
+                      <div className="text-sm font-medium">
+                        {formatGas(Number(tx.gasUsed))} gas
+                      </div>
                       <div className="text-xs text-muted-foreground">
                         Playground {tx.playgroundId}
                       </div>
                     </div>
                   </div>
-                )) || <div className="text-center text-muted-foreground">No recent transactions</div>
+                )) || (
+                  <div className="text-center text-muted-foreground">
+                    No recent transactions
+                  </div>
+                )
               )}
             </div>
           </CardContent>
@@ -197,19 +229,25 @@ const ExplorerDashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center p-4 border rounded-lg">
               <div className="text-2xl font-bold text-green-600">100%</div>
-              <div className="text-sm text-muted-foreground">Network Uptime</div>
+              <div className="text-sm text-muted-foreground">
+                Network Uptime
+              </div>
             </div>
             <div className="text-center p-4 border rounded-lg">
               <div className="text-2xl font-bold text-blue-600">
                 {formatNumber(metrics?.totalTransactions || 0)}
               </div>
-              <div className="text-sm text-muted-foreground">Total Blocks Processed</div>
+              <div className="text-sm text-muted-foreground">
+                Total Blocks Processed
+              </div>
             </div>
             <div className="text-center p-4 border rounded-lg">
               <div className="text-2xl font-bold text-purple-600">
                 {activePlaygrounds}
               </div>
-              <div className="text-sm text-muted-foreground">Active Sessions</div>
+              <div className="text-sm text-muted-foreground">
+                Active Sessions
+              </div>
             </div>
           </div>
         </CardContent>

@@ -35,7 +35,7 @@ const migrations: MigrationMeta[] = [
     folderMillis: 1756610811609,
     hash: "0004_chilly_stature",
     bps: true,
-  }
+  },
 ];
 
 export default migrations;

@@ -6,13 +6,13 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import { SquareFunction } from "lucide-react";
-import SideBarNav from './sidebar-nav';
-import useLayout from './use-layout';
+import SideBarNav from "./sidebar-nav";
+import useLayout from "./use-layout";
 type Props = {
   sidebar?: React.ComponentProps<typeof Sidebar>;
 };
 const PlaygroundNav = ({ sidebar }: Props) => {
-  const { menuList } = useLayout()
+  const { menuList } = useLayout();
   return (
     <Sidebar collapsible="icon" {...sidebar}>
       <SidebarHeader>
@@ -29,7 +29,7 @@ const PlaygroundNav = ({ sidebar }: Props) => {
           </SidebarMenuButton>
         </SidebarMenu>
       </SidebarHeader>
-      <SideBarNav items={menuList}/>
+      <SideBarNav items={menuList} />
       <SidebarFooter></SidebarFooter>
     </Sidebar>
   );

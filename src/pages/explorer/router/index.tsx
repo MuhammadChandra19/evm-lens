@@ -1,8 +1,8 @@
-import { RouteObject } from 'react-router';
-import Layout from '../components/layout';
-import Explorer from '..';
-import TransactionsPage from '../transactions';
-import AccountsPage from '../accounts';
+import { RouteObject } from "react-router";
+import Layout from "../components/layout";
+import Explorer from "..";
+import TransactionsPage from "../transactions";
+import AccountsPage from "../accounts";
 
 const explorerRoute: RouteObject = {
   path: "explorer",
@@ -20,7 +20,7 @@ const explorerRoute: RouteObject = {
       path: "accounts",
       Component: AccountsPage,
     },
-  ]
-}
+  ],
+};
 
 export default explorerRoute;

@@ -1,5 +1,5 @@
-import useEVMStore from '@/store/evm';
-import { ETH_DECIMAL } from '@/lib/constants';
+import useEVMStore from "@/store/evm";
+import { ETH_DECIMAL } from "@/lib/constants";
 
 /**
  * Hook for account-specific functionality using real EVM store data
@@ -14,7 +14,7 @@ export const useAccounts = () => {
     address: account.address.toString(),
     balance: (Number(account.balance) / Math.pow(10, ETH_DECIMAL)).toFixed(4),
     transactionCount: Number(account.nonce), // Nonce represents transaction count
-    type: account.isContract ? 'Contract' : 'EOA',
+    type: account.isContract ? "Contract" : "EOA",
     playground: 1, // TODO: Add playground tracking when available
     rawBalance: account.balance,
     nonce: account.nonce,
@@ -24,9 +24,16 @@ export const useAccounts = () => {
 
   // Computed values
   const totalAccounts = transformedAccounts.length;
-  const eoaAccounts = transformedAccounts.filter((acc) => acc.type === 'EOA').length;
-  const contractAccounts = transformedAccounts.filter((acc) => acc.type === 'Contract').length;
-  const totalBalance = transformedAccounts.reduce((sum, acc) => sum + parseFloat(acc.balance), 0);
+  const eoaAccounts = transformedAccounts.filter(
+    (acc) => acc.type === "EOA",
+  ).length;
+  const contractAccounts = transformedAccounts.filter(
+    (acc) => acc.type === "Contract",
+  ).length;
+  const totalBalance = transformedAccounts.reduce(
+    (sum, acc) => sum + parseFloat(acc.balance),
+    0,
+  );
 
   // Utility functions
   const formatAddress = (address: string) => {
@@ -38,7 +45,7 @@ export const useAccounts = () => {
   };
 
   const getAccountTypeColor = (type: string) => {
-    return type === 'Contract' ? 'bg-purple-500' : 'bg-blue-500';
+    return type === "Contract" ? "bg-purple-500" : "bg-blue-500";
   };
 
   // Additional utility functions
@@ -48,11 +55,11 @@ export const useAccounts = () => {
   };
 
   const getContractAccounts = () => {
-    return transformedAccounts.filter((acc) => acc.type === 'Contract');
+    return transformedAccounts.filter((acc) => acc.type === "Contract");
   };
 
   const getEOAAccounts = () => {
-    return transformedAccounts.filter((acc) => acc.type === 'EOA');
+    return transformedAccounts.filter((acc) => acc.type === "EOA");
   };
 
   return {

@@ -85,7 +85,11 @@ export const deployContractToEVM = async (
 
   // Record the action with detailed context
   if (shouldRecord) {
-    await actionRecorder.recordAction("DEPLOY_CONTRACT", payload, res.gasUsed.toString());
+    await actionRecorder.recordAction(
+      "DEPLOY_CONTRACT",
+      payload,
+      res.gasUsed.toString(),
+    );
   }
 
   return res;
@@ -143,7 +147,11 @@ export const callFunction = async (
         ...tx,
         executorAddres: [tx.executorAddres.toString(), "Address"],
       };
-      await actionRecorder.recordAction("CALL_FUNCTION", actionPayload, result.gasUsed.toString());
+      await actionRecorder.recordAction(
+        "CALL_FUNCTION",
+        actionPayload,
+        result.gasUsed.toString(),
+      );
     }
 
     return result;
@@ -192,7 +200,7 @@ export const fundAccount = async (
         address: [address.toString(), "Address"],
         balance: recordAmount !== undefined ? recordAmount : balance,
       };
-      await actionRecorder.recordAction("FUND_ACCOUNT", actionPayload,"0");
+      await actionRecorder.recordAction("FUND_ACCOUNT", actionPayload, "0");
     }
 
     return result;

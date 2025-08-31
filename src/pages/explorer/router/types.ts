@@ -1,5 +1,5 @@
-import { LucideIcon } from 'lucide-react';
-import { RouteObject } from 'react-router';
+import { LucideIcon } from "lucide-react";
+import { RouteObject } from "react-router";
 
 type ExplorerRouteAction = {
   id: string;

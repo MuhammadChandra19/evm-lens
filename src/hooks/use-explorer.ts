@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import { useApp } from '@/hooks/use-app';
-import { usePlayground } from '@/hooks/use-playground';
+import { useQuery } from "@tanstack/react-query";
+import { useApp } from "@/hooks/use-app";
+import { usePlayground } from "@/hooks/use-playground";
 
 /**
  * Hook for explorer dashboard metrics and data
@@ -16,7 +16,7 @@ export const useExplorer = () => {
     error: metricsError,
     refetch: refetchMetrics,
   } = useQuery({
-    queryKey: ['explorer-metrics'],
+    queryKey: ["explorer-metrics"],
     queryFn: () => repository.snapshot.getExplorerMetrics(),
     refetchInterval: 30000, // Refresh every 30 seconds
     staleTime: 25000, // Consider data stale after 25 seconds
@@ -29,7 +29,7 @@ export const useExplorer = () => {
     error: statsError,
     refetch: refetchStats,
   } = useQuery({
-    queryKey: ['transaction-stats-24h'],
+    queryKey: ["transaction-stats-24h"],
     queryFn: () => repository.snapshot.getTransactionStats(24),
     refetchInterval: 60000, // Refresh every minute
     staleTime: 55000, // Consider data stale after 55 seconds
@@ -37,17 +37,18 @@ export const useExplorer = () => {
 
   // Computed values
   const totalPlaygrounds = playgroundList?.length || 0;
-  const activePlaygrounds = playgroundList?.filter((p) => p.isActive).length || 0;
+  const activePlaygrounds =
+    playgroundList?.filter((p) => p.isActive).length || 0;
   const isLoading = metricsLoading || statsLoading;
   const hasError = metricsError || statsError;
 
   // Utility functions
   const formatNumber = (num: number): string => {
     if (num >= 1000000) {
-      return (num / 1000000).toFixed(1) + 'M';
+      return (num / 1000000).toFixed(1) + "M";
     }
     if (num >= 1000) {
-      return (num / 1000).toFixed(1) + 'K';
+      return (num / 1000).toFixed(1) + "K";
     }
     return num.toString();
   };
@@ -58,21 +59,21 @@ export const useExplorer = () => {
 
   const getTransactionTypeColor = (type: string) => {
     switch (type) {
-      case 'CALL_FUNCTION':
-        return 'bg-blue-500';
-      case 'DEPLOY_CONTRACT':
-        return 'bg-green-500';
+      case "CALL_FUNCTION":
+        return "bg-blue-500";
+      case "DEPLOY_CONTRACT":
+        return "bg-green-500";
       default:
-        return 'bg-gray-500';
+        return "bg-gray-500";
     }
   };
 
   const getTransactionTypeName = (type: string) => {
     switch (type) {
-      case 'CALL_FUNCTION':
-        return 'Function Call';
-      case 'DEPLOY_CONTRACT':
-        return 'Contract Deploy';
+      case "CALL_FUNCTION":
+        return "Function Call";
+      case "DEPLOY_CONTRACT":
+        return "Contract Deploy";
       default:
         return type;
     }

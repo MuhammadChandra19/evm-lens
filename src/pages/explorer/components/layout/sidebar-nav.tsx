@@ -16,7 +16,7 @@ import {
 import { ChevronRight } from "lucide-react";
 import { Link } from "react-router";
 import { useMemo } from "react";
-import { ExplorerRouteKeyValues } from '../../router/route-item';
+import { ExplorerRouteKeyValues } from "../../router/route-item";
 
 type Props = {
   items: ExplorerRoute<string | ExplorerRouteKeyValues>[];

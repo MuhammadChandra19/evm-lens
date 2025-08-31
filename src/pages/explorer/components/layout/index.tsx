@@ -1,10 +1,20 @@
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { Separator } from '@/components/ui/separator';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
-import { Outlet, useNavigate } from 'react-router';
-import PlaygroundNav from './playground-nav';
-import useLayout from './use-layout';
-
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { Outlet, useNavigate } from "react-router";
+import PlaygroundNav from "./playground-nav";
+import useLayout from "./use-layout";
 
 const Layout = () => {
   const navigate = useNavigate();

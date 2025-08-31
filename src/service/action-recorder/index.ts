@@ -72,7 +72,7 @@ export class ActionRecorder {
   async recordAction(
     type: SnapshotType,
     payload: unknown,
-    gasUsed: string
+    gasUsed: string,
   ): Promise<SnapshotResult<number>> {
     try {
       // Serialize BigInt and Address values for database storage
@@ -81,7 +81,7 @@ export class ActionRecorder {
         playgroundId: this.playgroundId,
         type,
         payload: serializedPayload,
-        gasUsed
+        gasUsed,
       };
       const res = await this.snapshotRepo.create(data);
 

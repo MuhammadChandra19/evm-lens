@@ -1,4 +1,10 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +15,7 @@ import {
   Users,
   TrendingUp,
   ExternalLink,
-  Copy
+  Copy,
 } from "lucide-react";
 import { useState } from "react";
 import { useAccounts } from "./use-accounts";
@@ -38,9 +44,7 @@ const AccountsPage = () => {
             Browse and manage blockchain accounts across playgrounds
           </p>
         </div>
-        <Badge variant="outline">
-          {totalAccounts} Total
-        </Badge>
+        <Badge variant="outline">{totalAccounts} Total</Badge>
       </div>
 
       {/* Search and Filters */}
@@ -74,7 +78,9 @@ const AccountsPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Accounts</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Accounts
+            </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -91,9 +97,7 @@ const AccountsPage = () => {
             <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {eoaAccounts}
-            </div>
+            <div className="text-2xl font-bold">{eoaAccounts}</div>
             <p className="text-xs text-muted-foreground">
               Externally owned accounts
             </p>
@@ -106,12 +110,8 @@ const AccountsPage = () => {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {contractAccounts}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Smart contracts
-            </p>
+            <div className="text-2xl font-bold">{contractAccounts}</div>
+            <p className="text-xs text-muted-foreground">Smart contracts</p>
           </CardContent>
         </Card>
 
@@ -124,9 +124,7 @@ const AccountsPage = () => {
             <div className="text-2xl font-bold">
               {formatBalance(totalBalance.toString())}
             </div>
-            <p className="text-xs text-muted-foreground">
-              ETH equivalent
-            </p>
+            <p className="text-xs text-muted-foreground">ETH equivalent</p>
           </CardContent>
         </Card>
       </div>
@@ -147,7 +145,9 @@ const AccountsPage = () => {
                 className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
               >
                 <div className="flex items-center gap-4">
-                  <div className={`w-3 h-3 rounded-full ${getAccountTypeColor(account.type)}`} />
+                  <div
+                    className={`w-3 h-3 rounded-full ${getAccountTypeColor(account.type)}`}
+                  />
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-mono text-sm font-medium">
@@ -157,7 +157,9 @@ const AccountsPage = () => {
                         variant="ghost"
                         size="sm"
                         className="h-6 w-6 p-0"
-                        onClick={() => navigator.clipboard.writeText(account.address)}
+                        onClick={() =>
+                          navigator.clipboard.writeText(account.address)
+                        }
                       >
                         <Copy className="h-3 w-3" />
                       </Button>
@@ -166,7 +168,8 @@ const AccountsPage = () => {
                       </Badge>
                     </div>
                     <div className="text-sm text-muted-foreground mt-1">
-                      Playground {account.playground} • {account.transactionCount} transactions
+                      Playground {account.playground} •{" "}
+                      {account.transactionCount} transactions
                     </div>
                   </div>
                 </div>
@@ -176,12 +179,14 @@ const AccountsPage = () => {
                     <div className="text-sm font-medium">
                       {formatBalance(account.balance)} ETH
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      Balance
-                    </div>
+                    <div className="text-xs text-muted-foreground">Balance</div>
                   </div>
 
-                  <Button variant="ghost" size="sm" className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center gap-1"
+                  >
                     <ExternalLink className="h-3 w-3" />
                     View
                   </Button>
@@ -205,8 +210,9 @@ const AccountsPage = () => {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-green-700">
-            Account data is now sourced directly from the EVM store, showing real balances,
-            nonces, and contract information. Data updates automatically as transactions are executed.
+            Account data is now sourced directly from the EVM store, showing
+            real balances, nonces, and contract information. Data updates
+            automatically as transactions are executed.
           </p>
         </CardContent>
       </Card>
