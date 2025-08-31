@@ -12,13 +12,13 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import FunctionList from "../function-list";
+import FunctionList from "./function-list";
 import { ReactNode } from "react";
-import Intro from "../intro";
+import Intro from "./intro";
 import BalanceForm from "../balance-form";
 import NewAccountForm from "../new-account-form";
-import usePlayground from "../../use-playground";
 import { useNavigate } from "react-router";
+import usePlayground from "../use-playground";
 
 type Props = {
   children: ReactNode;
@@ -41,8 +41,8 @@ const Layout = ({ children }: Props) => {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink onClick={() => navigate("/create-contract")}>
-                    Contract creation
+                  <BreadcrumbLink onClick={() => navigate("/explorer")}>
+                    Explorer
                   </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block" />

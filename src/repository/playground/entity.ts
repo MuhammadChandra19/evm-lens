@@ -5,6 +5,7 @@ const playgroundSchema = sqliteTable("playground", {
   id: integer("id").primaryKey(),
   name: text("name").notNull(),
   isActive: integer({ mode: "boolean" }),
+  icon: text("icon").notNull(),
   createdAt: text("created_at")
     .notNull()
     .default(sql`(CURRENT_TIMESTAMP)`),

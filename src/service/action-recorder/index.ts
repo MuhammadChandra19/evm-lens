@@ -1,5 +1,5 @@
 import { Address } from "@ethereumjs/util";
-import type { SnapshotType } from "@/repository/snapshot/entity";
+import type { NewSnapshot, SnapshotType } from "@/repository/snapshot/entity";
 import { SnapshotRepository } from "@/repository/snapshot/query";
 import { ReplayableAction, SnapshotResult } from "./types";
 import { CreateNewEVMPayload, EVMStore, TxData } from "@/store/evm/types";
@@ -72,14 +72,16 @@ export class ActionRecorder {
   async recordAction(
     type: SnapshotType,
     payload: unknown,
+    gasUsed: string,
   ): Promise<SnapshotResult<number>> {
     try {
       // Serialize BigInt and Address values for database storage
       const serializedPayload = this.serializePayload(payload);
-      const data = {
+      const data: NewSnapshot = {
         playgroundId: this.playgroundId,
         type,
         payload: serializedPayload,
+        gasUsed,
       };
       const res = await this.snapshotRepo.create(data);
 

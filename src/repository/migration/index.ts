@@ -1,6 +1,8 @@
 import m1 from "../../../drizzle/0000_init.sql?raw";
 import m2 from "../../../drizzle/0001_worried_cannonball.sql?raw";
 import m3 from "../../../drizzle/0002_reflective_reptil.sql?raw";
+import m4 from "../../../drizzle/0003_tiny_shockwave.sql?raw";
+import m5 from "../../../drizzle/0004_chilly_stature.sql?raw";
 
 import { MigrationMeta } from "./migrate-browser";
 const migrations: MigrationMeta[] = [
@@ -8,19 +10,31 @@ const migrations: MigrationMeta[] = [
     sql: [m1],
     folderMillis: 0,
     hash: "0000_init",
-    bps: false,
+    bps: true,
   },
   {
     sql: [m2],
     folderMillis: 0,
     hash: "0001_worried_cannonball",
-    bps: false,
+    bps: true,
   },
   {
     sql: [m3],
     folderMillis: 0,
     hash: "0002_reflective_reptil",
-    bps: false,
+    bps: true,
+  },
+  {
+    sql: [m4],
+    folderMillis: 1756539647955,
+    hash: "0003_tiny_shockwave",
+    bps: true,
+  },
+  {
+    sql: [m5],
+    folderMillis: 1756610811609,
+    hash: "0004_chilly_stature",
+    bps: true,
   },
 ];
 

@@ -19,7 +19,7 @@ const playgroundRepository = (db: SqliteRemoteDatabase) => {
     }
   };
 
-  const list = async () => {
+  const list = async (): Promise<Playground[]> => {
     try {
       const result = await db.select().from(playgroundSchema);
       return result;
