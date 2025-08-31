@@ -1,6 +1,6 @@
-import { Address } from '@ethereumjs/util';
-import { Abi } from '@/service/evm-analyzer/abi/types';
-import { SnapshotType } from '@/repository/snapshot/entity';
+import { Address } from "@ethereumjs/util";
+import { Abi } from "@/service/evm-analyzer/abi/types";
+import { SnapshotType } from "@/repository/snapshot/entity";
 
 // Playground configuration
 export interface PlaygroundConfig {
@@ -77,24 +77,45 @@ export interface PlaygroundStoreActions {
   // Configuration management
   setPlaygroundConfig: (config: PlaygroundConfig) => void;
   getPlaygroundConfig: (id: number) => PlaygroundConfig | undefined;
-  updatePlaygroundConfig: (id: number, updates: Partial<PlaygroundConfig>) => void;
+  updatePlaygroundConfig: (
+    id: number,
+    updates: Partial<PlaygroundConfig>,
+  ) => void;
   deletePlaygroundConfig: (id: number) => void;
 
   // Transaction management
   addTransaction: (transaction: Transaction) => void;
   getTransactionHistory: (id: number) => Transaction[];
-  getTransactionById: (playgroundId: number, txId: string) => Transaction | undefined;
+  getTransactionById: (
+    playgroundId: number,
+    txId: string,
+  ) => Transaction | undefined;
 
   // Token balance management
   setTokenBalance: (playgroundId: number, balance: TokenBalance) => void;
   getTokenBalances: (id: number) => Map<string, TokenBalance>;
-  getAccountTokenBalance: (playgroundId: number, accountAddress: string, contractAddress: string) => TokenBalance | undefined;
-  updateTokenBalance: (playgroundId: number, accountAddress: string, contractAddress: string, balance: bigint) => void;
+  getAccountTokenBalance: (
+    playgroundId: number,
+    accountAddress: string,
+    contractAddress: string,
+  ) => TokenBalance | undefined;
+  updateTokenBalance: (
+    playgroundId: number,
+    accountAddress: string,
+    contractAddress: string,
+    balance: bigint,
+  ) => void;
 
   // Contract metadata management
-  setContractMetadata: (playgroundId: number, metadata: ContractMetadata) => void;
+  setContractMetadata: (
+    playgroundId: number,
+    metadata: ContractMetadata,
+  ) => void;
   getContractMetadata: (playgroundId: number) => ContractMetadata | undefined;
-  updateContractMetadata: (playgroundId: number, updates: Partial<ContractMetadata>) => void;
+  updateContractMetadata: (
+    playgroundId: number,
+    updates: Partial<ContractMetadata>,
+  ) => void;
 
   // Active playground management
   setActivePlayground: (id: number) => void;
