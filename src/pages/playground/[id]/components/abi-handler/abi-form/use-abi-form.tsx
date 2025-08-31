@@ -1,7 +1,10 @@
 import { useMemo, useState, useEffect } from "react";
 import { Address } from "@ethereumjs/util";
 import useAbiHandler from "../use-abi-handler";
-import { FunctionCallFormInput } from "@/store/playground/types";
+import { AbiParameter } from "@/service/evm-analyzer/abi/types";
+
+// Define the form input type (migrated from old store)
+type FunctionCallFormInput = AbiParameter & { value: string };
 import { AbiFunction } from "@/service/evm-analyzer/abi/types";
 
 const useAbiForm = () => {
@@ -112,10 +115,16 @@ const useAbiForm = () => {
       setEthError(null);
       setEthAmount("0");
 
+      // Convert form array to Record<string, string> format
+      const formData: Record<string, string> = {};
+      form.forEach((input) => {
+        if (input.name) {
+          formData[input.name] = input.value;
+        }
+      });
+
       await handleExecute(
-        {
-          inputs: form,
-        },
+        formData,
         selectedAccount,
         ethAmount,
       );

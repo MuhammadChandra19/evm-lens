@@ -2,9 +2,9 @@ import type { Repository } from "@/repository";
 import initRepository from "@/repository";
 import { ActionRecorder } from "@/service/action-recorder";
 import { EVMAdapter } from "@/service/evm-adapter";
-import useEVMStore from "@/store/evm";
+import EVMAnalyzer from "@/service/evm-analyzer";
 import LoadingScreen from "@/components/loading-screen";
-import { createContext, ReactNode, useEffect, useState } from "react";
+import { createContext, ReactNode, useEffect, useState, useRef } from "react";
 
 interface AppProviderProps {
   children: ReactNode;
@@ -26,11 +26,19 @@ const AppProvider = ({ children }: AppProviderProps) => {
   );
   const [evmAdapter, setEvmAdapter] = useState<EVMAdapter | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
-
-  const initializeEvm = useEVMStore((store) => store.initializeEVM);
+  const hasInitializedRef = useRef(false);
 
   useEffect(() => {
     const init = async () => {
+      // Prevent multiple initializations (React StrictMode can cause double execution)
+      if (hasInitializedRef.current) {
+        console.log('⚠️ AppProvider - Skipping duplicate initialization');
+        return;
+      }
+
+      hasInitializedRef.current = true;
+      console.log('🚀 AppProvider - Starting initialization');
+
       try {
         const repo = await initRepository();
         // await repo.clearTables(["playground", "snapshot"]);
@@ -38,28 +46,36 @@ const AppProvider = ({ children }: AppProviderProps) => {
         setRepository(repo);
         setActionRecorder(recorder);
 
-        // Initialize EVM first
-        await initializeEvm();
+        // Initialize EVM directly
+        const evm = await EVMAnalyzer.create();
 
-        // Get the initialized EVM from store
-        const evmStore = useEVMStore.getState();
-        if (evmStore.evm) {
-          // Create EVM adapter with the initialized EVM and action recorder
-          const adapter = new EVMAdapter(evmStore.evm, recorder.recordAction);
-          setEvmAdapter(adapter);
+        // Create wrapper for recordAction to match new signature
+        const recordActionWrapper = async (
+          type: "DEPLOY_CONTRACT" | "CREATE_ACCOUNT" | "FUND_ACCOUNT" | "CALL_FUNCTION" | "REGISTER_ACCOUNT",
+          payload: unknown,
+          gasUsed: string,
+          playgroundId: number
+        ) => {
+          return await recorder.recordAction(type, payload, gasUsed, playgroundId);
+        };
 
-          // Set the adapter in the action recorder for new functions
-          recorder.setEVMAdapter(adapter);
-        }
+        // Create EVM adapter with the initialized EVM and action recorder
+        const adapter = new EVMAdapter(evm, recordActionWrapper);
+        setEvmAdapter(adapter);
+
+        // Set the adapter in the action recorder for new functions
+        recorder.setEVMAdapter(adapter);
+
+        console.log('✅ AppProvider - Initialization complete');
       } catch (error) {
-        console.error("Failed to initialize services:", error);
+        console.error("❌ AppProvider - Failed to initialize services:", error);
       } finally {
         setIsInitializing(false);
       }
     };
 
     init();
-  }, [initializeEvm]);
+  }, []);
 
   if (isInitializing || !repository || !actionRecorder || !evmAdapter) {
     return <LoadingScreen />;

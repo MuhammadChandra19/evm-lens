@@ -1,20 +1,42 @@
-import React from "react";
-import useEVMStore from "@/store/evm";
-import { Button } from "@/components/ui/button";
+import React, { useState, useEffect } from "react";
+import { useApp } from "@/hooks/use-app";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { AdapterReplayableAction } from "@/service/action-recorder/types";
 
 /**
  * ActionHistoryViewer - Component to view and manage action history
- * This component demonstrates the action snapshot system
+ * This component demonstrates the action snapshot system using ActionRecorder
  */
 const ActionHistoryViewer: React.FC = () => {
-  const { getActionHistory, clearActionHistory } = useEVMStore();
-  const actionHistory = getActionHistory();
+  const { actionRecorder } = useApp();
+  const [actionHistory, setActionHistory] = useState<AdapterReplayableAction[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const formatTimestamp = (timestamp: number) => {
-    return new Date(timestamp).toLocaleString();
-  };
+  // Load action history from ActionRecorder
+  useEffect(() => {
+    const loadHistory = async () => {
+      setIsLoading(true);
+      try {
+        const { data: actions, error } = await actionRecorder.loadUnifiedSnapshotWithAdapter();
+        if (error) {
+          console.error("Failed to load action history:", error);
+          setActionHistory([]);
+        } else {
+          setActionHistory(actions || []);
+        }
+      } catch (error) {
+        console.error("Failed to load action history:", error);
+        setActionHistory([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadHistory();
+  }, [actionRecorder]);
+
+
 
   const formatPayload = (payload: unknown) => {
     if (!payload) return "N/A";
@@ -48,14 +70,7 @@ const ActionHistoryViewer: React.FC = () => {
       <CardHeader>
         <div className="flex justify-between items-center">
           <CardTitle>Action History ({actionHistory.length} actions)</CardTitle>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={clearActionHistory}
-            disabled={actionHistory.length === 0}
-          >
-            Clear History
-          </Button>
+          {isLoading && <span className="text-sm text-gray-500">Loading...</span>}
         </div>
       </CardHeader>
       <CardContent>
@@ -67,7 +82,7 @@ const ActionHistoryViewer: React.FC = () => {
         ) : (
           <div className="space-y-4 max-h-96 overflow-y-auto">
             {actionHistory.map((action, index) => (
-              <div key={action.id} className="border rounded-lg p-4">
+              <div key={index} className="border rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-mono text-gray-500">
@@ -77,31 +92,15 @@ const ActionHistoryViewer: React.FC = () => {
                       {action.type}
                     </Badge>
                   </div>
-                  <span className="text-xs text-gray-500">
-                    {formatTimestamp(action.timestamp)}
-                  </span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <div>
                     <h4 className="text-sm font-semibold mb-1">Payload:</h4>
                     <pre className="text-xs bg-gray-100 p-2 rounded overflow-x-auto">
                       {formatPayload(action.payload)}
                     </pre>
                   </div>
-
-                  {action.result !== undefined && (
-                    <div>
-                      <h4 className="text-sm font-semibold mb-1">Result:</h4>
-                      <pre className="text-xs bg-gray-100 p-2 rounded overflow-x-auto">
-                        {typeof action.result === "string" ||
-                        typeof action.result === "number" ||
-                        typeof action.result === "boolean"
-                          ? String(action.result)
-                          : formatPayload(action.result)}
-                      </pre>
-                    </div>
-                  )}
                 </div>
               </div>
             ))}

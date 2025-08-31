@@ -1,12 +1,6 @@
-import { create } from "zustand";
-import { subscribeWithSelector } from "zustand/middleware";
-import {
-  PlaygroundStore,
-  PlaygroundConfig,
-  Transaction,
-  TokenBalance,
-  ContractMetadata,
-} from "./types";
+import { create } from 'zustand';
+import { subscribeWithSelector } from 'zustand/middleware';
+import { PlaygroundStore, PlaygroundConfig, Transaction, TokenBalance, ContractMetadata } from './types';
 
 const usePlaygroundStore = create<PlaygroundStore>()(
   subscribeWithSelector((set, get) => ({
@@ -15,23 +9,25 @@ const usePlaygroundStore = create<PlaygroundStore>()(
     transactions: new Map(),
     tokenBalances: new Map(),
     contracts: new Map(),
+    activeFunction: new Map(),
+    executionHistory: new Map(),
     activePlaygroundId: undefined,
 
     // Configuration management
     setPlaygroundConfig: (config: PlaygroundConfig) => {
+      // console.log('🏪 PlaygroundStore - Setting config for playground', config.id, ':', config);
       set((state) => ({
         configs: new Map(state.configs.set(config.id, config)),
       }));
     },
 
     getPlaygroundConfig: (id: number) => {
-      return get().configs.get(id);
+      const config = get().configs.get(id);
+      // console.log('🏪 PlaygroundStore - Getting config for playground', id, ':', config);
+      return config;
     },
 
-    updatePlaygroundConfig: (
-      id: number,
-      updates: Partial<PlaygroundConfig>,
-    ) => {
+    updatePlaygroundConfig: (id: number, updates: Partial<PlaygroundConfig>) => {
       const config = get().configs.get(id);
       if (config) {
         const updatedConfig = { ...config, ...updates };
@@ -52,16 +48,10 @@ const usePlaygroundStore = create<PlaygroundStore>()(
     // Transaction management
     addTransaction: (transaction: Transaction) => {
       set((state) => {
-        const playgroundTransactions =
-          state.transactions.get(transaction.playgroundId) || [];
+        const playgroundTransactions = state.transactions.get(transaction.playgroundId) || [];
         const updatedTransactions = [...playgroundTransactions, transaction];
         return {
-          transactions: new Map(
-            state.transactions.set(
-              transaction.playgroundId,
-              updatedTransactions,
-            ),
-          ),
+          transactions: new Map(state.transactions.set(transaction.playgroundId, updatedTransactions)),
         };
       });
     },
@@ -78,16 +68,11 @@ const usePlaygroundStore = create<PlaygroundStore>()(
     // Token balance management
     setTokenBalance: (playgroundId: number, balance: TokenBalance) => {
       set((state) => {
-        const playgroundBalances =
-          state.tokenBalances.get(playgroundId) || new Map();
+        const playgroundBalances = state.tokenBalances.get(playgroundId) || new Map();
         const balanceKey = `${balance.accountAddress}-${balance.contractAddress}`;
-        const updatedBalances = new Map(
-          playgroundBalances.set(balanceKey, balance),
-        );
+        const updatedBalances = new Map(playgroundBalances.set(balanceKey, balance));
         return {
-          tokenBalances: new Map(
-            state.tokenBalances.set(playgroundId, updatedBalances),
-          ),
+          tokenBalances: new Map(state.tokenBalances.set(playgroundId, updatedBalances)),
         };
       });
     },
@@ -96,28 +81,15 @@ const usePlaygroundStore = create<PlaygroundStore>()(
       return get().tokenBalances.get(id) || new Map();
     },
 
-    getAccountTokenBalance: (
-      playgroundId: number,
-      accountAddress: string,
-      contractAddress: string,
-    ) => {
+    getAccountTokenBalance: (playgroundId: number, accountAddress: string, contractAddress: string) => {
       const balances = get().tokenBalances.get(playgroundId);
       if (!balances) return undefined;
       const balanceKey = `${accountAddress}-${contractAddress}`;
       return balances.get(balanceKey);
     },
 
-    updateTokenBalance: (
-      playgroundId: number,
-      accountAddress: string,
-      contractAddress: string,
-      balance: bigint,
-    ) => {
-      const existingBalance = get().getAccountTokenBalance(
-        playgroundId,
-        accountAddress,
-        contractAddress,
-      );
+    updateTokenBalance: (playgroundId: number, accountAddress: string, contractAddress: string, balance: bigint) => {
+      const existingBalance = get().getAccountTokenBalance(playgroundId, accountAddress, contractAddress);
       if (existingBalance) {
         const updatedBalance: TokenBalance = {
           ...existingBalance,
@@ -139,17 +111,12 @@ const usePlaygroundStore = create<PlaygroundStore>()(
       return get().contracts.get(playgroundId);
     },
 
-    updateContractMetadata: (
-      playgroundId: number,
-      updates: Partial<ContractMetadata>,
-    ) => {
+    updateContractMetadata: (playgroundId: number, updates: Partial<ContractMetadata>) => {
       const metadata = get().contracts.get(playgroundId);
       if (metadata) {
         const updatedMetadata = { ...metadata, ...updates };
         set((state) => ({
-          contracts: new Map(
-            state.contracts.set(playgroundId, updatedMetadata),
-          ),
+          contracts: new Map(state.contracts.set(playgroundId, updatedMetadata)),
         }));
       }
     },
@@ -164,6 +131,41 @@ const usePlaygroundStore = create<PlaygroundStore>()(
       return activeId ? get().configs.get(activeId) : undefined;
     },
 
+    // UI State management (migrated from old playground store)
+    setActiveFunction: (playgroundId: number, func) => {
+      set((state) => ({
+        activeFunction: new Map(state.activeFunction.set(playgroundId, func)),
+      }));
+    },
+
+    getActiveFunction: (playgroundId: number) => {
+      return get().activeFunction.get(playgroundId);
+    },
+
+    saveExecutionResult: (playgroundId: number, result) => {
+      set((state) => {
+        const currentHistory = state.executionHistory.get(playgroundId) || [];
+        const newHistory = [result, ...currentHistory];
+        return {
+          executionHistory: new Map(state.executionHistory.set(playgroundId, newHistory)),
+        };
+      });
+    },
+
+    getExecutionHistory: (playgroundId: number) => {
+      return get().executionHistory.get(playgroundId) || [];
+    },
+
+    getFunctionLastResult: (playgroundId: number, functionName: string) => {
+      const history = get().executionHistory.get(playgroundId) || [];
+      return history.find((f) => f.functionName === functionName);
+    },
+
+    getFunctionResultHistory: (playgroundId: number, functionName: string) => {
+      const history = get().executionHistory.get(playgroundId) || [];
+      return history.filter((f) => f.functionName === functionName);
+    },
+
     // Utility methods
     getAllPlaygrounds: () => {
       return Array.from(get().configs.values());
@@ -173,12 +175,7 @@ const usePlaygroundStore = create<PlaygroundStore>()(
       const transactions = get().transactions.get(id) || [];
       const tokenBalances = get().tokenBalances.get(id) || new Map();
 
-      const lastActivity =
-        transactions.length > 0
-          ? new Date(
-              Math.max(...transactions.map((tx) => tx.timestamp.getTime())),
-            )
-          : undefined;
+      const lastActivity = transactions.length > 0 ? new Date(Math.max(...transactions.map((tx) => tx.timestamp.getTime()))) : undefined;
 
       return {
         transactionCount: transactions.length,
@@ -205,10 +202,7 @@ const usePlaygroundStore = create<PlaygroundStore>()(
           transactions: newTransactions,
           tokenBalances: newTokenBalances,
           contracts: newContracts,
-          activePlaygroundId:
-            state.activePlaygroundId === id
-              ? undefined
-              : state.activePlaygroundId,
+          activePlaygroundId: state.activePlaygroundId === id ? undefined : state.activePlaygroundId,
         };
       });
     },
@@ -219,10 +213,12 @@ const usePlaygroundStore = create<PlaygroundStore>()(
         transactions: new Map(),
         tokenBalances: new Map(),
         contracts: new Map(),
+        activeFunction: new Map(),
+        executionHistory: new Map(),
         activePlaygroundId: undefined,
       });
     },
-  })),
+  }))
 );
 
 export default usePlaygroundStore;

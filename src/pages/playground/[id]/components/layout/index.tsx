@@ -61,14 +61,36 @@ const Layout = ({ children }: Props) => {
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-gray-700">Owner:</span>
                   <code className="px-2 py-1 bg-gray-100 rounded text-xs font-mono text-gray-600">
-                    {ownerAccount.address.toString().slice(0, 6)}...
-                    {ownerAccount.address.toString().slice(-4)}
+                    {ownerAccount?.address ? (
+                      <>
+                        {ownerAccount.address.toString().slice(0, 6)}...
+                        {ownerAccount.address.toString().slice(-4)}
+                      </>
+                    ) : (
+                      'No owner'
+                    )}
                   </code>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-gray-700">Balance:</span>
                   <span className="text-blue-600 font-semibold">
-                    {Number(ownerAccount?.balance || 0n) / 1e18} ETH
+                    {ownerAccount?.balance ? (() => {
+                      const balanceWei = Number(ownerAccount.balance);
+                      const balanceEth = balanceWei / 1e18;
+
+                      // If balance is very small, show in wei
+                      if (balanceWei < 1e15) {
+                        return `${balanceWei.toLocaleString()} wei`;
+                      }
+                      // If balance is small, show more decimals
+                      else if (balanceEth < 0.001) {
+                        return `${balanceEth.toFixed(8)} ETH`;
+                      }
+                      // Normal display
+                      else {
+                        return `${balanceEth.toFixed(4)} ETH`;
+                      }
+                    })() : '0 wei'}
                   </span>
                 </div>
               </div>

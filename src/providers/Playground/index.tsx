@@ -2,7 +2,6 @@ import LoadingScreen from "@/components/loading-screen";
 import { useApp } from "@/hooks/use-app";
 import QUERY_KEY from "@/lib/constants/query-key";
 import { Playground } from "@/repository/playground/entity";
-import useEVMStore from "@/store/evm";
 import { useQuery } from "@tanstack/react-query";
 import {
   createContext,
@@ -35,24 +34,15 @@ const PlaygroundProvider = ({ children }: PlaygroundProviderProps) => {
 
   const navigate = useNavigate();
 
-  // Get playground ID from URL params
+  // Get playground ID from URL params (used for query key)
   const { id: playgroundId } = useParams<{ id: string }>();
-  const playgroundIdNumber = playgroundId ? parseInt(playgroundId, 10) : null;
-
-  // EVM Store access
-  const evmStore = useEVMStore();
 
   // Loading state for snapshot replay
   const [isReplayingSnapshot, setIsReplayingSnapshot] = useState(true); // Start with true
   const [replayError, setReplayError] = useState<Error | null>(null);
   const hasReplayedRef = useRef(false); // Prevent double replay with ref
 
-  // Ensure playground ID is always set on ActionRecorder when playgroundIdNumber changes
-  useEffect(() => {
-    if (playgroundIdNumber) {
-      context.actionRecorder.setPlaygroundId(playgroundIdNumber);
-    }
-  }, [playgroundIdNumber, context.actionRecorder]);
+  // Remove the setPlaygroundId effect since we now pass playgroundId as parameter
 
   /**
    * Switch Active Playground
@@ -69,10 +59,11 @@ const PlaygroundProvider = ({ children }: PlaygroundProviderProps) => {
   };
 
   /**
-   * STAGE 2: Unified EVM Initialization
+   * Unified EVM Initialization
    * - Runs once when component mounts (regardless of playground)
    * - Loads ALL snapshots from ALL playgrounds chronologically
    * - Creates unified EVM state where all playground actions are applied in time order
+   * - Uses the EVM adapter for replay
    */
   const initializeUnifiedEVM = useCallback(async () => {
     // Prevent double initialization due to React StrictMode
@@ -84,20 +75,41 @@ const PlaygroundProvider = ({ children }: PlaygroundProviderProps) => {
     setReplayError(null);
 
     try {
-      // Initialize unified EVM state with all snapshots from all playgrounds
-      await evmStore.initializeUnifiedEVM(context.actionRecorder);
+      // Load ALL snapshots from ALL playgrounds with adapter-based executors
+      const { data: actions, error } = await context.actionRecorder.loadUnifiedSnapshotWithAdapter();
 
-      // Set current playground context for action recorder (for new actions)
-      if (playgroundIdNumber) {
-        context.actionRecorder.setPlaygroundId(playgroundIdNumber);
+      if (error) {
+        console.error('Failed to load unified snapshots with adapter:', error);
+        setReplayError(error);
+        return;
+      }
+
+      if (actions.length === 0) {
+        console.log('No snapshots to replay for unified EVM');
+      } else {
+        console.log(`🔄 Replaying ${actions.length} actions from all playgrounds using EVM adapter`);
+
+        // Replay all actions chronologically using adapter
+        for (let i = 0; i < actions.length; i++) {
+          const action = actions[i];
+          try {
+            // Adapter-based executors only need the payload
+            await action.execute(action.payload);
+          } catch (error) {
+            console.error(`Failed to replay unified action with adapter: ${action.type}`, error);
+            // Continue with next action even if one fails
+          }
+        }
+
+        console.log('✅ Unified EVM state initialized successfully with adapter');
       }
     } catch (error) {
-      console.error("Failed to initialize unified EVM:", error);
+      console.error("Failed to initialize unified EVM with adapter:", error);
       setReplayError(error as Error);
     } finally {
       setIsReplayingSnapshot(false);
     }
-  }, [context.actionRecorder, evmStore, playgroundIdNumber]);
+  }, [context.actionRecorder]);
 
   useEffect(() => {
     initializeUnifiedEVM();

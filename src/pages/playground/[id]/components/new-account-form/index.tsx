@@ -11,23 +11,22 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { generateRandomAddress } from "@/lib/utils";
-import useEVMStore from "@/store/evm";
 import { CircleUser, Dice6 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useApp } from "@/hooks/use-app";
+// import { useApp } from "@/hooks/use-app"; // No longer needed
+import { useEVMAdapter } from "@/hooks/use-evm-adapter";
+import { Address } from "@ethereumjs/util";
 
 const NewAccountForm = () => {
-  const { actionRecorder } = useApp();
+  // const { actionRecorder } = useApp(); // No longer needed
+  const evmAdapter = useEVMAdapter();
   const [open, setOpen] = useState(false);
   const [balance, setBalance] = useState("0");
   const [address, setAddress] = useState("");
   const [errorAddress, setErrorAddress] = useState<string | null>(null);
   const [errorBalance, setErrorBalance] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
-  const createAccount = useEVMStore((store) => store.createAccount);
-  const fundAccount = useEVMStore((store) => store.fundAccount);
 
   const handleSubmit = async () => {
     setErrorAddress(null);
@@ -43,24 +42,44 @@ const NewAccountForm = () => {
 
       if (address.length === 0) {
         setErrorAddress("Address must be filled");
-      }
-
-      const account = await createAccount(address, actionRecorder);
-      if (!account) {
-        toast.error("failed to create accoung");
         return;
       }
 
-      toast.success("account created ", {
-        description: `Address: ${account.toString()}`,
+      // Get current playground ID from URL params
+      const playgroundId = parseInt(window.location.pathname.split('/')[2]);
+
+      const accountResult = await evmAdapter.createAccount(address, playgroundId);
+      if (!accountResult.success) {
+        toast.error("failed to create account", {
+          description: accountResult.error || "Account creation failed",
+        });
+        return;
+      }
+
+      toast.success("account created", {
+        description: `Address: ${accountResult.data?.address.toString()}`,
       });
 
-      if (balanceNum === 0) return;
+      if (balanceNum === 0) {
+        setOpen(false);
+        return;
+      }
 
-      await fundAccount(account, BigInt(balance), actionRecorder);
-      toast.success("account funded", {
-        description: `Eth amount: ${balance}`,
-      });
+      // Fund the account if balance > 0
+      const addressObj = new Address(Buffer.from(address.slice(2), 'hex'));
+      const fundResult = await evmAdapter.fundAccount(addressObj, BigInt(balance), playgroundId);
+
+      if (fundResult.success) {
+        toast.success("account funded", {
+          description: `Eth amount: ${balance}`,
+        });
+      } else {
+        toast.error("failed to fund account", {
+          description: fundResult.error || "Funding failed",
+        });
+      }
+
+      setOpen(false);
     } catch (e) {
       console.error(e);
       toast.error("Failed to create new account");

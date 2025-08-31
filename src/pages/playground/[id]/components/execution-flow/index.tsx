@@ -20,7 +20,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { ChevronDown, Play, Zap } from "lucide-react";
 import { NodeClickData } from "@/service/evm-analyzer/utils/react-flow-parser";
-import { ResultHistory } from "@/store/playground/types";
+import { ResultHistory } from "@/store/playground-store/types";
 type Props = {
   lastExecutionResult: ResultHistory;
 };

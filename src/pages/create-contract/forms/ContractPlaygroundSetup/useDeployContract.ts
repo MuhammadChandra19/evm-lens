@@ -1,19 +1,18 @@
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { ContractEVMSchema, contractEVMSchema } from "./schema";
-import { DEFAULT_DATA } from "./data";
-import useEVMStore from "@/store/evm";
-import { toast } from "sonner";
-import { ERRORS } from "@/store/evm/errors";
-import { AbiValidator } from "@/service/evm-analyzer/abi";
-import { Abi } from "@/service/evm-analyzer/abi/types";
-import { useNavigate } from "react-router";
-import { useApp } from "@/hooks/use-app";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ContractEVMSchema, contractEVMSchema } from './schema';
+import { DEFAULT_DATA } from './data';
+import { toast } from 'sonner';
+import { AbiValidator } from '@/service/evm-analyzer/abi';
+import { Abi } from '@/service/evm-analyzer/abi/types';
+import { useNavigate } from 'react-router';
+import { useApp } from '@/hooks/use-app';
+import { useEVMAdapter } from '@/hooks/use-evm-adapter';
 
 const useDeployContract = () => {
   const navigate = useNavigate();
-  const { repository, actionRecorder } = useApp();
-  const deployContract = useEVMStore((store) => store.deployContractToEVM);
+  const { repository } = useApp();
+  const evmAdapter = useEVMAdapter();
   const method = useForm<ContractEVMSchema>({
     resolver: zodResolver(contractEVMSchema),
     defaultValues: DEFAULT_DATA,
@@ -26,8 +25,8 @@ const useDeployContract = () => {
 
       return abi.getAbi();
     } catch (e) {
-      method.setError("bytecodeAndAbi.contractAbi", {
-        message: "invalid abi",
+      method.setError('bytecodeAndAbi.contractAbi', {
+        message: 'invalid abi',
       });
       console.error(e);
     }
@@ -37,18 +36,17 @@ const useDeployContract = () => {
     try {
       const id = new Date().getTime();
 
-      // Set the playground ID on the action recorder BEFORE deploying
-      actionRecorder.setPlaygroundId(id);
+      // playgroundId is now passed as parameter to EVM adapter methods
 
       const abi = validateAbi(payload.bytecodeAndAbi.contractAbi);
       if (!abi) {
-        toast.error("failed to create new EVM", {
-          description: "Invalid Abi",
+        toast.error('failed to create new EVM', {
+          description: 'Invalid Abi',
         });
         return;
       }
 
-      const res = await deployContract(
+      const res = await evmAdapter.deployContract(
         {
           id,
           abi,
@@ -56,18 +54,16 @@ const useDeployContract = () => {
           constructorBytecode: payload.bytecodeAndAbi.constructorBytecode,
           ownerAddress: payload.contractConfiguration.ownerAddress,
           decimal: parseInt(payload.contractConfiguration.decimals),
-          initialOwnerBalance: BigInt(
-            payload.contractConfiguration.initialOwnerBalance,
-          ),
+          initialOwnerBalance: BigInt(payload.contractConfiguration.initialOwnerBalance),
           totalSupply: parseInt(payload.contractConfiguration.totalSupply),
           projectName: payload.contractConfiguration.projectName,
         },
-        actionRecorder,
+        id // playgroundId
       );
 
-      if (!res || !res.success) {
-        toast.error("failed to create new EVM", {
-          description: ERRORS.EVM_NOT_INITIALIZED,
+      if (!res.success) {
+        toast.error('failed to create new EVM', {
+          description: res.error || 'Contract deployment failed',
         });
 
         return;
@@ -80,15 +76,15 @@ const useDeployContract = () => {
       });
 
       if (playground) {
-        toast.success("Contract Deployed");
+        toast.success('Contract Deployed');
         navigate(`/playground/${id}`);
         return;
       }
 
-      toast.success("Failed to create playground");
+      toast.success('Failed to create playground');
     } catch (e) {
       console.error(e);
-      toast.error("failed to create new EVM");
+      toast.error('failed to create new EVM');
     }
   };
 

@@ -1,18 +1,13 @@
-import { Address } from "@ethereumjs/util";
-import type { NewSnapshot, SnapshotType } from "@/repository/snapshot/entity";
-import { SnapshotRepository } from "@/repository/snapshot/query";
-import { ReplayableAction, SnapshotResult } from "./types";
-import { CreateNewEVMPayload, EVMStore, TxData } from "@/store/evm/types";
-import type { EVMAdapter } from "@/service/evm-adapter";
-import type {
-  CreateNewEVMPayload as AdapterPayload,
-  TxData as AdapterTxData,
-} from "@/service/evm-adapter/types";
+import { Address } from '@ethereumjs/util';
+import type { NewSnapshot, SnapshotType } from '@/repository/snapshot/entity';
+import { SnapshotRepository } from '@/repository/snapshot/query';
+import { AdapterReplayableAction, SnapshotResult } from './types';
+import type { EVMAdapter } from '@/service/evm-adapter';
+import type { CreateNewEVMPayload as AdapterPayload, TxData as AdapterTxData } from '@/service/evm-adapter/types';
 
 export class ActionRecorder {
   private snapshotRepo: SnapshotRepository;
   private evmAdapter?: EVMAdapter;
-  playgroundId: number = 0;
 
   constructor(snapshotRepo: SnapshotRepository) {
     this.snapshotRepo = snapshotRepo;
@@ -24,74 +19,16 @@ export class ActionRecorder {
   setEVMAdapter(evmAdapter: EVMAdapter) {
     this.evmAdapter = evmAdapter;
   }
-
-  setPlaygroundId(playgroundId: number) {
-    this.playgroundId = playgroundId;
-  }
-  async loadSnapshot(): Promise<SnapshotResult<ReplayableAction[]>> {
-    try {
-      const res = await this.snapshotRepo.loadPlaygroundSnapshot(
-        this.playgroundId,
-      );
-
-      const replayableAction: ReplayableAction[] = res.map((snapshot) => ({
-        type: snapshot.type,
-        payload: this.deserializePayload(snapshot.payload),
-        execute: this.getActionExecutor(snapshot.type),
-      }));
-
-      return {
-        data: replayableAction,
-        error: null,
-      };
-    } catch (e) {
-      return {
-        data: [],
-        error: new Error("failed to load snapshot", {
-          cause: e,
-        }),
-      };
-    }
+  async loadSnapshot(playgroundId: number): Promise<SnapshotResult<AdapterReplayableAction[]>> {
+    return this.loadSnapshotWithAdapter(playgroundId);
   }
 
-  /**
-   * Load ALL snapshots from ALL playgrounds, sorted chronologically
-   * This creates a unified EVM state where all playground actions are executed in time order
-   */
-  async loadUnifiedSnapshot(): Promise<SnapshotResult<ReplayableAction[]>> {
-    try {
-      const res = await this.snapshotRepo.loadAllSnapshotsOrderedByTime();
-
-      const replayableAction: ReplayableAction[] = res.map((snapshot) => ({
-        type: snapshot.type,
-        payload: this.deserializePayload(snapshot.payload),
-        execute: this.getActionExecutor(snapshot.type),
-      }));
-
-      return {
-        data: replayableAction,
-        error: null,
-      };
-    } catch (e) {
-      return {
-        data: [],
-        error: new Error("failed to load unified snapshot", {
-          cause: e,
-        }),
-      };
-    }
-  }
-
-  async recordAction(
-    type: SnapshotType,
-    payload: unknown,
-    gasUsed: string,
-  ): Promise<SnapshotResult<number>> {
+  async recordAction(type: SnapshotType, payload: unknown, gasUsed: string, playgroundId: number): Promise<SnapshotResult<number>> {
     try {
       // Serialize BigInt and Address values for database storage
       const serializedPayload = this.serializePayload(payload);
       const data: NewSnapshot = {
-        playgroundId: this.playgroundId,
+        playgroundId,
         type,
         payload: serializedPayload,
         gasUsed,
@@ -107,12 +44,12 @@ export class ActionRecorder {
 
       return {
         data: 0,
-        error: new Error("no snapshot recorded"),
+        error: new Error('no snapshot recorded'),
       };
     } catch (e) {
       return {
         data: 0,
-        error: new Error("failed to record snapshot", {
+        error: new Error('failed to record snapshot', {
           cause: e,
         }),
       };
@@ -125,11 +62,11 @@ export class ActionRecorder {
     return JSON.parse(
       JSON.stringify(payload, (_key, value) => {
         // Only handle BigInt automatically since it can't be JSON serialized
-        if (typeof value === "bigint") {
-          return [value.toString(), "BigInt"];
+        if (typeof value === 'bigint') {
+          return [value.toString(), 'BigInt'];
         }
         return value;
-      }),
+      })
     );
   }
 
@@ -138,22 +75,16 @@ export class ActionRecorder {
 
     return JSON.parse(JSON.stringify(payload), (_key, value) => {
       // Check if value is in our serialized format [stringified_value, original_type]
-      if (
-        Array.isArray(value) &&
-        value.length === 2 &&
-        typeof value[1] === "string"
-      ) {
+      if (Array.isArray(value) && value.length === 2 && typeof value[1] === 'string') {
         const [stringifiedValue, originalType] = value;
 
         switch (originalType) {
-          case "Address": {
-            const addrStr = stringifiedValue.startsWith("0x")
-              ? stringifiedValue.slice(2)
-              : stringifiedValue;
-            return new Address(Buffer.from(addrStr, "hex"));
+          case 'Address': {
+            const addrStr = stringifiedValue.startsWith('0x') ? stringifiedValue.slice(2) : stringifiedValue;
+            return new Address(Buffer.from(addrStr, 'hex'));
           }
 
-          case "BigInt":
+          case 'BigInt':
             return BigInt(stringifiedValue);
 
           default:
@@ -166,116 +97,65 @@ export class ActionRecorder {
   }
 
   /**
-   * Get the appropriate executor function for an action type
-   */
-  private getActionExecutor(
-    type: SnapshotType,
-  ): (payload: unknown, evmStore: EVMStore) => Promise<unknown> {
-    switch (type) {
-      case "DEPLOY_CONTRACT":
-        return async (payload: unknown, evmStore: EVMStore) => {
-          return evmStore.deployContractToEVM(
-            payload as CreateNewEVMPayload,
-            this,
-            false,
-          );
-        };
-
-      case "CREATE_ACCOUNT":
-        return async (payload: unknown, evmStore: EVMStore) => {
-          const typedPayload = payload as { address: string };
-          return evmStore.createAccount(typedPayload.address, this, false);
-        };
-
-      case "FUND_ACCOUNT":
-        return async (payload: unknown, evmStore: EVMStore) => {
-          const typedPayload = payload as { address: Address; balance: bigint };
-          return evmStore.fundAccount(
-            typedPayload.address,
-            typedPayload.balance,
-            this,
-            false,
-          );
-        };
-
-      case "CALL_FUNCTION":
-        return async (payload: unknown, evmStore: EVMStore) => {
-          return evmStore.callFunction(payload as TxData, this, false);
-        };
-
-      case "REGISTER_ACCOUNT":
-        return async (payload: unknown, evmStore: EVMStore) => {
-          const typedPayload = payload as { address: Address };
-          return evmStore.registerAccount(typedPayload.address, this, false);
-        };
-
-      default:
-        throw new Error(`Unknown action type: ${type}`);
-    }
-  }
-
-  /**
    * Get the appropriate adapter-based executor function for an action type
    * Uses EVM adapter with shouldRecord: false to prevent double recording
    */
-  private getAdapterActionExecutor(
-    type: SnapshotType,
-  ): (payload: unknown) => Promise<unknown> {
+  private getAdapterActionExecutor(type: SnapshotType, playgroundId: number): (payload: unknown) => Promise<unknown> {
     if (!this.evmAdapter) {
-      throw new Error("EVM adapter not initialized");
+      throw new Error('EVM adapter not initialized');
     }
 
     switch (type) {
-      case "DEPLOY_CONTRACT":
+      case 'DEPLOY_CONTRACT':
         return async (payload: unknown) => {
           const result = await this.evmAdapter!.deployContract(
             payload as AdapterPayload,
-            this.playgroundId,
-            false, // shouldRecord: false to prevent double recording
+            playgroundId,
+            false // shouldRecord: false to prevent double recording
           );
           return result.data;
         };
 
-      case "CREATE_ACCOUNT":
+      case 'CREATE_ACCOUNT':
         return async (payload: unknown) => {
           const typedPayload = payload as { address: string };
           const result = await this.evmAdapter!.createAccount(
             typedPayload.address,
-            this.playgroundId,
-            false, // shouldRecord: false to prevent double recording
+            playgroundId,
+            false // shouldRecord: false to prevent double recording
           );
           return result.data;
         };
 
-      case "FUND_ACCOUNT":
+      case 'FUND_ACCOUNT':
         return async (payload: unknown) => {
           const typedPayload = payload as { address: Address; balance: bigint };
           const result = await this.evmAdapter!.fundAccount(
             typedPayload.address,
             typedPayload.balance,
-            this.playgroundId,
-            false, // shouldRecord: false to prevent double recording
+            playgroundId,
+            false // shouldRecord: false to prevent double recording
           );
           return result.data;
         };
 
-      case "CALL_FUNCTION":
+      case 'CALL_FUNCTION':
         return async (payload: unknown) => {
           const result = await this.evmAdapter!.callFunction(
             payload as AdapterTxData,
-            this.playgroundId,
-            false, // shouldRecord: false to prevent double recording
+            playgroundId,
+            false // shouldRecord: false to prevent double recording
           );
           return result.data;
         };
 
-      case "REGISTER_ACCOUNT":
+      case 'REGISTER_ACCOUNT':
         return async (payload: unknown) => {
           const typedPayload = payload as { address: string };
           const result = await this.evmAdapter!.createAccount(
             typedPayload.address,
-            this.playgroundId,
-            false, // shouldRecord: false to prevent double recording
+            playgroundId,
+            false // shouldRecord: false to prevent double recording
           );
           return result.data;
         };
@@ -289,23 +169,21 @@ export class ActionRecorder {
    * Load snapshots with adapter-based executors
    * This will be used when we fully migrate to adapter-based execution
    */
-  async loadSnapshotWithAdapter(): Promise<SnapshotResult<ReplayableAction[]>> {
+  async loadSnapshotWithAdapter(playgroundId: number): Promise<SnapshotResult<AdapterReplayableAction[]>> {
     if (!this.evmAdapter) {
       return {
         data: [],
-        error: new Error("EVM adapter not initialized"),
+        error: new Error('EVM adapter not initialized'),
       };
     }
 
     try {
-      const res = await this.snapshotRepo.loadPlaygroundSnapshot(
-        this.playgroundId,
-      );
+      const res = await this.snapshotRepo.loadPlaygroundSnapshot(playgroundId);
 
-      const replayableAction: ReplayableAction[] = res.map((snapshot) => ({
+      const replayableAction: AdapterReplayableAction[] = res.map((snapshot) => ({
         type: snapshot.type,
         payload: this.deserializePayload(snapshot.payload),
-        execute: this.getAdapterActionExecutor(snapshot.type),
+        execute: this.getAdapterActionExecutor(snapshot.type, playgroundId),
       }));
 
       return {
@@ -315,7 +193,7 @@ export class ActionRecorder {
     } catch (e) {
       return {
         data: [],
-        error: new Error("failed to load snapshot with adapter", {
+        error: new Error('failed to load snapshot with adapter', {
           cause: e,
         }),
       };
@@ -326,23 +204,21 @@ export class ActionRecorder {
    * Load unified snapshots with adapter-based executors
    * This will be used when we fully migrate to adapter-based execution
    */
-  async loadUnifiedSnapshotWithAdapter(): Promise<
-    SnapshotResult<ReplayableAction[]>
-  > {
+  async loadUnifiedSnapshotWithAdapter(): Promise<SnapshotResult<AdapterReplayableAction[]>> {
     if (!this.evmAdapter) {
       return {
         data: [],
-        error: new Error("EVM adapter not initialized"),
+        error: new Error('EVM adapter not initialized'),
       };
     }
 
     try {
       const res = await this.snapshotRepo.loadAllSnapshotsOrderedByTime();
 
-      const replayableAction: ReplayableAction[] = res.map((snapshot) => ({
+      const replayableAction: AdapterReplayableAction[] = res.map((snapshot) => ({
         type: snapshot.type,
         payload: this.deserializePayload(snapshot.payload),
-        execute: this.getAdapterActionExecutor(snapshot.type),
+        execute: this.getAdapterActionExecutor(snapshot.type, snapshot.playgroundId || 0),
       }));
 
       return {
@@ -352,7 +228,7 @@ export class ActionRecorder {
     } catch (e) {
       return {
         data: [],
-        error: new Error("failed to load unified snapshot with adapter", {
+        error: new Error('failed to load unified snapshot with adapter', {
           cause: e,
         }),
       };

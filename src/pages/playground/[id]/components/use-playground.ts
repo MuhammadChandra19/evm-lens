@@ -1,37 +1,58 @@
-import { useApp } from "@/hooks/use-app";
-import { extractUint256 } from "@/lib/utils";
-import { FunctionCallForm } from "@/service/evm-analyzer/abi/schema-validator";
-import { AbiFunction } from "@/service/evm-analyzer/abi/types";
-import { parseEVMStepsToFlow } from "@/service/evm-analyzer/utils/react-flow-parser";
-import useEVMStore from "@/store/evm";
-import usePlaygroundStore from "@/store/playground";
-import { useMemo } from "react";
-import { toast } from "sonner";
+import { useEVMAdapter } from '@/hooks/use-evm-adapter';
+import { useCurrentPlayground } from '@/hooks/use-current-playground';
+import { FunctionCallForm } from '@/service/evm-analyzer/abi/schema-validator';
+import { AbiFunction } from '@/service/evm-analyzer/abi/types';
+import { parseEVMStepsToFlow } from '@/service/evm-analyzer/utils/react-flow-parser';
+import { extractUint256 } from '@/lib/utils';
+import { parsers } from '@/service/evm/opcodes/utils';
+import { useMemo } from 'react';
+import { toast } from 'sonner';
 
 const usePlayground = () => {
-  const { actionRecorder } = useApp();
-  const activeFunction = usePlaygroundStore((store) => store.activeFunction);
-  const decimals = useEVMStore((store) => store.decimals);
-  const ownerAddress = useEVMStore((store) => store.ownerAddress!);
-  const callFunction = useEVMStore((store) => store.callFunction);
-  const saveExecutionResult = usePlaygroundStore((store) => store.saveResult);
+  const evmAdapter = useEVMAdapter();
 
-  const accounts = useEVMStore((store) => store.accounts!);
+  // Get current playground data (including UI state)
+  const { decimals, ownerAddress, tokenBalances, playgroundConfig, activeFunction, saveExecutionResult, getFunctionLastResult } = useCurrentPlayground();
 
-  const lastExecutionResult = usePlaygroundStore((store) => {
-    if (!store.activeFunction) return undefined;
-    return store.getFunctionLastResult(store.activeFunction.func.name!);
-  });
+  // Note: We now get balance from token balances instead of EVM directly
+  // This matches how the explorer accounts page works
 
-  const ownerAccount = useMemo(
-    () => accounts[ownerAddress.toString()],
-    [ownerAddress, accounts],
-  );
+  const lastExecutionResult = useMemo(() => {
+    if (!activeFunction) return undefined;
+    return getFunctionLastResult(activeFunction.func.name!);
+  }, [activeFunction, getFunctionLastResult]);
+
+  const ownerAccount = useMemo(() => {
+    if (!ownerAddress) return undefined;
+
+    // Get balance from token balances (like explorer does)
+    // Token balances are stored as Map<"accountAddress-contractAddress", TokenBalance>
+    // We need to sum all token balances for this account address
+    let totalBalance = 0n;
+
+    tokenBalances.forEach((tokenBalance) => {
+      if (tokenBalance.accountAddress === ownerAddress.toString()) {
+        totalBalance += tokenBalance.balance;
+      }
+    });
+
+    console.log('🔍 Owner balance calculated:', {
+      ownerAddress: ownerAddress.toString(),
+      totalBalance: totalBalance.toString(),
+      totalBalanceETH: (Number(totalBalance) / 1e18).toFixed(4),
+    });
+
+    return {
+      address: ownerAddress,
+      balance: totalBalance,
+      isContract: false,
+    };
+  }, [ownerAddress, tokenBalances]);
 
   const cleanupArgs = (data: FunctionCallForm) => {
     const args: string[] = [];
     Object.keys(data).forEach((k) => {
-      if (k !== "ethAmount") {
+      if (k !== 'ethAmount') {
         args.push(data[k]);
       }
     });
@@ -40,7 +61,7 @@ const usePlayground = () => {
   };
 
   const functionHasOutput = () => {
-    if (activeFunction!.type !== "function") {
+    if (activeFunction!.type !== 'function') {
       return false;
     }
     if ((activeFunction?.func as AbiFunction).outputs.length > 0) {
@@ -51,40 +72,61 @@ const usePlayground = () => {
   };
   const handleExecute = async (data: FunctionCallForm) => {
     try {
-      const res = await callFunction(
+      // Get current playground ID from URL params
+      const playgroundId = playgroundConfig?.id;
+
+      if (!ownerAddress || !playgroundId) {
+        toast.error('Missing playground configuration');
+        return;
+      }
+
+      const res = await evmAdapter.callFunction(
         {
           args: cleanupArgs(data),
-          ethAmount: BigInt(data["ethAmount"] || "0") * BigInt(10 ** decimals),
-          executorAddres: ownerAddress,
+          ethAmount: BigInt(data['ethAmount'] || '0') * BigInt(10 ** decimals),
+          executorAddress: ownerAddress,
           func: activeFunction!.func,
           gasLimit: 3000000,
           type: activeFunction!.type,
         },
-        actionRecorder,
+        playgroundId
       );
-      if (!res) {
-        toast.error("Failed to execute function");
+      if (!res.success) {
+        toast.error('Failed to execute function', {
+          description: res.error || 'Function execution failed',
+        });
         return;
       }
 
-      if (res.error) {
-        toast.error("Failed to execute function", {
-          description: res.error,
-        });
+      const flowData = parseEVMStepsToFlow(res.data?.steps || []);
+
+      // Extract and format the return value properly
+      let formattedResult = '0';
+      if (res.data?.returnValue && functionHasOutput()) {
+        try {
+          const returnValueBytes = parsers.hexStringToUint8Array(res.data.returnValue);
+          const extractedValue = extractUint256(returnValueBytes);
+          formattedResult = extractedValue.toString();
+        } catch (error) {
+          console.warn('Failed to extract uint256 from return value:', error);
+          formattedResult = res.data.returnValue || '0';
+        }
       }
 
-      const flowData = parseEVMStepsToFlow(res?.steps);
       saveExecutionResult({
         executedAt: Date.now().toString(),
         executionFlow: flowData,
         functionDefinitions: activeFunction!,
-        functionName: activeFunction!.func.name || "",
+        functionName: activeFunction!.func.name || '',
         id: Date.now().toString(),
         hasOutput: functionHasOutput(),
-        result: extractUint256(res.returnValue).toString(),
+        result: formattedResult,
       });
+
+      // Note: Token balances are automatically updated by the EVM adapter
+      // No need to manually refresh since we're using token balances from the store
     } catch (e) {
-      toast.error("Failed to execute function");
+      toast.error('Failed to execute function');
       console.error(e);
     }
   };

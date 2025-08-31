@@ -11,20 +11,22 @@ import {
 import { Button } from "@/components/ui/button";
 import { Wallet } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import useEVMStore from "@/store/evm";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useApp } from "@/hooks/use-app";
+// import { useApp } from "@/hooks/use-app"; // No longer needed
+import { useEVMAdapter } from "@/hooks/use-evm-adapter";
+import { useCurrentPlayground } from "@/hooks/use-current-playground";
 
 const BalanceForm = () => {
-  const { actionRecorder } = useApp();
+  // const { actionRecorder } = useApp(); // No longer needed
+  const evmAdapter = useEVMAdapter();
   const [balance, setBalance] = useState("1");
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const fundAccount = useEVMStore((store) => store.fundAccount);
-  const ownerAddress = useEVMStore((store) => store.ownerAddress!);
+  // Get current playground data
+  const { ownerAddress } = useCurrentPlayground();
 
   const handleSubmit = async () => {
     setError(null);
@@ -38,16 +40,32 @@ const BalanceForm = () => {
         return;
       }
 
-      const res = await fundAccount(
+      if (!ownerAddress) {
+        setError("No owner address found");
+        return;
+      }
+
+      // Get current playground ID from current playground config
+      const playgroundId = parseInt(window.location.pathname.split('/')[2]);
+
+      if (!playgroundId) {
+        setError("No playground ID found");
+        return;
+      }
+
+      const res = await evmAdapter.fundAccount(
         ownerAddress,
         BigInt(balance),
-        actionRecorder,
+        playgroundId,
       );
 
       if (!res.success) {
         toast.error("failed to fund account");
         console.error(res.error);
+        return;
       }
+
+      toast.success("Account funded successfully");
       setOpen(false);
     } catch (e) {
       console.error(e);
