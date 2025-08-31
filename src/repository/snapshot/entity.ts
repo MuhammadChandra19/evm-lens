@@ -18,6 +18,7 @@ const snapshotSchema = sqliteTable("snapshot", {
     .notNull()
     .default(sql`(CURRENT_TIMESTAMP)`),
   payload: text({ mode: "json" }).notNull(),
+  gasUsed: text().notNull()
 });
 
 type NewSnapshot = typeof snapshotSchema.$inferInsert;

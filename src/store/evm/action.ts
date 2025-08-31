@@ -85,7 +85,7 @@ export const deployContractToEVM = async (
 
   // Record the action with detailed context
   if (shouldRecord) {
-    await actionRecorder.recordAction("DEPLOY_CONTRACT", payload);
+    await actionRecorder.recordAction("DEPLOY_CONTRACT", payload, res.gasUsed.toString());
   }
 
   return res;
@@ -143,7 +143,7 @@ export const callFunction = async (
         ...tx,
         executorAddres: [tx.executorAddres.toString(), "Address"],
       };
-      await actionRecorder.recordAction("CALL_FUNCTION", actionPayload);
+      await actionRecorder.recordAction("CALL_FUNCTION", actionPayload, result.gasUsed.toString());
     }
 
     return result;
@@ -166,7 +166,7 @@ export const createAccount = async (
   // Record the action if actionRecorder is provided (for direct calls, not internal calls)
   if (account && shouldRecord) {
     const actionPayload = { address: address.toString() };
-    await actionRecorder.recordAction("CREATE_ACCOUNT", actionPayload);
+    await actionRecorder.recordAction("CREATE_ACCOUNT", actionPayload, "0");
   }
 
   return account;
@@ -192,7 +192,7 @@ export const fundAccount = async (
         address: [address.toString(), "Address"],
         balance: recordAmount !== undefined ? recordAmount : balance,
       };
-      await actionRecorder.recordAction("FUND_ACCOUNT", actionPayload);
+      await actionRecorder.recordAction("FUND_ACCOUNT", actionPayload,"0");
     }
 
     return result;
@@ -213,7 +213,7 @@ export const registerAccount = async (
   // Record the action with detailed context
   if (result && shouldRecord) {
     const actionPayload = { address: [address.toString(), "Address"] };
-    await actionRecorder.recordAction("REGISTER_ACCOUNT", actionPayload);
+    await actionRecorder.recordAction("REGISTER_ACCOUNT", actionPayload, "0");
   }
 
   return result;

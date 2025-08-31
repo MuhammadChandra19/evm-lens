@@ -3,10 +3,13 @@ import { Separator } from '@/components/ui/separator';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { Outlet, useNavigate } from 'react-router';
 import PlaygroundNav from './playground-nav';
+import useLayout from './use-layout';
 
 
 const Layout = () => {
   const navigate = useNavigate();
+  const { breadcrumbItems } = useLayout();
+
   return (
     <SidebarProvider>
       <PlaygroundNav />
@@ -20,15 +23,29 @@ const Layout = () => {
             />
             <Breadcrumb>
               <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink onClick={() => navigate("/create-contract")}>
-                    Contract creation
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Explorer</BreadcrumbPage>
-                </BreadcrumbItem>
+                {breadcrumbItems.map((item, index) => (
+                  <div key={item.path} className="flex items-center">
+                    {index > 0 && (
+                      <BreadcrumbSeparator className="hidden md:block" />
+                    )}
+                    <BreadcrumbItem className="hidden md:block">
+                      {item.isActive ? (
+                        <BreadcrumbPage className="flex items-center gap-1">
+                          {item.icon && <item.icon className="h-4 w-4" />}
+                          {item.title}
+                        </BreadcrumbPage>
+                      ) : (
+                        <BreadcrumbLink
+                          onClick={() => navigate(item.path)}
+                          className="flex items-center gap-1 cursor-pointer hover:text-foreground"
+                        >
+                          {item.icon && <item.icon className="h-4 w-4" />}
+                          {item.title}
+                        </BreadcrumbLink>
+                      )}
+                    </BreadcrumbItem>
+                  </div>
+                ))}
               </BreadcrumbList>
             </Breadcrumb>
           </div>

@@ -1,0 +1,1 @@
+ALTER TABLE `snapshot` ADD `gasUsed` text NOT NULL DEFAULT '0';
