@@ -1,9 +1,10 @@
 import type { Repository } from "@/repository";
 import initRepository from "@/repository";
 import { ActionRecorder } from "@/service/action-recorder";
-import useEVMStore from "@/store/evm";
 import LoadingScreen from "@/components/loading-screen";
 import { createContext, ReactNode, useEffect, useState } from "react";
+import EVMAnalyzer from '@/service/evm-analyzer';
+import { EVMAdapter } from '@/service/evm-adapter';
 
 interface AppProviderProps {
   children: ReactNode;
@@ -12,6 +13,7 @@ interface AppProviderProps {
 type AppProviderValue = {
   repository: Repository;
   actionRecorder: ActionRecorder;
+  evmAdapter: EVMAdapter;
 };
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -22,19 +24,31 @@ const AppProvider = ({ children }: AppProviderProps) => {
   const [actionRecorder, setActionRecorder] = useState<ActionRecorder | null>(
     null,
   );
+  const [evmAdapter, setEvmAdapter] = useState<EVMAdapter | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
 
-  const initializeEvm = useEVMStore((store) => store.initializeEVM);
 
   useEffect(() => {
     const init = async () => {
       try {
         const repo = await initRepository();
         // await repo.clearTables(["playground", "snapshot"]);
+        const evm = await EVMAnalyzer.create()
         const recorder = new ActionRecorder(repo.snapshot);
+
+        const recordActionWrapper = async (
+          playgroundId: number,
+          type: "DEPLOY_CONTRACT" | "CREATE_ACCOUNT" | "FUND_ACCOUNT" | "CALL_FUNCTION" | "REGISTER_ACCOUNT",
+          payload: unknown,
+          gasUsed: string,
+        ) => {
+          return await recorder.recordAction(playgroundId, type, payload, gasUsed);
+        };
+
+        const evmAdapter = new EVMAdapter(evm, recordActionWrapper)
         setRepository(repo);
         setActionRecorder(recorder);
-        await initializeEvm();
+        setEvmAdapter(evmAdapter)
       } catch (error) {
         console.error("Failed to initialize database:", error);
       } finally {
@@ -54,6 +68,7 @@ const AppProvider = ({ children }: AppProviderProps) => {
       value={{
         repository,
         actionRecorder: actionRecorder!,
+        evmAdapter: evmAdapter!
       }}
     >
       {children}

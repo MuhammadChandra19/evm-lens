@@ -2,9 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ContractEVMSchema, contractEVMSchema } from "./schema";
 import { DEFAULT_DATA } from "./data";
-import useEVMStore from "@/store/evm";
 import { toast } from "sonner";
-import { ERRORS } from "@/store/evm/errors";
 import { AbiValidator } from "@/service/evm-analyzer/abi";
 import { Abi } from "@/service/evm-analyzer/abi/types";
 import { useNavigate } from "react-router";
@@ -12,8 +10,7 @@ import { useApp } from "@/hooks/use-app";
 
 const useDeployContract = () => {
   const navigate = useNavigate();
-  const { repository, actionRecorder } = useApp();
-  const deployContract = useEVMStore((store) => store.deployContractToEVM);
+  const { evmAdapter, repository } = useApp()
   const method = useForm<ContractEVMSchema>({
     resolver: zodResolver(contractEVMSchema),
     defaultValues: DEFAULT_DATA,
@@ -37,9 +34,6 @@ const useDeployContract = () => {
     try {
       const id = new Date().getTime();
 
-      // Set the playground ID on the action recorder BEFORE deploying
-      actionRecorder.setPlaygroundId(id);
-
       const abi = validateAbi(payload.bytecodeAndAbi.contractAbi);
       if (!abi) {
         toast.error("failed to create new EVM", {
@@ -48,7 +42,7 @@ const useDeployContract = () => {
         return;
       }
 
-      const res = await deployContract(
+      const res = await evmAdapter.deployContract(
         {
           id,
           abi,
@@ -62,12 +56,11 @@ const useDeployContract = () => {
           totalSupply: parseInt(payload.contractConfiguration.totalSupply),
           projectName: payload.contractConfiguration.projectName,
         },
-        actionRecorder,
       );
 
       if (!res || !res.success) {
         toast.error("failed to create new EVM", {
-          description: ERRORS.EVM_NOT_INITIALIZED,
+          description: res.error || "Unkown error",
         });
 
         return;

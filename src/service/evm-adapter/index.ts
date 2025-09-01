@@ -36,7 +36,6 @@ export class EVMAdapter {
    */
   async deployContract(
     payload: CreateNewEVMPayload,
-    playgroundId: number,
     shouldRecord: boolean = true,
   ): Promise<EVMResult<ContractDeploymentData>> {
     try {
@@ -44,7 +43,7 @@ export class EVMAdapter {
       const owner = new Address(
         Buffer.from(payload.ownerAddress.slice(2), "hex"),
       );
-      const ownerAddress = await this.createAccount(owner);
+      const ownerAddress = await this.createAccount(payload.id, owner);
       if (!ownerAddress) {
         return {
           success: false,
@@ -55,7 +54,7 @@ export class EVMAdapter {
       const contract = new Address(
         Buffer.from(payload.contractAddress.slice(2), "hex"),
       );
-      const contractAddress = await this.createAccount(contract);
+      const contractAddress = await this.createAccount(payload.id, contract);
       if (!contractAddress) {
         return {
           success: false,
@@ -76,9 +75,11 @@ export class EVMAdapter {
         };
       }
 
-      const parsedBalance =
-        payload.initialOwnerBalance * BigInt(10 ** ETH_DECIMAL);
-      await this.fundAccount(ownerAddress, parsedBalance);
+      await this.fundAccount(
+        payload.id,
+        ownerAddress,
+        payload.initialOwnerBalance,
+      );
 
       const ownerAccountInfo = await this.evm.getAccountInfo(ownerAddress);
       const contractAccountInfo =
@@ -106,6 +107,7 @@ export class EVMAdapter {
       // Record the action with detailed context
       if (shouldRecord) {
         await this.recordAction(
+          payload.id,
           "DEPLOY_CONTRACT",
           payload,
           res.gasUsed.toString(),
@@ -118,7 +120,7 @@ export class EVMAdapter {
           contractAddress,
           ownerAddress,
           deploymentResult: res,
-          playgroundId,
+          playgroundId: payload.id,
         },
         gasUsed: res.gasUsed,
       };
@@ -183,6 +185,7 @@ export class EVMAdapter {
         };
 
         await this.recordAction(
+          tx.playgroundId,
           "CALL_FUNCTION",
           actionPayload,
           result.gasUsed.toString(),
@@ -205,36 +208,71 @@ export class EVMAdapter {
   }
 
   async createAccount(
+    playgroundId: number,
     address: Address,
     shouldRecord: boolean = true,
   ): Promise<Address | null> {
+    const appStore = useAppStore.getState();
     const account = await this.evm.createAccount(address);
 
     if (account && shouldRecord) {
       const acitonPayload = { address: address.toString() };
-      await this.recordAction("CREATE_ACCOUNT", acitonPayload, "0");
+      await this.recordAction(
+        playgroundId,
+        "CREATE_ACCOUNT",
+        acitonPayload,
+        "0",
+      );
+
+      const newAccount: AccountInfo = {
+        address: account,
+        balance: 0n,
+        nonce: 0n,
+      };
+
+      appStore.setAccounts([[account.toString(), newAccount]]);
     }
 
     return account;
   }
 
   async fundAccount(
+    playgroundId: number,
     address: Address,
     balance: bigint,
     shouldRecord: boolean = true,
-    recordAmount?: bigint,
   ) {
     try {
-      await this.evm.fundAccount(address, balance);
+      const appStore = useAppStore.getState();
+      const account = appStore.getAccount(address.toString());
+      if (!account) {
+        return {
+          success: false,
+          error: "Account not found",
+        };
+      }
+      const parsedBalance = balance * BigInt(10 ** ETH_DECIMAL);
+
+      const newBalance = account.balance + parsedBalance;
+      account.balance = newBalance;
+
+      await this.evm.fundAccount(address, newBalance);
       const result = { success: true, error: null };
 
       if (shouldRecord) {
         const actionPayload = {
           address: [address.toString(), "Address"],
-          balance: recordAmount !== undefined ? recordAmount : balance,
+          balance,
         };
-        await this.recordAction("FUND_ACCOUNT", actionPayload, "0");
+        await this.recordAction(
+          playgroundId,
+          "FUND_ACCOUNT",
+          actionPayload,
+          "0",
+        );
       }
+
+      appStore.setAccounts([[address.toString(), account]]);
 
       return result;
     } catch (e) {

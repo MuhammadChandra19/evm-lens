@@ -67,6 +67,12 @@ const useAppStore = create<AppStore>()((set, get) => ({
       accounts: currentAccounts,
     });
   },
+
+  getAccount: (id: string) => {
+    const account = get().accounts.get(id);
+
+    return account;
+  },
 }));
 
 export default useAppStore;

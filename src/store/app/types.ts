@@ -55,6 +55,8 @@ export type AppAction = {
 
   getAccounts: () => Map<string, AccountInfo>;
 
+  getAccount: (id: string) => AccountInfo | undefined;
+
   saveExecutionResult: (history: ResultHistory) => void;
 
   getFunctionLastResult: (
