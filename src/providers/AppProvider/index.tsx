@@ -3,8 +3,8 @@ import initRepository from "@/repository";
 import { ActionRecorder } from "@/service/action-recorder";
 import LoadingScreen from "@/components/loading-screen";
 import { createContext, ReactNode, useEffect, useState } from "react";
-import EVMAnalyzer from '@/service/evm-analyzer';
-import { EVMAdapter } from '@/service/evm-adapter';
+import EVMAnalyzer from "@/service/evm-analyzer";
+import { EVMAdapter } from "@/service/evm-adapter";
 
 interface AppProviderProps {
   children: ReactNode;
@@ -27,28 +27,37 @@ const AppProvider = ({ children }: AppProviderProps) => {
   const [evmAdapter, setEvmAdapter] = useState<EVMAdapter | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
 
-
   useEffect(() => {
     const init = async () => {
       try {
         const repo = await initRepository();
         // await repo.clearTables(["playground", "snapshot"]);
-        const evm = await EVMAnalyzer.create()
+        const evm = await EVMAnalyzer.create();
         const recorder = new ActionRecorder(repo.snapshot);
 
         const recordActionWrapper = async (
           playgroundId: number,
-          type: "DEPLOY_CONTRACT" | "CREATE_ACCOUNT" | "FUND_ACCOUNT" | "CALL_FUNCTION" | "REGISTER_ACCOUNT",
+          type:
+            | "DEPLOY_CONTRACT"
+            | "CREATE_ACCOUNT"
+            | "FUND_ACCOUNT"
+            | "CALL_FUNCTION"
+            | "REGISTER_ACCOUNT",
           payload: unknown,
           gasUsed: string,
         ) => {
-          return await recorder.recordAction(playgroundId, type, payload, gasUsed);
+          return await recorder.recordAction(
+            playgroundId,
+            type,
+            payload,
+            gasUsed,
+          );
         };
 
-        const evmAdapter = new EVMAdapter(evm, recordActionWrapper)
+        const evmAdapter = new EVMAdapter(evm, recordActionWrapper);
         setRepository(repo);
         setActionRecorder(recorder);
-        setEvmAdapter(evmAdapter)
+        setEvmAdapter(evmAdapter);
       } catch (error) {
         console.error("Failed to initialize database:", error);
       } finally {
@@ -68,7 +77,7 @@ const AppProvider = ({ children }: AppProviderProps) => {
       value={{
         repository,
         actionRecorder: actionRecorder!,
-        evmAdapter: evmAdapter!
+        evmAdapter: evmAdapter!,
       }}
     >
       {children}

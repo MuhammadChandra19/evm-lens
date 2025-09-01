@@ -14,7 +14,7 @@ import {
 // Standard result type for all EVM operations
 export interface EVMResult<T = unknown> {
   success: boolean;
-  data?: T;
+  data: T;
   error?: string;
   gasUsed?: bigint;
   gasRefund?: bigint;

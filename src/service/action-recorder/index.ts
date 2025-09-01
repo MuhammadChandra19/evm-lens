@@ -143,7 +143,9 @@ export class ActionRecorder {
     switch (type) {
       case "DEPLOY_CONTRACT":
         return async (payload: unknown) => {
-          return this.evmAdapter!.deployContract(payload as CreateNewEVMPayload);
+          return this.evmAdapter!.deployContract(
+            payload as CreateNewEVMPayload,
+          );
         };
 
       case "CREATE_ACCOUNT":

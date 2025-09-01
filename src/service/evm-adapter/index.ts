@@ -1,6 +1,10 @@
 import { Address } from "@ethereumjs/util";
 import { ActionRecorder } from "../action-recorder";
-import EVMAnalyzer, { AccountInfo, CallResult } from "../evm-analyzer";
+import EVMAnalyzer, {
+  AccountInfo,
+  CallResult,
+  ExecutionStep,
+} from "../evm-analyzer";
 import {
   ContractDeploymentData,
   CreateNewEVMPayload,
@@ -46,6 +50,7 @@ export class EVMAdapter {
       const ownerAddress = await this.createAccount(payload.id, owner);
       if (!ownerAddress) {
         return {
+          data: {} as ContractDeploymentData,
           success: false,
           error: "Failed to create owner account",
         };
@@ -57,6 +62,7 @@ export class EVMAdapter {
       const contractAddress = await this.createAccount(payload.id, contract);
       if (!contractAddress) {
         return {
+          data: {} as ContractDeploymentData,
           success: false,
           error: "Failed to create contract account",
         };
@@ -70,6 +76,7 @@ export class EVMAdapter {
 
       if (!res.success) {
         return {
+          data: {} as ContractDeploymentData,
           success: false,
           error: "Contract deployment failed",
         };
@@ -126,6 +133,7 @@ export class EVMAdapter {
       };
     } catch (error) {
       return {
+        data: {} as ContractDeploymentData,
         success: false,
         error:
           error instanceof Error ? error.message : "Unknown error occurred",
@@ -136,7 +144,7 @@ export class EVMAdapter {
   async callFunction(
     tx: TxData,
     shouldRecord: boolean = true,
-  ): Promise<EVMResult<CallResult>> {
+  ): Promise<EVMResult<CallResult & { steps: ExecutionStep[] }>> {
     try {
       const appStore = useAppStore.getState();
       const config = appStore.getPlaygroundConfig(tx.playgroundId);
@@ -169,6 +177,7 @@ export class EVMAdapter {
 
       if (!result.success) {
         return {
+          data: {} as CallResult & { steps: ExecutionStep[] },
           success: false,
           error: result.error || "Function execution failed",
         };
@@ -200,6 +209,7 @@ export class EVMAdapter {
       };
     } catch (error) {
       return {
+        data: {} as CallResult & { steps: ExecutionStep[] },
         success: false,
         error:
           error instanceof Error ? error.message : "Unknown error occurred",
@@ -289,5 +299,12 @@ export class EVMAdapter {
         e instanceof Error ? e.message : "Unknown error occurred",
       );
     }
+  }
+
+  toAddressType(address: string) {
+    const fixAddress = address.startsWith("0x") ? address.slice(2) : address;
+    const addressType = new Address(Buffer.from(fixAddress, "hex"));
+
+    return addressType;
   }
 }

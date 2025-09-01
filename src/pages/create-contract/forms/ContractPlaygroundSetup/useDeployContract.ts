@@ -10,7 +10,7 @@ import { useApp } from "@/hooks/use-app";
 
 const useDeployContract = () => {
   const navigate = useNavigate();
-  const { evmAdapter, repository } = useApp()
+  const { evmAdapter, repository } = useApp();
   const method = useForm<ContractEVMSchema>({
     resolver: zodResolver(contractEVMSchema),
     defaultValues: DEFAULT_DATA,
@@ -42,21 +42,19 @@ const useDeployContract = () => {
         return;
       }
 
-      const res = await evmAdapter.deployContract(
-        {
-          id,
-          abi,
-          contractAddress: payload.contractConfiguration.contractAddress,
-          constructorBytecode: payload.bytecodeAndAbi.constructorBytecode,
-          ownerAddress: payload.contractConfiguration.ownerAddress,
-          decimal: parseInt(payload.contractConfiguration.decimals),
-          initialOwnerBalance: BigInt(
-            payload.contractConfiguration.initialOwnerBalance,
-          ),
-          totalSupply: parseInt(payload.contractConfiguration.totalSupply),
-          projectName: payload.contractConfiguration.projectName,
-        },
-      );
+      const res = await evmAdapter.deployContract({
+        id,
+        abi,
+        contractAddress: payload.contractConfiguration.contractAddress,
+        constructorBytecode: payload.bytecodeAndAbi.constructorBytecode,
+        ownerAddress: payload.contractConfiguration.ownerAddress,
+        decimal: parseInt(payload.contractConfiguration.decimals),
+        initialOwnerBalance: BigInt(
+          payload.contractConfiguration.initialOwnerBalance,
+        ),
+        totalSupply: parseInt(payload.contractConfiguration.totalSupply),
+        projectName: payload.contractConfiguration.projectName,
+      });
 
       if (!res || !res.success) {
         toast.error("failed to create new EVM", {

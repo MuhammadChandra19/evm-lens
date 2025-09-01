@@ -39,6 +39,7 @@ export const useCurrentPlayground = () => {
     playgroundId,
     getConfig,
     accountList,
+    accounts,
     getFunctionLastResult,
     getStoredFunctionResultHistory,
   };

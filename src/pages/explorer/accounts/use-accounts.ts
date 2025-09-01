@@ -1,12 +1,11 @@
-import useEVMStore from "@/store/evm";
 import { ETH_DECIMAL } from "@/lib/constants";
+import useAppStore from "@/store/app";
 
 /**
  * Hook for account-specific functionality using real EVM store data
  */
 export const useAccounts = () => {
-  const evmStore = useEVMStore();
-  const accounts = evmStore.accounts || {};
+  const { accounts } = useAppStore();
 
   // Transform EVM accounts to display format
   const transformedAccounts = Object.values(accounts).map((account, index) => ({
