@@ -40,6 +40,6 @@ export const useCurrentPlayground = () => {
     getConfig,
     accountList,
     getFunctionLastResult,
-    getStoredFunctionResultHistory
+    getStoredFunctionResultHistory,
   };
 };

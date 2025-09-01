@@ -56,6 +56,17 @@ const useAppStore = create<AppStore>()((set, get) => ({
   getAllPlayground: (): PlaygroundConfig[] => {
     return Array.from(get().configs.values());
   },
+
+  setAccounts: (accounts: [string, AccountInfo][]) => {
+    const currentAccounts = get().accounts;
+    for (let i = 0; i < accounts.length; i++) {
+      const [id, account] = accounts[i];
+      currentAccounts.set(id, account);
+    }
+    set({
+      accounts: currentAccounts,
+    });
+  },
 }));
 
 export default useAppStore;

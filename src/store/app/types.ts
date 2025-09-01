@@ -22,7 +22,6 @@ export type PlaygroundConfig = {
   decimals: number;
   totalSupply: bigint;
   abi: Abi;
-  createdAt: Date;
   isActive?: boolean;
 };
 
@@ -68,6 +67,8 @@ export type AppAction = {
   ) => ResultHistory[];
 
   getAllPlayground: () => PlaygroundConfig[];
+
+  setAccounts: (accounts: [string, AccountInfo][]) => void;
 };
 
 export type AppStore = AppState & AppAction;
