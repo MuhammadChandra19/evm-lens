@@ -8,7 +8,7 @@ export const useAccounts = () => {
   const { accounts } = useAppStore();
 
   // Transform EVM accounts to display format
-  const transformedAccounts = Object.values(accounts).map((account, index) => ({
+  const transformedAccounts = Array.from(accounts.values()).map((account, index) => ({
     id: index + 1,
     address: account.address.toString(),
     balance: (Number(account.balance) / Math.pow(10, ETH_DECIMAL)).toFixed(4),

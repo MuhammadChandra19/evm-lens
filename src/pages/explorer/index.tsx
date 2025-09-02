@@ -16,6 +16,7 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { useExplorer } from "@/hooks/use-explorer";
+import useAppStore from '@/store/app';
 
 const ExplorerDashboard = () => {
   const {
@@ -29,6 +30,8 @@ const ExplorerDashboard = () => {
     getTransactionTypeColor,
     getTransactionTypeName,
   } = useExplorer();
+  const state = useAppStore.getState()
+  console.log(state)
 
   return (
     <div className="container mx-auto p-6 space-y-6">

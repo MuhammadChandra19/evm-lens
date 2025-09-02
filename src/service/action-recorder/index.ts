@@ -145,6 +145,7 @@ export class ActionRecorder {
         return async (payload: unknown) => {
           return this.evmAdapter!.deployContract(
             payload as CreateNewEVMPayload,
+            false
           );
         };
 
@@ -154,7 +155,7 @@ export class ActionRecorder {
           return this.evmAdapter!.createAccount(
             playgroundId,
             this.toAddressType(typedPayload.address),
-            true,
+            false,
           );
         };
 
@@ -165,12 +166,13 @@ export class ActionRecorder {
             playgroundId,
             typedPayload.address,
             typedPayload.balance,
+            false
           );
         };
 
       case "CALL_FUNCTION":
         return async (payload: unknown) => {
-          return this.evmAdapter!.callFunction(payload as TxData);
+          return this.evmAdapter!.callFunction(payload as TxData, false);
         };
 
       default:

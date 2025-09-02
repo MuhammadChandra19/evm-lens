@@ -55,6 +55,10 @@ const AppProvider = ({ children }: AppProviderProps) => {
         };
 
         const evmAdapter = new EVMAdapter(evm, recordActionWrapper);
+
+        // Connect the EVMAdapter to the ActionRecorder for snapshot replay
+        recorder.setEVMAdapter(evmAdapter);
+
         setRepository(repo);
         setActionRecorder(recorder);
         setEvmAdapter(evmAdapter);

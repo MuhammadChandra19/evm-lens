@@ -1,7 +1,7 @@
 import { Address } from "@ethereumjs/util";
 import usePlaygroundStore from "@/store/playground";
 import { FunctionCallForm } from "@/store/playground/types";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { parseEVMStepsToFlow } from "@/service/evm-analyzer/utils/react-flow-parser";
 import { AbiFunction } from "@/service/evm-analyzer/abi/types";
@@ -10,7 +10,7 @@ import { useApp } from "@/hooks/use-app";
 import { useCurrentPlayground } from "../../use-current-playground";
 
 const useAbiHandler = () => {
-  const { playgroundId, accounts } = useCurrentPlayground();
+  const { playgroundId, accountList } = useCurrentPlayground();
   const { evmAdapter } = useApp();
   const [executing, setExecuting] = useState(false);
   const activeFunction = usePlaygroundStore((store) => store.activeFunction);
@@ -53,6 +53,7 @@ const useAbiHandler = () => {
         });
       }
 
+      console.log(res)
       const flowData = parseEVMStepsToFlow(res.data.steps, (v) =>
         console.log(v),
       );
@@ -76,11 +77,6 @@ const useAbiHandler = () => {
   const hasOutput = () =>
     activeFunction?.type === "function" &&
     (activeFunction.func as AbiFunction).outputs.length > 0;
-
-  const accountList = useMemo(
-    () => Object.values(accounts!).map((v) => v),
-    [accounts],
-  );
 
   return {
     activeFunction,
