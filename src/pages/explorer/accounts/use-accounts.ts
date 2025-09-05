@@ -1,26 +1,27 @@
-import useEVMStore from "@/store/evm";
 import { ETH_DECIMAL } from "@/lib/constants";
+import useAppStore from "@/store/app";
 
 /**
  * Hook for account-specific functionality using real EVM store data
  */
 export const useAccounts = () => {
-  const evmStore = useEVMStore();
-  const accounts = evmStore.accounts || {};
+  const { accounts } = useAppStore();
 
   // Transform EVM accounts to display format
-  const transformedAccounts = Object.values(accounts).map((account, index) => ({
-    id: index + 1,
-    address: account.address.toString(),
-    balance: (Number(account.balance) / Math.pow(10, ETH_DECIMAL)).toFixed(4),
-    transactionCount: Number(account.nonce), // Nonce represents transaction count
-    type: account.isContract ? "Contract" : "EOA",
-    playground: 1, // TODO: Add playground tracking when available
-    rawBalance: account.balance,
-    nonce: account.nonce,
-    codeHash: account.codeHash,
-    storageRoot: account.storageRoot,
-  }));
+  const transformedAccounts = Array.from(accounts.values()).map(
+    (account, index) => ({
+      id: index + 1,
+      address: account.address.toString(),
+      balance: (Number(account.balance) / Math.pow(10, ETH_DECIMAL)).toFixed(4),
+      transactionCount: Number(account.nonce), // Nonce represents transaction count
+      type: account.isContract ? "Contract" : "EOA",
+      playground: 1, // TODO: Add playground tracking when available
+      rawBalance: account.balance,
+      nonce: account.nonce,
+      codeHash: account.codeHash,
+      storageRoot: account.storageRoot,
+    }),
+  );
 
   // Computed values
   const totalAccounts = transformedAccounts.length;

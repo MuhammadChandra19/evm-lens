@@ -1,10 +1,9 @@
-import type { SnapshotType } from "@/repository/snapshot/entity";
-import type { EVMStore } from "@/store/evm/types";
+import type { Snapshot, SnapshotType } from "@/repository/snapshot/entity";
 
 export type ReplayableAction = {
   type: SnapshotType;
   payload: unknown;
-  execute: (payload: unknown, evmStore: EVMStore) => Promise<unknown>;
+  snapshot: Snapshot;
 };
 
 export type SnapshotResult<T> = {

@@ -20,7 +20,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { ChevronDown, Play, Zap } from "lucide-react";
 import { NodeClickData } from "@/service/evm-analyzer/utils/react-flow-parser";
-import { ResultHistory } from "@/store/playground/types";
+import { ResultHistory } from "@/store/app/types";
 type Props = {
   lastExecutionResult: ResultHistory;
 };
@@ -65,12 +65,8 @@ const ExecutionFlow = ({ lastExecutionResult }: Props) => {
       return selectedNodeData;
     }
 
-    if (nodes[nodes.length - 1].data) {
-      return nodes[nodes.length - 1].data.clickData;
-    }
-
     return undefined;
-  }, [nodes, selectedNodeData]);
+  }, [selectedNodeData]);
 
   return (
     <div className="w-full col-span-9 flex flex-col gap-3 h-full">

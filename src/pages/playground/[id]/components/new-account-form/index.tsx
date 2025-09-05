@@ -11,23 +11,21 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { generateRandomAddress } from "@/lib/utils";
-import useEVMStore from "@/store/evm";
 import { CircleUser, Dice6 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useApp } from "@/hooks/use-app";
+import { useCurrentPlayground } from "../../use-current-playground";
+import { usePlayground } from "@/hooks/use-playground";
 
 const NewAccountForm = () => {
-  const { actionRecorder } = useApp();
+  const { playgroundId } = useCurrentPlayground();
+  const { createAccount, fundAccount } = usePlayground();
   const [open, setOpen] = useState(false);
   const [balance, setBalance] = useState("0");
   const [address, setAddress] = useState("");
   const [errorAddress, setErrorAddress] = useState<string | null>(null);
   const [errorBalance, setErrorBalance] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
-  const createAccount = useEVMStore((store) => store.createAccount);
-  const fundAccount = useEVMStore((store) => store.fundAccount);
 
   const handleSubmit = async () => {
     setErrorAddress(null);
@@ -45,7 +43,7 @@ const NewAccountForm = () => {
         setErrorAddress("Address must be filled");
       }
 
-      const account = await createAccount(address, actionRecorder);
+      const account = await createAccount(playgroundId, address);
       if (!account) {
         toast.error("failed to create accoung");
         return;
@@ -57,7 +55,7 @@ const NewAccountForm = () => {
 
       if (balanceNum === 0) return;
 
-      await fundAccount(account, BigInt(balance), actionRecorder);
+      await fundAccount(playgroundId, account, BigInt(balance));
       toast.success("account funded", {
         description: `Eth amount: ${balance}`,
       });
@@ -76,7 +74,7 @@ const NewAccountForm = () => {
           Add New Account
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Add user to chain</DialogTitle>
           <DialogDescription>

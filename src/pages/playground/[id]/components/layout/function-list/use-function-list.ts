@@ -1,16 +1,14 @@
 import { AbiValidator } from "@/service/evm-analyzer/abi";
-import useEVMStore from "@/store/evm";
 import { useCallback, useMemo } from "react";
 import { MenuAction, MenuItem, MenuItemChild } from "./types";
 import { BookText, PencilLine, Zap } from "lucide-react";
-import usePlaygroundStore from "@/store/playground";
-import { ActiveFunction } from "@/store/playground/types";
+import { ActiveFunction } from "@/store/app/types";
+import { useCurrentPlayground } from "../../../use-current-playground";
 
 const useFunctionList = () => {
-  const abi = useEVMStore((store) => store.abi);
-  const setActiveFunction = usePlaygroundStore(
-    (store) => store.setActiveFunction,
-  );
+  const { getConfig, setActiveFunction } = useCurrentPlayground();
+
+  const { abi } = getConfig();
 
   const handleClickFunction = useCallback(
     (action: MenuAction, func: ActiveFunction) => {

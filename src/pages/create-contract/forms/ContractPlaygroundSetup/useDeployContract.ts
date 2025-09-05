@@ -2,18 +2,17 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ContractEVMSchema, contractEVMSchema } from "./schema";
 import { DEFAULT_DATA } from "./data";
-import useEVMStore from "@/store/evm";
 import { toast } from "sonner";
-import { ERRORS } from "@/store/evm/errors";
 import { AbiValidator } from "@/service/evm-analyzer/abi";
 import { Abi } from "@/service/evm-analyzer/abi/types";
 import { useNavigate } from "react-router";
 import { useApp } from "@/hooks/use-app";
+import { usePlayground } from "@/hooks/use-playground";
 
 const useDeployContract = () => {
   const navigate = useNavigate();
-  const { repository, actionRecorder } = useApp();
-  const deployContract = useEVMStore((store) => store.deployContractToEVM);
+  const { repository } = useApp();
+  const { deployContractToEVM } = usePlayground();
   const method = useForm<ContractEVMSchema>({
     resolver: zodResolver(contractEVMSchema),
     defaultValues: DEFAULT_DATA,
@@ -37,9 +36,6 @@ const useDeployContract = () => {
     try {
       const id = new Date().getTime();
 
-      // Set the playground ID on the action recorder BEFORE deploying
-      actionRecorder.setPlaygroundId(id);
-
       const abi = validateAbi(payload.bytecodeAndAbi.contractAbi);
       if (!abi) {
         toast.error("failed to create new EVM", {
@@ -48,26 +44,23 @@ const useDeployContract = () => {
         return;
       }
 
-      const res = await deployContract(
-        {
-          id,
-          abi,
-          contractAddress: payload.contractConfiguration.contractAddress,
-          constructorBytecode: payload.bytecodeAndAbi.constructorBytecode,
-          ownerAddress: payload.contractConfiguration.ownerAddress,
-          decimal: parseInt(payload.contractConfiguration.decimals),
-          initialOwnerBalance: BigInt(
-            payload.contractConfiguration.initialOwnerBalance,
-          ),
-          totalSupply: parseInt(payload.contractConfiguration.totalSupply),
-          projectName: payload.contractConfiguration.projectName,
-        },
-        actionRecorder,
-      );
+      const res = await deployContractToEVM({
+        id,
+        abi,
+        contractAddress: payload.contractConfiguration.contractAddress,
+        constructorBytecode: payload.bytecodeAndAbi.constructorBytecode,
+        ownerAddress: payload.contractConfiguration.ownerAddress,
+        decimal: parseInt(payload.contractConfiguration.decimals),
+        initialOwnerBalance: BigInt(
+          payload.contractConfiguration.initialOwnerBalance,
+        ),
+        totalSupply: parseInt(payload.contractConfiguration.totalSupply),
+        projectName: payload.contractConfiguration.projectName,
+      });
 
       if (!res || !res.success) {
         toast.error("failed to create new EVM", {
-          description: ERRORS.EVM_NOT_INITIALIZED,
+          description: "Unkown error",
         });
 
         return;

@@ -11,20 +11,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { Wallet } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import useEVMStore from "@/store/evm";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useApp } from "@/hooks/use-app";
+import { useCurrentPlayground } from "../../use-current-playground";
+import { usePlayground } from "@/hooks/use-playground";
 
 const BalanceForm = () => {
-  const { actionRecorder } = useApp();
+  const { fundAccount } = usePlayground();
+  const { playgroundId, getConfig } = useCurrentPlayground();
+
+  const { ownerAddress } = getConfig();
   const [balance, setBalance] = useState("1");
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
-  const fundAccount = useEVMStore((store) => store.fundAccount);
-  const ownerAddress = useEVMStore((store) => store.ownerAddress!);
 
   const handleSubmit = async () => {
     setError(null);
@@ -39,9 +39,9 @@ const BalanceForm = () => {
       }
 
       const res = await fundAccount(
+        playgroundId,
         ownerAddress,
         BigInt(balance),
-        actionRecorder,
       );
 
       if (!res.success) {
