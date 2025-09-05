@@ -9,7 +9,7 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { AnimatedSVGEdge } from "./animated-edges";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -28,12 +28,22 @@ const ExecutionFlow = ({ lastExecutionResult }: Props) => {
   const [selectedNodeData, setSelectedNodeData] =
     useState<NodeClickData | null>(null);
 
-  const [nodes, , onNodesChange] = useNodesState(
+  const [nodes, setNodes, onNodesChange] = useNodesState(
     lastExecutionResult!.executionFlow.nodes,
   );
-  const [edges, , onEdgesChange] = useEdgesState(
+  const [edges, setEdges, onEdgesChange] = useEdgesState(
     lastExecutionResult!.executionFlow.edges,
   );
+
+  // Update nodes and edges when lastExecutionResult changes
+  useEffect(() => {
+    if (lastExecutionResult?.executionFlow) {
+      setNodes(lastExecutionResult.executionFlow.nodes);
+      setEdges(lastExecutionResult.executionFlow.edges);
+      // Reset selected node when execution result changes
+      setSelectedNodeData(null);
+    }
+  }, [lastExecutionResult, setNodes, setEdges]);
 
   const edgeTypes = {
     animatedSvg: AnimatedSVGEdge,

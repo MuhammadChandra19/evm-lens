@@ -111,7 +111,6 @@ export const useSnapshotReplay = ({
       for (let i = 0; i < snapshots.data.length; i++) {
         const action = snapshots.data[i];
         try {
-          console.log("Begin snapshot: ", action.type, action.payload);
           await handleExecute(
             action.snapshot.playgroundId!,
             action.type,

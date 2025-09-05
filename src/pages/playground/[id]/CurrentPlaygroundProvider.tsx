@@ -1,11 +1,36 @@
-import useAppStore from "@/store/app";
-import { ActiveFunction } from "@/store/app/types";
-import { useCallback, useMemo } from "react";
+import { createContext, useMemo, useCallback, ReactNode } from "react";
 import { useParams } from "react-router";
-/**
- * Hook to get current playground data from URL params and playground store
- */
-export const useCurrentPlayground = () => {
+import useAppStore from "@/store/app";
+import {
+  ActiveFunction,
+  PlaygroundConfig,
+  ResultHistory,
+} from "@/store/app/types";
+import type { AccountInfo } from "@/service/evm-analyzer";
+
+export interface CurrentPlaygroundContextValue {
+  playgroundId: number;
+  getConfig: () => PlaygroundConfig | null;
+  accountList: AccountInfo[];
+  accounts: Map<string, AccountInfo>;
+  getFunctionLastResult: (functionName: string) => ResultHistory | undefined;
+  activeFunction: ActiveFunction | undefined;
+  setActiveFunction: (func: ActiveFunction) => void;
+  lastExecutionResult: ResultHistory | null;
+  saveExecutionResult: (history: ResultHistory) => void;
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const CurrentPlaygroundContext =
+  createContext<CurrentPlaygroundContextValue | null>(null);
+
+interface CurrentPlaygroundProviderProps {
+  children: ReactNode;
+}
+
+export const CurrentPlaygroundProvider = ({
+  children,
+}: CurrentPlaygroundProviderProps) => {
   const { id: playgroundIdParam } = useParams<{ id: string }>();
 
   const playgroundId = useMemo(() => {
@@ -71,19 +96,37 @@ export const useCurrentPlayground = () => {
         v.playgroundId === playgroundId &&
         v.functionName === activeFunction.func.name,
     );
-
     return results.length > 0 ? results[0] : null;
   }, [activeFunction, history, playgroundId]);
 
-  return {
-    playgroundId,
-    getConfig,
-    accountList,
-    accounts,
-    getFunctionLastResult,
-    activeFunction,
-    setActiveFunction,
-    lastExecutionResult,
-    saveExecutionResult,
-  };
+  const value = useMemo(
+    () => ({
+      playgroundId,
+      getConfig,
+      accountList,
+      accounts,
+      getFunctionLastResult,
+      activeFunction,
+      setActiveFunction,
+      lastExecutionResult,
+      saveExecutionResult,
+    }),
+    [
+      playgroundId,
+      getConfig,
+      accountList,
+      accounts,
+      getFunctionLastResult,
+      activeFunction,
+      setActiveFunction,
+      lastExecutionResult,
+      saveExecutionResult,
+    ],
+  );
+
+  return (
+    <CurrentPlaygroundContext.Provider value={value}>
+      {children}
+    </CurrentPlaygroundContext.Provider>
+  );
 };

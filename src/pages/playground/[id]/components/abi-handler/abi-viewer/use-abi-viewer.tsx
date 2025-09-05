@@ -1,4 +1,4 @@
-import { useCurrentPlayground } from "../../../use-current-playground";
+import { useCurrentPlayground } from "../../../use-current-playground-context";
 
 const useAbiViewer = () => {
   const { activeFunction } = useCurrentPlayground();

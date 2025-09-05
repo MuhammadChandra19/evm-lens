@@ -14,7 +14,7 @@ import { generateRandomAddress } from "@/lib/utils";
 import { CircleUser, Dice6 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useCurrentPlayground } from "../../use-current-playground";
+import { useCurrentPlayground } from "../../use-current-playground-context";
 import { usePlayground } from "@/hooks/use-playground";
 
 const NewAccountForm = () => {
@@ -59,6 +59,8 @@ const NewAccountForm = () => {
       toast.success("account funded", {
         description: `Eth amount: ${balance}`,
       });
+
+      setOpen(false);
     } catch (e) {
       console.error(e);
       toast.error("Failed to create new account");

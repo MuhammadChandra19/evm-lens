@@ -18,7 +18,7 @@ import Intro from "./intro";
 import BalanceForm from "../balance-form";
 import NewAccountForm from "../new-account-form";
 import { useNavigate } from "react-router";
-import { useCurrentPlayground } from "../../use-current-playground";
+import { useCurrentPlayground } from "../../use-current-playground-context";
 
 type Props = {
   children: ReactNode;

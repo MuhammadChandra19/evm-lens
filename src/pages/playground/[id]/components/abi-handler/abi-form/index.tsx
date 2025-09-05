@@ -53,7 +53,10 @@ const AbiForm = () => {
                   key={v.address.toString()}
                   value={v.address.toString()}
                 >
-                  {v.address.toString()}
+                  <div className="w-full flex gap-2">
+                    <span>{v.address.toString()} - </span>
+                    <span>{Number(v.balance || 0n) / 1e18} ETH</span>
+                  </div>
                 </SelectItem>
               ))}
             </SelectContent>

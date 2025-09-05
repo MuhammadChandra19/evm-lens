@@ -3,21 +3,25 @@ import { useCallback, useMemo } from "react";
 import { MenuAction, MenuItem, MenuItemChild } from "./types";
 import { BookText, PencilLine, Zap } from "lucide-react";
 import { ActiveFunction } from "@/store/app/types";
-import { useCurrentPlayground } from "../../../use-current-playground";
+import { useCurrentPlayground } from "../../../use-current-playground-context";
 
 const useFunctionList = () => {
   const { getConfig, setActiveFunction } = useCurrentPlayground();
 
-  const { abi } = getConfig();
-
   const handleClickFunction = useCallback(
-    (action: MenuAction, func: ActiveFunction) => {
+    (_action: MenuAction, func: ActiveFunction) => {
       setActiveFunction(func);
     },
     [setActiveFunction],
   );
 
   const functions = useMemo(() => {
+    const config = getConfig();
+    if (!config) {
+      return [];
+    }
+
+    const { abi } = config;
     const abiValidator = new AbiValidator(abi);
     const readFunctions = abiValidator.getReadFunctions();
     const writeFunctions = abiValidator.getWriteFunctions();
@@ -76,7 +80,7 @@ const useFunctionList = () => {
         items: eventsMenu,
       },
     ] as MenuItem[];
-  }, [abi, handleClickFunction]);
+  }, [getConfig, handleClickFunction]);
 
   return {
     functions,

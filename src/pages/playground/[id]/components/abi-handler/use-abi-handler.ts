@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { parseEVMStepsToFlow } from "@/service/evm-analyzer/utils/react-flow-parser";
 import { AbiFunction } from "@/service/evm-analyzer/abi/types";
 import { extractUint256 } from "@/lib/utils";
-import { useCurrentPlayground } from "../../use-current-playground";
+import { useCurrentPlayground } from "../../use-current-playground-context";
 import { usePlayground } from "@/hooks/use-playground";
 
 const useAbiHandler = () => {
@@ -79,7 +79,7 @@ const useAbiHandler = () => {
     activeFunction,
     handleExecute,
     executing,
-    accountList,
+    accountList: accountList.filter((v) => !v.isContract),
   };
 };
 

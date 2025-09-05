@@ -13,18 +13,24 @@ import { Wallet } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useCurrentPlayground } from "../../use-current-playground";
+import { useCurrentPlayground } from "../../use-current-playground-context";
 import { usePlayground } from "@/hooks/use-playground";
 
 const BalanceForm = () => {
   const { fundAccount } = usePlayground();
   const { playgroundId, getConfig } = useCurrentPlayground();
 
-  const { ownerAddress } = getConfig();
   const [balance, setBalance] = useState("1");
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  const config = getConfig();
+  if (!config) {
+    return null;
+  }
+
+  const { ownerAddress } = config;
 
   const handleSubmit = async () => {
     setError(null);
