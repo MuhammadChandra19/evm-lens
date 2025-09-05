@@ -2,7 +2,7 @@ import type { Repository } from "@/repository";
 import initRepository from "@/repository";
 import { ActionRecorder } from "@/service/action-recorder";
 import LoadingScreen from "@/components/loading-screen";
-import { createContext, ReactNode, useEffect, useState } from "react";
+import { createContext, ReactNode, useEffect, useRef, useState } from "react";
 import EVMAnalyzer from "@/service/evm-analyzer";
 import { EVMAdapter } from "@/service/evm-adapter";
 
@@ -26,12 +26,18 @@ const AppProvider = ({ children }: AppProviderProps) => {
   );
   const [evmAdapter, setEvmAdapter] = useState<EVMAdapter | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
+  const hasInitializedRef = useRef(false); // Prevent double initialization
 
   useEffect(() => {
     const init = async () => {
+      if (hasInitializedRef.current) {
+        return;
+      }
+
+      hasInitializedRef.current = true;
+
       try {
         const repo = await initRepository();
-        // await repo.clearTables(["playground", "snapshot"]);
         const evm = await EVMAnalyzer.create();
         const recorder = new ActionRecorder(repo.snapshot);
 

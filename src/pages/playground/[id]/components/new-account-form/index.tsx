@@ -74,7 +74,7 @@ const NewAccountForm = () => {
           Add New Account
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Add user to chain</DialogTitle>
           <DialogDescription>

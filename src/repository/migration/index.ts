@@ -3,6 +3,7 @@ import m2 from "../../../drizzle/0001_worried_cannonball.sql?raw";
 import m3 from "../../../drizzle/0002_reflective_reptil.sql?raw";
 import m4 from "../../../drizzle/0003_tiny_shockwave.sql?raw";
 import m5 from "../../../drizzle/0004_chilly_stature.sql?raw";
+import m6 from "../../../drizzle/0005_curly_smiling_tiger.sql?raw";
 
 import { MigrationMeta } from "./migrate-browser";
 const migrations: MigrationMeta[] = [
@@ -34,6 +35,12 @@ const migrations: MigrationMeta[] = [
     sql: [m5],
     folderMillis: 1756610811609,
     hash: "0004_chilly_stature",
+    bps: true,
+  },
+  {
+    sql: [m6],
+    folderMillis: 1757058189791,
+    hash: "0005_curly_smiling_tiger",
     bps: true,
   },
 ];

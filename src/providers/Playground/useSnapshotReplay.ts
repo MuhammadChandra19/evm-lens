@@ -33,7 +33,11 @@ type Props = {
     txData: TxData,
     shouldRecord?: boolean,
   ) => Promise<ExecutionResult | undefined>;
-  registerAccount: (playgroundId: number, address: Address, shouldRecord: boolean) => Promise<void>;
+  registerAccount: (
+    playgroundId: number,
+    address: Address,
+    shouldRecord: boolean,
+  ) => Promise<void>;
 };
 
 export const useSnapshotReplay = ({
@@ -107,6 +111,7 @@ export const useSnapshotReplay = ({
       for (let i = 0; i < snapshots.data.length; i++) {
         const action = snapshots.data[i];
         try {
+          console.log("Begin snapshot: ", action.type, action.payload);
           await handleExecute(
             action.snapshot.playgroundId!,
             action.type,

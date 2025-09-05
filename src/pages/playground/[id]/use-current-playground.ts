@@ -1,7 +1,7 @@
-import useAppStore from '@/store/app';
-import { ActiveFunction } from '@/store/app/types';
-import { useCallback, useMemo } from 'react';
-import { useParams } from 'react-router';
+import useAppStore from "@/store/app";
+import { ActiveFunction } from "@/store/app/types";
+import { useCallback, useMemo } from "react";
+import { useParams } from "react-router";
 /**
  * Hook to get current playground data from URL params and playground store
  */
@@ -13,25 +13,30 @@ export const useCurrentPlayground = () => {
   }, [playgroundIdParam]);
 
   const getPlaygroundConfig = useAppStore((store) => store.getPlaygroundConfig);
-  const setPlaygroundActiveFunction = useAppStore((store) => store.setActiveFunction);
+  const setPlaygroundActiveFunction = useAppStore(
+    (store) => store.setActiveFunction,
+  );
   const accounts = useAppStore((store) => store.accounts);
   const playgroundState = useAppStore((store) => store.playground);
-  const getStoredFunctionLastResult = useAppStore((store) => store.getFunctionLastResult);
+  const getStoredFunctionLastResult = useAppStore(
+    (store) => store.getFunctionLastResult,
+  );
   const saveExecutionResult = useAppStore((store) => store.saveExecutionResult);
   const history = useAppStore((store) => store.history);
 
   const getConfig = useCallback(
     () => getPlaygroundConfig(playgroundId),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [playgroundId]
+    [playgroundId],
   );
 
   const accountList = useMemo(() => Array.from(accounts.values()), [accounts]);
 
   const getFunctionLastResult = useCallback(
-    (functionName: string) => getStoredFunctionLastResult(playgroundId, functionName),
+    (functionName: string) =>
+      getStoredFunctionLastResult(playgroundId, functionName),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [playgroundId]
+    [playgroundId],
   );
 
   const setActiveFunction = useCallback(
@@ -40,7 +45,7 @@ export const useCurrentPlayground = () => {
     },
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [playgroundId]
+    [playgroundId],
   );
 
   const { activeFunction } = useMemo(() => {
@@ -61,7 +66,11 @@ export const useCurrentPlayground = () => {
     if (!activeFunction) return null;
 
     // Find the most recent execution result for the active function
-    const results = history.filter((v) => v.playgroundId === playgroundId && v.functionName === activeFunction.func.name);
+    const results = history.filter(
+      (v) =>
+        v.playgroundId === playgroundId &&
+        v.functionName === activeFunction.func.name,
+    );
 
     return results.length > 0 ? results[0] : null;
   }, [activeFunction, history, playgroundId]);

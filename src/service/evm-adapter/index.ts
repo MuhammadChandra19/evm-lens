@@ -173,7 +173,7 @@ export class EVMAdapter {
         tx.type === "function" &&
         (tx.func as AbiFunction).stateMutability === "payable"
       ) {
-        ethAmount = tx.ethAmount * BigInt(10 ** decimals);
+        ethAmount = tx.ethAmount * BigInt(10 ** ETH_DECIMAL);
       }
 
       const result = await this.evm.callContract(
@@ -202,7 +202,7 @@ export class EVMAdapter {
       ) {
         const actionPayload = {
           ...tx,
-          executorAddres: [tx.executorAddress.toString(), "Address"],
+          executorAddress: [tx.executorAddress.toString(), "Address"],
         };
 
         this.recordAction(

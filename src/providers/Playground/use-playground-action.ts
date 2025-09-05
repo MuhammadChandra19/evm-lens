@@ -42,8 +42,14 @@ const usePlaygroundAction = () => {
     balance: bigint,
     shouldRecord: boolean = true,
   ) => {
-    const parsedBalance = balance * BigInt(10 ** ETH_DECIMAL);
-    const storedAccount = accounts.get(address.toString());
+    let storedAccount = accounts.get(address.toString());
+
+    // During replay, if account doesn't exist in store, create it first
+    if (!storedAccount && !shouldRecord) {
+      await createAccount(playgroundId, address.toString(), false);
+      // Get fresh state after account creation
+      storedAccount = useAppStore.getState().accounts.get(address.toString());
+    }
 
     if (!storedAccount) {
       console.error(
@@ -55,17 +61,39 @@ const usePlaygroundAction = () => {
       };
     }
 
-    const newBalance = storedAccount.balance + parsedBalance;
+    let newBalance: bigint;
+
+    if (shouldRecord) {
+      // Regular funding from UI: convert ETH to wei and add to existing balance
+      const parsedBalance = balance * BigInt(10 ** ETH_DECIMAL);
+      newBalance = storedAccount.balance + parsedBalance;
+    } else {
+      // Snapshot replay: balance is already in wei format, set it directly (don't add)
+      newBalance = balance;
+    }
+
     const result = await evmAdapter.addFundToAccount(
       playgroundId,
       address,
       newBalance,
       shouldRecord,
-      balance,
+      newBalance,
     );
 
     if (result.success) {
       updateAccountBalance(address.toString(), newBalance);
+
+      // During replay, also sync the account from EVM to ensure consistency
+      if (!shouldRecord) {
+        try {
+          const evmAccount = await evmAdapter.getAccount(address);
+          if (evmAccount) {
+            setAccounts([[address.toString(), evmAccount]]);
+          }
+        } catch (e) {
+          console.warn(`Failed to sync EVM account:`, e);
+        }
+      }
     }
 
     return result;
@@ -106,8 +134,16 @@ const usePlaygroundAction = () => {
     }
   };
 
-  const registerAccount = async (playgroundId: number, address: Address, shouldRecord: boolean = true) => {
-    const result = await evmAdapter.registerAccount(playgroundId, address, shouldRecord);
+  const registerAccount = async (
+    playgroundId: number,
+    address: Address,
+    shouldRecord: boolean = true,
+  ) => {
+    const result = await evmAdapter.registerAccount(
+      playgroundId,
+      address,
+      shouldRecord,
+    );
     if (!result) return;
 
     setAccounts([

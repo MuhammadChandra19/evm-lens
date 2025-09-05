@@ -27,7 +27,14 @@ type Props = {
 const Layout = ({ children }: Props) => {
   const navigate = useNavigate();
   const { getConfig, accounts, activeFunction } = useCurrentPlayground();
-  const { ownerAddress } = getConfig();
+  const config = getConfig();
+
+  // Guard against undefined config
+  if (!config) {
+    return null; // or a loading state
+  }
+
+  const { ownerAddress } = config;
   return (
     <SidebarProvider>
       <FunctionList />
