@@ -73,3 +73,11 @@ export interface AccountFundingData {
   amountAdded: bigint;
   playgroundId: number;
 }
+
+export type ExecutionResult =
+  | (CallResult & {
+      steps: ExecutionStep[];
+    })
+  | null;
+
+export type ContractDeploymentResult = DeploymentResult;

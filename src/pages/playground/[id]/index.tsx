@@ -2,13 +2,10 @@ import Layout from "./components/layout";
 import ExecutionFlow from "./components/execution-flow";
 import ExecutionPlaceholder from "./components/execution-flow/execution-placeholder";
 import AbiHandler from "./components/abi-handler";
-import usePlaygroundStore from "@/store/playground";
+import { useCurrentPlayground } from './use-current-playground';
 
 const Playground = () => {
-  const lastExecutionResult = usePlaygroundStore((store) => {
-    if (!store.activeFunction) return undefined;
-    return store.getFunctionLastResult(store.activeFunction.func.name!);
-  });
+  const { lastExecutionResult } = useCurrentPlayground();
 
   return (
     <Layout>

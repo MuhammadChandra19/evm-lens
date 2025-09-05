@@ -1,7 +1,7 @@
-import usePlaygroundStore from "@/store/playground";
+import { useCurrentPlayground } from "../../../use-current-playground";
 
 const useAbiViewer = () => {
-  const activeFunction = usePlaygroundStore((store) => store.activeFunction);
+  const { activeFunction } = useCurrentPlayground();
 
   return {
     activeFunction,

@@ -1,11 +1,19 @@
-import { Address } from '@ethereumjs/util';
-import { ActionRecorder } from '../action-recorder';
-import EVMAnalyzer, { AccountInfo, CallResult, ExecutionStep } from '../evm-analyzer';
-import { ContractDeploymentData, CreateNewEVMPayload, EVMResult, TxData } from './types';
-import { ETH_DECIMAL } from '@/lib/constants';
-import useAppStore from '@/store/app';
-import { generateFunctionHash, generateInputHash } from '../evm-analyzer/abi/util';
-import { AbiFunction } from '../evm-analyzer/abi/types';
+import { Address } from "@ethereumjs/util";
+import { ActionRecorder } from "../action-recorder";
+import EVMAnalyzer, { AccountInfo } from "../evm-analyzer";
+import {
+  ContractDeploymentResult,
+  CreateNewEVMPayload,
+  ExecutionResult,
+  TxData,
+} from "./types";
+import { ETH_DECIMAL } from "@/lib/constants";
+import {
+  generateFunctionHash,
+  generateInputHash,
+} from "../evm-analyzer/abi/util";
+import { AbiFunction } from "../evm-analyzer/abi/types";
+import { AppStore } from "@/store/app/types";
 
 /**
  * EVM Adapter - handles all EVM operations with consistent return types
@@ -15,112 +23,164 @@ export class EVMAdapter {
   private recordAction: typeof ActionRecorder.prototype.recordAction;
   private evm: EVMAnalyzer;
 
-  constructor(evm: EVMAnalyzer, recordAction: typeof ActionRecorder.prototype.recordAction) {
+  constructor(
+    evm: EVMAnalyzer,
+    recordAction: typeof ActionRecorder.prototype.recordAction,
+  ) {
     this.evm = evm;
     this.recordAction = recordAction;
   }
 
-  /**
-   * Deploy contract with playground integration (copied from deployContractToEVM)
-   */
-  async deployContract(payload: CreateNewEVMPayload, shouldRecord: boolean = true): Promise<EVMResult<ContractDeploymentData>> {
+  async deployNewContract(
+    payload: CreateNewEVMPayload,
+    getState: () => AppStore,
+    shouldRecord: boolean = true,
+  ): Promise<ContractDeploymentResult | null> {
+    const owner = this.toAddressType(payload.ownerAddress);
+    const ownerAddress = await this.createNewAccount(
+      payload.id,
+      owner,
+      shouldRecord,
+    );
+
+    if (!ownerAddress) return null;
+
+    const contract = this.toAddressType(payload.contractAddress);
+    const contractAddress = await this.createNewAccount(
+      payload.id,
+      contract,
+      shouldRecord,
+    );
+
+    if (!contractAddress) return null;
+
+    const res = await this.evm.deployContract(
+      ownerAddress,
+      payload.constructorBytecode,
+      contractAddress,
+    );
+
+    if (!res.success) return null;
+
+    const parsedBalance =
+      payload.initialOwnerBalance * BigInt(10 ** ETH_DECIMAL);
+    await this.addFundToAccount(
+      payload.id,
+      ownerAddress,
+      parsedBalance,
+      shouldRecord,
+    );
+
+    const ownerAccountInfo = await this.evm.getAccountInfo(ownerAddress);
+    const contractAccountInfo = await this.evm.getAccountInfo(contractAddress);
+    const accounts: [string, AccountInfo][] = [];
+    if (ownerAccountInfo) {
+      accounts.push([ownerAddress.toString(), ownerAccountInfo]);
+    }
+    if (contractAccountInfo) {
+      accounts.push([contractAddress.toString(), contractAccountInfo]);
+    }
+
+    const { setAccounts, createNewPlayground } = getState();
+    setAccounts(accounts);
+    createNewPlayground({
+      abi: payload.abi,
+      contractAddress: contractAddress,
+      decimals: payload.decimal,
+      id: payload.id,
+      name: payload.projectName,
+      ownerAddress: ownerAddress,
+      totalSupply: BigInt(payload.totalSupply) * BigInt(10 ** payload.decimal),
+    });
+
+    if (shouldRecord) {
+      await this.recordAction(
+        payload.id,
+        "DEPLOY_CONTRACT",
+        payload,
+        res.gasUsed.toString(),
+      );
+    }
+
+    return res;
+  }
+
+  async createNewAccount(
+    playgroundId: number,
+    address: Address,
+    shouldRecord: boolean = true,
+  ) {
+    const account = await this.evm.createAccount(address);
+    if (account && shouldRecord) {
+      const actionPayload = { address: address.toString() };
+      await this.recordAction(
+        playgroundId,
+        "CREATE_ACCOUNT",
+        actionPayload,
+        "0",
+      );
+    }
+
+    return account;
+  }
+
+  async addFundToAccount(
+    playgroundId: number,
+    address: Address,
+    balance: bigint,
+    shouldRecord: boolean = true,
+    recordAmount?: bigint,
+  ) {
     try {
-      const appStore = useAppStore.getState();
-      const owner = new Address(Buffer.from(payload.ownerAddress.slice(2), 'hex'));
-      const ownerAddress = await this.createAccount(payload.id, owner, shouldRecord);
-      if (!ownerAddress) {
-        return {
-          data: {} as ContractDeploymentData,
-          success: false,
-          error: 'Failed to create owner account',
-        };
-      }
-
-      const contract = new Address(Buffer.from(payload.contractAddress.slice(2), 'hex'));
-      const contractAddress = await this.createAccount(payload.id, contract, shouldRecord);
-      if (!contractAddress) {
-        return {
-          data: {} as ContractDeploymentData,
-          success: false,
-          error: 'Failed to create contract account',
-        };
-      }
-
-      const res = await this.evm.deployContract(ownerAddress, payload.constructorBytecode, contractAddress);
-
-      if (!res.success) {
-        return {
-          data: {} as ContractDeploymentData,
-          success: false,
-          error: 'Contract deployment failed',
-        };
-      }
-
-      await this.fundAccount(payload.id, ownerAddress, payload.initialOwnerBalance, shouldRecord);
-
-      const ownerAccountInfo = await this.evm.getAccountInfo(ownerAddress);
-      const contractAccountInfo = await this.evm.getAccountInfo(contractAddress);
-
-      const accounts: [string, AccountInfo][] = [];
-      if (ownerAccountInfo) {
-        accounts.push([ownerAddress.toString(), ownerAccountInfo]);
-      }
-      if (contractAccountInfo) {
-        accounts.push([contractAddress.toString(), contractAccountInfo]);
-      }
-      appStore.setAccounts(accounts);
-      appStore.createNewPlayground({
-        abi: payload.abi,
-        id: payload.id,
-        contractAddress: contractAddress,
-        decimals: payload.decimal,
-        name: payload.projectName,
-        ownerAddress: ownerAddress,
-        totalSupply: BigInt(payload.totalSupply) * BigInt(10 ** payload.decimal), // Fix calculation
-      });
-
-      // Record the action with detailed context
+      await this.evm.fundAccount(address, balance);
+      const result = { success: true, error: null };
       if (shouldRecord) {
-        await this.recordAction(payload.id, 'DEPLOY_CONTRACT', payload, res.gasUsed.toString());
+        const actionPayload = {
+          address: [address.toString(), "Address"],
+          balance: recordAmount !== undefined ? recordAmount : balance,
+        };
+
+        await this.recordAction(
+          playgroundId,
+          "FUND_ACCOUNT",
+          actionPayload,
+          "0",
+        );
       }
 
-      return {
-        success: true,
-        data: {
-          contractAddress,
-          ownerAddress,
-          deploymentResult: res,
-          playgroundId: payload.id,
-        },
-        gasUsed: res.gasUsed,
-      };
-    } catch (error) {
-      return {
-        data: {} as ContractDeploymentData,
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
-      };
+      return result;
+    } catch (e) {
+      console.error("Failed to add fund to account:", e);
+      return { success: false, error: e };
     }
   }
 
-  async callFunction(tx: TxData, shouldRecord: boolean = true): Promise<EVMResult<CallResult & { steps: ExecutionStep[] }>> {
+  async callContractFunction(
+    playgroundId: number,
+    tx: TxData,
+    getState: () => AppStore,
+    shouldRecord: boolean = true,
+  ): Promise<ExecutionResult> {
     try {
-      const appStore = useAppStore.getState();
-      const config = appStore.getPlaygroundConfig(tx.playgroundId);
+      const { getPlaygroundConfig } = getState();
+      const { contractAddress, decimals } = getPlaygroundConfig(playgroundId);
 
       let data = generateFunctionHash(tx.func);
-      data += generateInputHash(tx.func, tx.args, config.decimals);
+      data += generateInputHash(tx.func, tx.args, decimals);
 
       let ethAmount = 0n;
-      if (tx.type === 'function' && (tx.func as AbiFunction).stateMutability === 'payable') {
-        ethAmount = tx.ethAmount * BigInt(10 ** config.decimals);
+      if (
+        tx.type === "function" &&
+        (tx.func as AbiFunction).stateMutability === "payable"
+      ) {
+        ethAmount = tx.ethAmount * BigInt(10 ** decimals);
       }
 
       const result = await this.evm.callContract(
         {
           data,
           from: tx.executorAddress,
-          to: config.contractAddress,
+          to: contractAddress,
           gasLimit: BigInt(tx.gasLimit),
           value: ethAmount,
         },
@@ -128,95 +188,35 @@ export class EVMAdapter {
           includeMemory: true,
           includeStack: true,
           includeStorage: true,
-        }
+        },
       );
 
       if (!result.success) {
-        return {
-          data: {} as CallResult & { steps: ExecutionStep[] },
-          success: false,
-          error: result.error || 'Function execution failed',
-        };
+        return result;
       }
 
-      if (shouldRecord && tx.type === 'function' && (tx.func as AbiFunction).stateMutability !== 'view') {
+      if (
+        shouldRecord &&
+        tx.type === "function" &&
+        (tx.func as AbiFunction).stateMutability !== "view"
+      ) {
         const actionPayload = {
           ...tx,
-          executorAddres: [tx.executorAddress.toString(), 'Address'],
+          executorAddres: [tx.executorAddress.toString(), "Address"],
         };
 
-        await this.recordAction(tx.playgroundId, 'CALL_FUNCTION', actionPayload, result.gasUsed.toString());
+        this.recordAction(
+          playgroundId,
+          "CALL_FUNCTION",
+          actionPayload,
+          result.gasUsed.toString(),
+        );
       }
-
-      return {
-        success: true,
-        data: result,
-        gasUsed: result.gasUsed,
-        gasRefund: result.gasRefund,
-      };
-    } catch (error) {
-      return {
-        data: {} as CallResult & { steps: ExecutionStep[] },
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
-      };
-    }
-  }
-
-  async createAccount(playgroundId: number, address: Address, shouldRecord: boolean = true): Promise<Address | null> {
-    const appStore = useAppStore.getState();
-    const account = await this.evm.createAccount(address);
-
-    if (account) {
-      // Always add account to app store, whether recording or replaying
-      const newAccount: AccountInfo = {
-        address: account,
-        balance: 0n,
-        nonce: 0n,
-      };
-
-      appStore.setAccounts([[account.toString(), newAccount]]);
-
-      // Only record the action if we should record
-      if (shouldRecord) {
-        const acitonPayload = { address: address.toString() };
-        await this.recordAction(playgroundId, 'CREATE_ACCOUNT', acitonPayload, '0');
-      }
-    }
-
-    return account;
-  }
-
-  async fundAccount(playgroundId: number, address: Address, balance: bigint, shouldRecord: boolean = true) {
-    try {
-      const appStore = useAppStore.getState();
-      const account = appStore.getAccount(address.toString());
-      if (!account) {
-        return {
-          success: false,
-          error: 'Account not found',
-        };
-      }
-      const parsedBalance = balance * BigInt(10 ** ETH_DECIMAL);
-
-      // Always add to existing balance - this works for both normal operation and replay
-      const newBalance = account.balance + parsedBalance;
-
-      await this.evm.fundAccount(address, newBalance);
-      const result = { success: true, error: null };
-      if (shouldRecord) {
-        const actionPayload = {
-          address: [address.toString(), 'Address'],
-          balance,
-        };
-        await this.recordAction(playgroundId, 'FUND_ACCOUNT', actionPayload, '0');
-      }
-      account.balance = newBalance;
-      appStore.setAccounts([[address.toString(), account]]);
 
       return result;
     } catch (e) {
-      return { success: false, error: e };
+      console.error(e);
+      throw new Error("failed to call function", e as ErrorOptions);
     }
   }
 
@@ -225,13 +225,35 @@ export class EVMAdapter {
       const res = await this.evm.getAccountInfo(address);
       return res;
     } catch (e) {
-      throw new Error(e instanceof Error ? e.message : 'Unknown error occurred');
+      throw new Error(
+        e instanceof Error ? e.message : "Unknown error occurred",
+      );
     }
   }
 
+  async registerAccount(
+    playgroundId: number,
+    address: Address,
+    shouldRecord = true,
+  ) {
+    const result = await this.createNewAccount(playgroundId, address);
+
+    if (result && shouldRecord) {
+      const actionPayload = { address: [address.toString(), "Address"] };
+      await this.recordAction(
+        playgroundId,
+        "REGISTER_ACCOUNT",
+        actionPayload,
+        "0",
+      );
+    }
+
+    return result;
+  }
+
   toAddressType(address: string) {
-    const fixAddress = address.startsWith('0x') ? address.slice(2) : address;
-    const addressType = new Address(Buffer.from(fixAddress, 'hex'));
+    const fixAddress = address.startsWith("0x") ? address.slice(2) : address;
+    const addressType = new Address(Buffer.from(fixAddress, "hex"));
 
     return addressType;
   }

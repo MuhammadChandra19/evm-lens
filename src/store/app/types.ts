@@ -71,6 +71,10 @@ export type AppAction = {
   getAllPlayground: () => PlaygroundConfig[];
 
   setAccounts: (accounts: [string, AccountInfo][]) => void;
+
+  updateAccountBalance: (account: string, balance: bigint) => void;
+
+  setActiveFunction: (id: number, activeFunction: ActiveFunction) => void;
 };
 
 export type AppStore = AppState & AppAction;

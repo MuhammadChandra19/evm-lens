@@ -7,10 +7,12 @@ import { AbiValidator } from "@/service/evm-analyzer/abi";
 import { Abi } from "@/service/evm-analyzer/abi/types";
 import { useNavigate } from "react-router";
 import { useApp } from "@/hooks/use-app";
+import { usePlayground } from "@/hooks/use-playground";
 
 const useDeployContract = () => {
   const navigate = useNavigate();
-  const { evmAdapter, repository } = useApp();
+  const { repository } = useApp();
+  const { deployContractToEVM } = usePlayground();
   const method = useForm<ContractEVMSchema>({
     resolver: zodResolver(contractEVMSchema),
     defaultValues: DEFAULT_DATA,
@@ -42,7 +44,7 @@ const useDeployContract = () => {
         return;
       }
 
-      const res = await evmAdapter.deployContract({
+      const res = await deployContractToEVM({
         id,
         abi,
         contractAddress: payload.contractConfiguration.contractAddress,
@@ -58,7 +60,7 @@ const useDeployContract = () => {
 
       if (!res || !res.success) {
         toast.error("failed to create new EVM", {
-          description: res.error || "Unkown error",
+          description: "Unkown error",
         });
 
         return;

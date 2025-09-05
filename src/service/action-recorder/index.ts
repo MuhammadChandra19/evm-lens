@@ -3,7 +3,6 @@ import type { NewSnapshot, SnapshotType } from "@/repository/snapshot/entity";
 import { SnapshotRepository } from "@/repository/snapshot/query";
 import { ReplayableAction, SnapshotResult } from "./types";
 import { EVMAdapter } from "../evm-adapter";
-import { CreateNewEVMPayload, TxData } from "../evm-adapter/types";
 
 export class ActionRecorder {
   private snapshotRepo: SnapshotRepository;
@@ -28,7 +27,7 @@ export class ActionRecorder {
       const replayableAction: ReplayableAction[] = res.map((snapshot) => ({
         type: snapshot.type,
         payload: this.deserializePayload(snapshot.payload),
-        execute: this.getActionExecutor(snapshot.playgroundId!, snapshot.type),
+        snapshot,
       }));
 
       return {
@@ -131,52 +130,5 @@ export class ActionRecorder {
     const addressType = new Address(Buffer.from(fixAddress, "hex"));
 
     return addressType;
-  }
-
-  /**
-   * Get the appropriate executor function for an action type
-   */
-  private getActionExecutor(
-    playgroundId: number,
-    type: SnapshotType,
-  ): (payload: unknown) => Promise<unknown> {
-    switch (type) {
-      case "DEPLOY_CONTRACT":
-        return async (payload: unknown) => {
-          return this.evmAdapter!.deployContract(
-            payload as CreateNewEVMPayload,
-            false
-          );
-        };
-
-      case "CREATE_ACCOUNT":
-        return async (payload: unknown) => {
-          const typedPayload = payload as { address: string };
-          return this.evmAdapter!.createAccount(
-            playgroundId,
-            this.toAddressType(typedPayload.address),
-            false,
-          );
-        };
-
-      case "FUND_ACCOUNT":
-        return async (payload: unknown) => {
-          const typedPayload = payload as { address: Address; balance: bigint };
-          return this.evmAdapter!.fundAccount(
-            playgroundId,
-            typedPayload.address,
-            typedPayload.balance,
-            false
-          );
-        };
-
-      case "CALL_FUNCTION":
-        return async (payload: unknown) => {
-          return this.evmAdapter!.callFunction(payload as TxData, false);
-        };
-
-      default:
-        throw new Error(`Unknown action type: ${type}`);
-    }
   }
 }

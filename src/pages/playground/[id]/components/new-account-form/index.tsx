@@ -14,12 +14,12 @@ import { generateRandomAddress } from "@/lib/utils";
 import { CircleUser, Dice6 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useApp } from "@/hooks/use-app";
 import { useCurrentPlayground } from "../../use-current-playground";
+import { usePlayground } from "@/hooks/use-playground";
 
 const NewAccountForm = () => {
   const { playgroundId } = useCurrentPlayground();
-  const { evmAdapter } = useApp();
+  const { createAccount, fundAccount } = usePlayground();
   const [open, setOpen] = useState(false);
   const [balance, setBalance] = useState("0");
   const [address, setAddress] = useState("");
@@ -43,10 +43,7 @@ const NewAccountForm = () => {
         setErrorAddress("Address must be filled");
       }
 
-      const account = await evmAdapter.createAccount(
-        playgroundId,
-        evmAdapter.toAddressType(address),
-      );
+      const account = await createAccount(playgroundId, address);
       if (!account) {
         toast.error("failed to create accoung");
         return;
@@ -58,7 +55,7 @@ const NewAccountForm = () => {
 
       if (balanceNum === 0) return;
 
-      await evmAdapter.fundAccount(playgroundId, account, BigInt(balance));
+      await fundAccount(playgroundId, account, BigInt(balance));
       toast.success("account funded", {
         description: `Eth amount: ${balance}`,
       });

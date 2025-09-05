@@ -13,12 +13,12 @@ import { Wallet } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useApp } from "@/hooks/use-app";
 import { useCurrentPlayground } from "../../use-current-playground";
+import { usePlayground } from "@/hooks/use-playground";
 
 const BalanceForm = () => {
+  const { fundAccount } = usePlayground();
   const { playgroundId, getConfig } = useCurrentPlayground();
-  const { evmAdapter } = useApp();
 
   const { ownerAddress } = getConfig();
   const [balance, setBalance] = useState("1");
@@ -38,7 +38,7 @@ const BalanceForm = () => {
         return;
       }
 
-      const res = await evmAdapter.fundAccount(
+      const res = await fundAccount(
         playgroundId,
         ownerAddress,
         BigInt(balance),

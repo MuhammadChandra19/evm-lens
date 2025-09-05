@@ -1,5 +1,5 @@
-import { useNavigate } from 'react-router';
-import { toast } from 'sonner';
+import { useNavigate } from "react-router";
+import { toast } from "sonner";
 
 export const usePlaygroundNavigation = () => {
   const navigate = useNavigate();
@@ -13,7 +13,7 @@ export const usePlaygroundNavigation = () => {
     try {
       navigate(`/playground/${id}`);
     } catch (e) {
-      toast.error('Failed to switch playground');
+      toast.error("Failed to switch playground");
       console.error(e);
     }
   };

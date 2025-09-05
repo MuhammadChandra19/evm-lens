@@ -18,7 +18,7 @@ import Intro from "./intro";
 import BalanceForm from "../balance-form";
 import NewAccountForm from "../new-account-form";
 import { useNavigate } from "react-router";
-import usePlayground from "../use-playground";
+import { useCurrentPlayground } from "../../use-current-playground";
 
 type Props = {
   children: ReactNode;
@@ -26,7 +26,8 @@ type Props = {
 
 const Layout = ({ children }: Props) => {
   const navigate = useNavigate();
-  const { activeFunction, ownerAccount } = usePlayground();
+  const { getConfig, accounts, activeFunction } = useCurrentPlayground();
+  const { ownerAddress } = getConfig();
   return (
     <SidebarProvider>
       <FunctionList />
@@ -61,14 +62,17 @@ const Layout = ({ children }: Props) => {
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-gray-700">Owner:</span>
                   <code className="px-2 py-1 bg-gray-100 rounded text-xs font-mono text-gray-600">
-                    {ownerAccount.address.toString().slice(0, 6)}...
-                    {ownerAccount.address.toString().slice(-4)}
+                    {ownerAddress.toString().slice(0, 6)}...
+                    {ownerAddress.toString().slice(-4)}
                   </code>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-gray-700">Balance:</span>
                   <span className="text-blue-600 font-semibold">
-                    {Number(ownerAccount?.balance || 0n) / 1e18} ETH
+                    {Number(
+                      accounts.get(ownerAddress.toString())?.balance || 0n,
+                    ) / 1e18}{" "}
+                    ETH
                   </span>
                 </div>
               </div>
