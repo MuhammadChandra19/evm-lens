@@ -8,6 +8,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Link } from "react-router-dom";
 import {
   Search,
   Filter,
@@ -182,14 +183,16 @@ const AccountsPage = () => {
                     <div className="text-xs text-muted-foreground">Balance</div>
                   </div>
 
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="flex items-center gap-1"
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                    View
-                  </Button>
+                  <Link to={`/explorer/accounts/${account.address}`}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex items-center gap-1"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      View
+                    </Button>
+                  </Link>
                 </div>
               </div>
             ))}
