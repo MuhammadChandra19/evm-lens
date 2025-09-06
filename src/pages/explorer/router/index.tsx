@@ -3,6 +3,7 @@ import Layout from "../components/layout";
 import Explorer from "..";
 import TransactionsPage from "../transactions";
 import AccountsPage from "../accounts";
+import AccountDetailPage from "../accounts/[id]";
 
 const explorerRoute: RouteObject = {
   path: "explorer",
@@ -19,6 +20,10 @@ const explorerRoute: RouteObject = {
     {
       path: "accounts",
       Component: AccountsPage,
+    },
+    {
+      path: "accounts/:id",
+      Component: AccountDetailPage,
     },
   ],
 };
