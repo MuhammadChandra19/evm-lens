@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { parseEVMStepsToFlow } from "@/service/evm-analyzer/utils/react-flow-parser";
 import { AbiFunction } from "@/service/evm-analyzer/abi/types";
-import { extractUint256 } from "@/lib/utils";
+import { extractUint256, parseAbiReturnValue } from "@/lib/utils";
 import { useCurrentPlayground } from "../../use-current-playground-context";
 import { usePlayground } from "@/hooks/use-playground";
 
@@ -61,7 +61,7 @@ const useAbiHandler = () => {
         functionDefinitions: activeFunction!,
         functionName: activeFunction?.func.name || "",
         hasOutput: hasOutput(),
-        result: extractUint256(res.returnValue).toString(),
+        result: parseResult(res.returnValue),
       });
     } catch (e) {
       toast.error("Failed to execute function");
@@ -74,6 +74,29 @@ const useAbiHandler = () => {
   const hasOutput = () =>
     activeFunction?.type === "function" &&
     (activeFunction.func as AbiFunction).outputs.length > 0;
+
+  const getOutputType = (): string | null => {
+    if (activeFunction?.type === "function") {
+      const func = activeFunction.func as AbiFunction;
+      if (func.outputs && func.outputs.length > 0) {
+        // For now, handle single output functions
+        // TODO: Handle multiple outputs (tuples)
+        return func.outputs[0].type;
+      }
+    }
+    return null;
+  };
+
+  const parseResult = (returnValue: Uint8Array<ArrayBufferLike>): string => {
+    const outputType = getOutputType();
+
+    if (!outputType) {
+      // No output type defined, fallback to uint256
+      return extractUint256(returnValue).toString();
+    }
+
+    return parseAbiReturnValue(returnValue, outputType);
+  };
 
   return {
     activeFunction,

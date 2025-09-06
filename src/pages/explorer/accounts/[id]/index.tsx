@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Copy, RefreshCw, ArrowLeft, Coins, Wallet } from "lucide-react";
@@ -15,16 +21,11 @@ const AccountDetailPage = () => {
 
   // Find account by address (id is the account address)
   const account = Array.from(accounts.values()).find(
-    acc => acc.address.toString() === id
+    (acc) => acc.address.toString() === id,
   );
 
-  const {
-    tokenBalances,
-    isLoading,
-    error,
-    refreshBalances,
-    totalTokens
-  } = useAccountDetail(id || "");
+  const { tokenBalances, isLoading, error, refreshBalances, totalTokens } =
+    useAccountDetail(id || "");
 
   if (!account) {
     return (
@@ -84,7 +85,9 @@ const AccountDetailPage = () => {
           <div>
             <h1 className="text-3xl font-bold">Account Details</h1>
             <p className="text-muted-foreground">
-              {account.isContract ? "Contract Account" : "Externally Owned Account"}
+              {account.isContract
+                ? "Contract Account"
+                : "Externally Owned Account"}
             </p>
           </div>
         </div>
@@ -94,7 +97,9 @@ const AccountDetailPage = () => {
           disabled={isRefreshing}
           variant="outline"
         >
-          <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+          <RefreshCw
+            className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`}
+          />
           Refresh
         </Button>
       </div>
@@ -112,7 +117,9 @@ const AccountDetailPage = () => {
           <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
             <div>
               <div className="text-sm font-medium">Address</div>
-              <div className="font-mono text-sm">{account.address.toString()}</div>
+              <div className="font-mono text-sm">
+                {account.address.toString()}
+              </div>
             </div>
             <Button variant="ghost" size="sm" onClick={copyAddress}>
               <Copy className="h-4 w-4" />
@@ -178,7 +185,9 @@ const AccountDetailPage = () => {
           ) : tokenBalances.length === 0 ? (
             <div className="text-center py-8">
               <Coins className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground mb-2">No token balances found</p>
+              <p className="text-muted-foreground mb-2">
+                No token balances found
+              </p>
               <p className="text-sm text-muted-foreground">
                 This account doesn't hold any tokens from playground contracts
               </p>
@@ -186,17 +195,21 @@ const AccountDetailPage = () => {
           ) : (
             <div className="space-y-3">
               {tokenBalances.map((token: TokenBalance, index: number) => (
-                <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-                      {token.symbol?.charAt(0) || 'T'}
+                      {token.symbol?.charAt(0) || "T"}
                     </div>
                     <div>
                       <div className="font-medium">
-                        {token.name || 'Unknown Token'}
+                        {token.name || "Unknown Token"}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        {token.symbol || 'TKN'} • Contract: {formatAddress(token.contractAddress)}
+                        {token.symbol || "TKN"} • Contract:{" "}
+                        {formatAddress(token.contractAddress)}
                       </div>
                     </div>
                   </div>
@@ -206,7 +219,7 @@ const AccountDetailPage = () => {
                       {token.formattedBalance}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {token.symbol || 'TKN'}
+                      {token.symbol || "TKN"}
                     </div>
                   </div>
                 </div>
@@ -225,15 +238,19 @@ const AccountDetailPage = () => {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <div className="text-sm text-muted-foreground mb-1">Code Hash</div>
+                <div className="text-sm text-muted-foreground mb-1">
+                  Code Hash
+                </div>
                 <div className="font-mono text-sm bg-muted p-2 rounded">
-                  {account.codeHash || 'N/A'}
+                  {account.codeHash || "N/A"}
                 </div>
               </div>
               <div>
-                <div className="text-sm text-muted-foreground mb-1">Storage Root</div>
+                <div className="text-sm text-muted-foreground mb-1">
+                  Storage Root
+                </div>
                 <div className="font-mono text-sm bg-muted p-2 rounded">
-                  {account.storageRoot || 'N/A'}
+                  {account.storageRoot || "N/A"}
                 </div>
               </div>
             </div>
